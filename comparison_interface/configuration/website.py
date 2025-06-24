@@ -45,6 +45,7 @@ class Settings:
     ITEM_NAME = "name"
     ITEM_GROUP_ID = "group_id"
     ITEM_DISPLAY_NAME = "displayName"
+    ITEM_IMAGE_DESCRIPTION = "imageDescription"
     ITEM_IMAGE_NAME = "imageName"
     # User fields configuration fields
     USER_FIELD_NAME = "name"

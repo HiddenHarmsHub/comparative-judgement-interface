@@ -115,12 +115,16 @@ class Setup:
                         item_id=i[WS.ITEM_ID],
                         name=i[WS.ITEM_NAME],
                         display_name=i[WS.ITEM_DISPLAY_NAME],
+                        image_description=i.get(WS.ITEM_IMAGE_DESCRIPTION, None),
                         image_path=i[WS.ITEM_IMAGE_NAME],
                     )
                 else:
                     # this uses the implicit auto increment
                     item = Item(
-                        name=i[WS.ITEM_NAME], display_name=i[WS.ITEM_DISPLAY_NAME], image_path=i[WS.ITEM_IMAGE_NAME]
+                        name=i[WS.ITEM_NAME],
+                        display_name=i[WS.ITEM_DISPLAY_NAME],
+                        image_description=i.get(WS.ITEM_IMAGE_DESCRIPTION, None),
+                        image_path=i[WS.ITEM_IMAGE_NAME],
                     )
                 persist(db, item)
             else:
