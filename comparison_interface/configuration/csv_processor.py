@@ -29,6 +29,8 @@ class CsvProcessor:
                     "imageName": entry["image"],
                     "imageDescription": entry.get("item description", None),
                 }
+                if item["imageDescription"] in ['None', 'none']:
+                    item["imageDescription"] = None
                 by_group[entry["group name"]]["items"].append(item)
             groups = []
             for entry in by_group:
