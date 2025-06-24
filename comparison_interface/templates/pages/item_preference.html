@@ -5,7 +5,7 @@
   <form method="POST" id="item-selection-form" aria-labelledby="instructions">
     <span id="instructions" class="fs-4">{{item_selection_question}}&nbsp;<span class="fw-bold">{{ item.display_name }}</span>?</span>
     <div class="col-xl-12 p-4 text-center">
-      <img id="left-image" src= {{ url_for('static', filename = 'images/' + item.image_path|string) }} class="img-fluid pt-2" style="width:100%;max-width:600px; height:100%;max-height:600px;" alt="">
+      <img id="left-image" src= {{ url_for('static', filename = 'images/' + item.image_path|string) }} class="img-fluid pt-2" style="width:100%;max-width:600px; height:100%;max-height:600px;" alt="{% if item.image_description != None %}{{ item.image_description }}{% endif %}">
     </div>
     <div class="p-2">
       <div class="form-group">
