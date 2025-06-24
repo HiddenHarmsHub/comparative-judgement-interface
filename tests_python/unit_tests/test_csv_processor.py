@@ -151,7 +151,12 @@ def test_maximal_csv_processed_correctly():
                 "name": "wales_scotland_northern_ireland",
                 "displayName": "Wales, Scotland, Northern Ireland",
                 "items": [
-                    {"name": "wales", "displayName": "Wales", "imageName": "item_10.png", "imageDescription": None,},
+                    {
+                        "name": "wales",
+                        "displayName": "Wales",
+                        "imageName": "item_10.png",
+                        "imageDescription": None,
+                    },
                     {
                         "name": "scotland",
                         "displayName": "Scotland",
