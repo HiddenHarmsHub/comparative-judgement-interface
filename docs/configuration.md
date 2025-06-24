@@ -158,13 +158,36 @@ There is also an optional key for all projects **additionalRegistrationPageText*
 
 This section needs to define all of the images you want to use organised by groups and for weighted item pairs all of the pairs and their associated weights. If you are not using weighted pairs this comparison configuration can be provided directly in the JSON or as a csv file. When using a csv file the csv file and the JSON configuration file should be put in the same directory and when running the setup and reset commands the path to the configuration file should instead be to the parent directory containing the two files.
 
-To see how the JSON should be configured please refer to the examples provided.
+#### JSON format
+
+In the JSON format items should be separated into groups, items can appear in more than one group. 
+
+Each group needs to supply three keys:
+
++ **name** - A string which identifies the group and only contains lowercase alpha numeric characters, underscores and dashes.
++ **displayName** - A string which will be displayed to the user on the registration page so they can select the groups they know (if multiple groups are defined).
++ **items** - A list of the items in this group with each item following the configuration below.
+
+Each item needs at the least the first three of these keys and optionally the final two.
+
++ **name** - A string which identifies the item and only contains lowercase alpha numeric characters, underscores and dashes.
++ **displayName** - The string to be used to describe the item in the interface.
++ **imageName** - The file name of the image.
++ **id** - *optional* - a numerical identifier for each item in your configuration which will be used as its primary key in the database. If provided then each item must have an id provided and, if for any reason you list items twice in the configuration file (for example if a single item belongs to multiple groups), then the id must be consistent across all of the entries. If the id does not matter to you then it is best not to provide them and they will be assigned an id in the order the are processed in the configuration file, the option is included for those who need consistency with artefacts used for analysis that are created outside the flask database.
++ **imageDescription** - *optional* - A description of the image which will be read out by screen readers but not displayed on the screen. This should only be used if the description offers additional information that the item name alone does not convey.
+
+To see examples of how the JSON should be configured please refer to the examples provided.
 
 Refer to `examples/config-equal-item-weights.json` or `examples/config-equal-item-weights-preference.json` to configure a scenario without any weighting for the item pairs and either with or without the item preference stage.
 
 Refer to `examples/config-custom-item-weights.json` to configure a scenario where custom weights will be defined for all item pairs.
 
-There is an option to provide a numerical identifier for each item in your configuration which will be used as its primary key in the database. If provided then each item must have an id provided and, if for any reason you list items twice in the configuration file (for example if a single item belongs to multiple groups), then the id must be consistent across all of the entries. If the id does not matter to you then it is best not to provide them and they will be assigned an id in the order the are processed in the configuration file, the option is included for those who need consistency with artefacts used for analysis that are created outside the flask database.
+Image descriptions have been added to the `config-equal-item-weights.json` for illustrative purposes but in the example the map images do not
+offer any additional information to a screen reader user than the name of the area alone so when actually running study these descriptions
+should not be used.
+
+
+#### CSV format
 
 If the image configuration is being provided in a csv file, then the JSON file must provide the name of the csv file as follows:
 
@@ -179,6 +202,7 @@ The csv file must contain a minimum of two columns and up to five columns. The c
 + **image** - *required* - The file name of the image.
 + **item display name** - *required* - The string to be used to describe the image in the interface.
 + **item name** - *optional* - A string which identifies the image and only contains lowercase alpha numeric characters, underscores and dashes. This will be generated from the item display name if the column is not provided, but if there are any characters (with the exception of spaces) in the item display name column then validation errors will be raised.
++ **item description** - *optional* - A description of the image which will be read out by screen readers but not displayed on the screen. This should only be used if the description offers additional information that the item name alone does not convey.
 + **group display name** - *optional* - A string that identifies the group that this image belongs to. If this column is not provided then all of the images will be added to the single default group.
 + **group name** - *optional* - As with the item name this will be automatically generated from the group display name if that column is provided but if validation errors are raised due to special characters then this column may also be required.
 
