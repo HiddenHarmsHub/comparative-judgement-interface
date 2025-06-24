@@ -1,6 +1,6 @@
-<div class="row mb-3" role="group" aria-labelledby="{{name}}-label">
+<div class="row mb-3">
   <div id="{{name}}-label" for="{{name}}-radio" class="col-4 col-form-label {% if required == true %}required-field-label{% else %}{% endif %}">{{displayName}}</div>
-  <div id="{{name}}-radio" class="col-8" role="radiogroup" aria-label="{{displayName}}">
+  <div id="{{name}}-radio" class="col-8" role="radiogroup" aria-labelledby="{{name}}-label"">
     {% for value in option %}
       <label class="form-check-label" for="{{name}}-choice-{{loop.index}}">
         <input id="{{name}}-choice-{{loop.index}}" class="form-check-input" type="radio" name="{{name}}" value="{{value}}" {% if required == true %}required{% else %}{% endif %}> {{value}}
