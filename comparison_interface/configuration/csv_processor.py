@@ -27,6 +27,7 @@ class CsvProcessor:
                     "name": entry["item name"],
                     "displayName": entry["item display name"],
                     "imageName": entry["image"],
+                    "imageDescription": entry.get("item description", None)
                 }
                 by_group[entry["group name"]]["items"].append(item)
             groups = []
