@@ -205,4 +205,3 @@ def test_outcomes_api_available_and_correct_when_switched_on_if_key_sent(equal_w
     response = equal_weight_client_api.get("/api/outcomes", headers={'x-api-key': 'test-key'})
     assert response.status_code == 200
     assert response.data == b'item_1_id,item_2_id,outcome\r\n1,2,0\r\n3,4,1\r\n1,3,2\r\n'
-
