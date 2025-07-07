@@ -6,7 +6,7 @@ let browser;
 
 beforeAll(async () => {
   browser = await puppeteer.launch({
-    //headless: "new",
+    headless: "new",
     args: ['--no-sandbox']
   });
 });
