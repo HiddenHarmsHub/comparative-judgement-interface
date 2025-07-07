@@ -5,6 +5,7 @@ from io import BytesIO, StringIO
 from cachetools.func import ttl_cache
 from flask import Blueprint, abort, current_app, request, send_file, session
 
+from .db.export import Exporter
 from .db.models import Comparison, Item
 from .views.request import Request
 
@@ -62,11 +63,27 @@ class Judgements(Request):
             return send_file(BytesIO(file_buffer.read().encode('utf-8')), as_attachment=False, mimetype='text')
 
 
+class Outcomes(Request):
+    """API to get outcomes."""
+
+    def get(self, _):
+        """Calculate the outcomes and return them in csv format as text."""
+        data_list = Exporter(current_app).get_outcome_data()
+        with StringIO() as file_buffer:
+            if len(data_list) > 0:
+                keys = data_list[0].keys()
+                csv_writer = csv.DictWriter(file_buffer, keys)
+                csv_writer.writeheader()
+                csv_writer.writerows(data_list)
+            file_buffer.seek(0)
+            return send_file(BytesIO(file_buffer.read().encode('utf-8')), as_attachment=False, mimetype='text')
+
+
 class Items(Request):
     """API to get the items (images)."""
 
     def get(self, _):
-        """Get all of items in the database and return them in tsv format as text."""
+        """Get all of items in the database and return them in csv format as text."""
         data = Item.query.all()
         with StringIO() as file_buffer:
             data_list = [item.as_dict() for item in data]
@@ -84,6 +101,13 @@ class Items(Request):
 def api_judgements():
     """Handle api URL to get judgements made."""
     return Request.process(Judgements(current_app, session), request)
+
+
+@blueprint.route('/api/outcomes', methods=['GET'])
+@require_api_key
+def api_outcomes():
+    """Handle api URL to get outcomes."""
+    return Request.process(Outcomes(current_app, session), request)
 
 
 @blueprint.route('/api/items', methods=['GET'])
