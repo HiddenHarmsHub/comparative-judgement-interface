@@ -3,13 +3,12 @@ from functools import wraps
 from io import BytesIO, StringIO
 
 from cachetools.func import ttl_cache
-from flask import Blueprint, abort, current_app, request, send_file, session
+from flask import abort, current_app, request, send_file, session
 
-from .db.export import Exporter
-from .db.models import Comparison, Item
-from .views.request import Request
-
-blueprint = Blueprint('api', __name__)
+from comparison_interface.api import blueprint
+from comparison_interface.main.db.export import Exporter
+from comparison_interface.main.db.models import Comparison, Item
+from comparison_interface.main.views.request import Request
 
 
 @ttl_cache()

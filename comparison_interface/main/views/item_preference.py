@@ -52,7 +52,7 @@ class ItemsPreference(Request):
         # Render the item preference template
         _, _, _, item, _ = result
         return self._render_template(
-            'pages/item_preference.html',
+            'main/pages/item_preference.html',
             {
                 'item': item,
                 'item_selection_question': WS.get_text(WS.ITEM_SELECTION_QUESTION_LABEL, self._app),

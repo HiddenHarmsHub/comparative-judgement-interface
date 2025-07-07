@@ -27,7 +27,7 @@ class Register(Request):
 
         # Render components
         return self._render_template(
-            'pages/register.html',
+            'main/pages/register.html',
             {
                 'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._app),
                 'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._app),
@@ -94,7 +94,7 @@ class Register(Request):
         user_fields = WS.get_user_conf(self._app)
         # Add the custom user fields
         for field in user_fields:
-            component = 'components/{}.html'.format(field[WS.USER_FIELD_TYPE])
+            component = 'main/components/{}.html'.format(field[WS.USER_FIELD_TYPE])
             user_components.append(render_template(component, **field))
 
     def _load_group_component(self, user_components: list):
@@ -117,7 +117,7 @@ class Register(Request):
             error_text = ''
         user_components.append(
             render_template(
-                'components/group.html',
+                'main/components/group.html',
                 **{
                     'groups': groups,
                     'label': label_text,
@@ -152,7 +152,7 @@ class Register(Request):
         if render_ethics:
             user_components.append(
                 render_template(
-                    'components/ethics.html',
+                    'main/components/ethics.html',
                     **{
                         'ethics_agreement_label': WS.get_text(WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._app),
                         'ethics_link_text': WS.get_text(WS.USER_REGISTRATION_ETHICS_AGREEMENT_LINK_TEXT, self._app),

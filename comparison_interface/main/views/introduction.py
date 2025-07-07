@@ -21,7 +21,7 @@ class Introduction(Request):
         else:
             fragment = True
         return self._render_template(
-            'pages/introduction.html',
+            'main/pages/introduction.html',
             {
                 'fragment': fragment,
                 'html_string': html,

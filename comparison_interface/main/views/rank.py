@@ -40,7 +40,7 @@ class Rank(Request):
         # Show a "no content error" in case of not enough selected known items.
         if item_1 is None or item_2 is None:
             return self._render_template(
-                '204.html',
+                'main/204.html',
                 {
                     'error_204_title': WS.get_text(WS.ERROR_204_TITLE, self._app),
                     'error_204_message': WS.get_text(WS.ERROR_204_MESSAGE, self._app),
@@ -82,7 +82,7 @@ class Rank(Request):
         else:
             confirm_button_error_message = WS.get_text(WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP, self._app)
         return self._render_template(
-            'pages/rank.html',
+            'main/pages/rank.html',
             {
                 'item_1': item_1,
                 'item_2': item_2,

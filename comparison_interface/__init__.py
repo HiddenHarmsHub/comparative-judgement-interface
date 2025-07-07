@@ -8,14 +8,13 @@ from flask import Flask, current_app, render_template, session
 from numpy.random import default_rng
 from whitenoise import WhiteNoise
 
-import comparison_interface.routes as routes
-from comparison_interface.configuration.flask import Settings as FlaskSettings
-from comparison_interface.configuration.website import Settings as WS
-from comparison_interface.db.connection import db
-from comparison_interface.db.models import WebsiteControl
-from comparison_interface.views.request import Request
-
-from . import cli as commands
+from comparison_interface.cli import blueprint as commands_bp
+from comparison_interface.main import blueprint as main_bp
+from comparison_interface.main.configuration.flask import Settings as FlaskSettings
+from comparison_interface.main.configuration.website import Settings as WS
+from comparison_interface.main.db.connection import db
+from comparison_interface.main.db.models import WebsiteControl
+from comparison_interface.main.views.request import Request
 
 
 def create_app(test_config=None):
@@ -49,16 +48,15 @@ def create_app(test_config=None):
     db.init_app(app)
 
     # Register the custom Flask commands
-    app.register_blueprint(commands.blueprint)
+    app.register_blueprint(commands_bp)
 
     # Register the application views
-    app.register_blueprint(routes.blueprint)
+    app.register_blueprint(main_bp)
 
     # if we have asked for the api blueprint then register this here
     if "API_ACCESS" in app.config and app.config["API_ACCESS"] is True:
-        import comparison_interface.api as api
-
-        app.register_blueprint(api.blueprint)
+        from comparison_interface.api import blueprint as api_bp
+        app.register_blueprint(api_bp)
 
     # Register function executed before any request
     app.before_request(_before_request)
