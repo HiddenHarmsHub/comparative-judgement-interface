@@ -22,7 +22,7 @@ jobs:
           run: |
             source venv/bin/activate
             mv comparison_interface/static/example.images/ comparison_interface/static/images/
-            mv  comparison_interface/configuration/example.flask.py comparison_interface/configuration/flask.py
+            mv  comparison_interface/main/configuration/example.flask.py comparison_interface/main/configuration/flask.py
             pytest -v tests_python
 
     javascript_tests:
