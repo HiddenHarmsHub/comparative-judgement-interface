@@ -33,10 +33,22 @@ users know which groups.
 
 ![Database structure diagram](images/cj-database-diagram.png)
 
+In addition to the tables from the database a **outcome** table is also generated from the data in the comparison
+table. For all non-skipped comparisons it adds a row with the two item ids and the outcome for the comparison.
+
+The outcome data are:
+
+  + 0 if item 1 was selected
+  + 1 if item 3 was selected
+  + 2 if the comparison was tied
+
+This data is in a form that can be directly input into the
+[Bayesian Spatial Bradley--Terry model BSBT](https://github.com/rowlandseymour/BSBT) analysis. 
+
 ## API 
 
-There is also an option to expose the table containing the decisions made by users (no user details) and the table
-containing the item details via a secured API. 
+There is also an option to expose the table containing the decisions made by users (no user details), the outcome table 
+generated from those decisions and the table containing the item details via a secured API. 
 
 To enable the API:
 
@@ -44,10 +56,11 @@ To enable the API:
 + create a file at the top level of the repository which should contain the secret key which will be used to authenticate API calls
 + set the `API_KEY_FILE` variable n the `configuration/flask.py` file to the name of the file containing the secret key (the default is `.apikey`)
 
-Once the API is enabled the two tables can be accessed at the following two urls:
+Once the API is enabled the three tables can be accessed at the following urls:
 
 + http://localhost:5001/api/judgements
 + http://localhost:5001/api/items
++ http://localhost:5001/outcomes
 
 To access the data in the API requests must use the secret key to authenticate. All programming languages
 will have support for this. The following two examples show how to access the API from a command line using curl and

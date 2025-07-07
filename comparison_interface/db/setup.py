@@ -30,7 +30,10 @@ class Setup:
             export_location = WS.get_export_location(self.app)
             if os.path.exists(export_location):
                 for file in os.listdir(export_location):
-                    os.remove(os.path.join(export_location, file))
+                    try:
+                        os.remove(os.path.join(export_location, file))
+                    except IsADirectoryError:
+                        pass
 
             # The session needs be committed after the creation of the groups.
             self._setup_group(db)
