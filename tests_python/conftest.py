@@ -6,11 +6,11 @@ from sqlalchemy import MetaData
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import create_app
-from comparison_interface.configuration.validation import Validation as ConfigValidation
-from comparison_interface.configuration.website import Settings as WS
-from comparison_interface.db.connection import db
-from comparison_interface.db.models import UserGroup, UserItem
-from comparison_interface.db.setup import Setup as DBSetup
+from comparison_interface.main.configuration.validation import Validation as ConfigValidation
+from comparison_interface.main.configuration.website import Settings as WS
+from comparison_interface.main.db.connection import db
+from comparison_interface.main.db.models import UserGroup, UserItem
+from comparison_interface.main.db.setup import Setup as DBSetup
 
 
 def execute_setup(conf_file):
@@ -37,7 +37,7 @@ def execute_setup(conf_file):
 @pytest.fixture()
 def equal_weight_app():
     """Set up the project for testing with equal weights."""
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights.json")
+    app = execute_setup("../../tests_python/test_configurations/config-equal-item-weights.json")
     yield app
 
     with app.app_context():
@@ -56,7 +56,7 @@ def equal_weight_client(equal_weight_app):
 @pytest.fixture()
 def custom_weight_app():
     """Set up the project for testing with custom weights."""
-    app = execute_setup("../tests_python/test_configurations/config-custom-item-weights.json")
+    app = execute_setup("../../tests_python/test_configurations/config-custom-item-weights.json")
     yield app
 
     with app.app_context():

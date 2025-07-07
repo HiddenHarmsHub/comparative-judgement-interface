@@ -1,5 +1,5 @@
-from comparison_interface.views import register
-from comparison_interface.views.request import Request
+from comparison_interface.main.views import register
+from comparison_interface.main.views.request import Request
 
 
 def test_load_user_component(mocker, equal_weight_app):

@@ -1,7 +1,7 @@
 import pytest
 from marshmallow import ValidationError
 
-from comparison_interface.configuration.schema import BehaviourConfiguration, Group, Weight
+from comparison_interface.main.configuration.schema import BehaviourConfiguration, Group, Weight
 
 
 def test_empty_weight_schema_raises_error():

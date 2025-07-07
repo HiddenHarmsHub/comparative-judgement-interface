@@ -4,11 +4,11 @@ from datetime import datetime, timezone
 import pytest
 
 from app import create_app
-from comparison_interface.configuration.validation import Validation as ConfigValidation
-from comparison_interface.configuration.website import Settings as WS
-from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison
-from comparison_interface.db.setup import Setup as DBSetup
+from comparison_interface.main.configuration.validation import Validation as ConfigValidation
+from comparison_interface.main.configuration.website import Settings as WS
+from comparison_interface.main.db.connection import db
+from comparison_interface.main.db.models import Comparison
+from comparison_interface.main.db.setup import Setup as DBSetup
 
 
 # custom fixtures for these tests
@@ -36,7 +36,7 @@ def execute_setup_with_api(conf_file):
 @pytest.fixture()
 def equal_weight_app_api():
     """Set up the project for testing with equal weights with the api."""
-    app = execute_setup_with_api("../tests_python/test_configurations/config-equal-item-weights.json")
+    app = execute_setup_with_api("../../tests_python/test_configurations/config-equal-item-weights.json")
     yield app
 
     with app.app_context():

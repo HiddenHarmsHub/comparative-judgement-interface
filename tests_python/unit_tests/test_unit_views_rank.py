@@ -5,10 +5,10 @@ from numpy import random
 from sqlalchemy import MetaData, text
 from sqlalchemy.exc import SQLAlchemyError
 
-from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison, Group, Item, ItemGroup, UserGroup
-from comparison_interface.views import rank
-from comparison_interface.views.register import Request
+from comparison_interface.main.db.connection import db
+from comparison_interface.main.db.models import Comparison, Group, Item, ItemGroup, UserGroup
+from comparison_interface.main.views import rank
+from comparison_interface.main.views.register import Request
 
 
 @pytest.mark.usefixtures('equal_weight_app', 'add_basic_data_equal')
