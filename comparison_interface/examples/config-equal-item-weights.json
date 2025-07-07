@@ -70,46 +70,55 @@
                     {
                         "name": "north_east",
                         "displayName": "North East",
+                        "imageDescription": "A Map showing the boundary of the North East of England",
                         "imageName": "item_1.png"
                     },
                     {
                         "name": "north_west",
                         "displayName": "North West",
+                        "imageDescription": "A Map showing the boundary of the North West of England",
                         "imageName": "item_2.png"
                     },
                     {
                         "name": "yorkshire",
                         "displayName": "Yorkshire & Humberside",
+                        "imageDescription": "A Map showing the boundary of the Yorkshire and Humberside",
                         "imageName": "item_3.png"
                     },
                     {
                         "name": "east_midlands",
                         "displayName": "East Midlands",
+                        "imageDescription": "A Map showing the boundary of the East Midlands",
                         "imageName": "item_4.png"
                     },
                     {
                         "name": "west_midlands",
                         "displayName": "West Midlands",
+                        "imageDescription": "A Map showing the boundary of the West Midlands",
                         "imageName": "item_5.png"
                     },
                     {
                         "name": "eastern",
                         "displayName": "Eastern",
+                        "imageDescription": "A Map showing the boundary of Eastern England",
                         "imageName": "item_6.png"
                     },
                     {
                         "name": "london",
                         "displayName": "London",
+                        "imageDescription": "A Map showing the boundary of London",
                         "imageName": "item_7.png"
                     },
                     {
                         "name": "south_east",
                         "displayName": "South East",
+                        "imageDescription": "A Map showing the boundary of the South East of England",
                         "imageName": "item_8.png"
                     },
                     {
                         "name": "south_west",
                         "displayName": "South West",
+                        "imageDescription": "A Map showing the boundary of the South West of England",
                         "imageName": "item_9.png"
                     }
                 ]

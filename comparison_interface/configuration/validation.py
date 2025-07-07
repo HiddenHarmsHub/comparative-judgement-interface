@@ -87,7 +87,7 @@ class Validation:
             image_data.fieldnames = [x.lower() for x in image_data.fieldnames]
             # required - case doesn't matter
             required_keys = ["item display name", "image"]
-            # optional_keys are 'item name', 'group name', 'group display name'
+            # optional_keys are 'item name', 'group name', 'group display name', 'item description'
             for key in required_keys:
                 if key not in image_data.fieldnames:
                     raise ValidationError(

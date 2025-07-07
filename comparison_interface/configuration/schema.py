@@ -16,6 +16,7 @@ class Item(Schema):
     name = fields.Str(required=True, validate=[validate.Length(min=1, max=200)])
     displayName = fields.Str(required=True, validate=[validate.Length(min=1, max=200)])
     imageName = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
+    imageDescription = fields.Str(required=False, allow_none=True)
 
     # Allowed Items Image size
     MIN_WIDTH = 300

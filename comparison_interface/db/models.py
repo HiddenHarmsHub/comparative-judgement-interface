@@ -53,6 +53,7 @@ class Item(db.Model, BaseModel):
     name = db.Column(db.String(255), nullable=False)
     display_name = db.Column(db.String(255), nullable=False)
     image_path = db.Column(db.String(1000), nullable=False)
+    image_description = db.Column(db.String(1000), nullable=True)
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
     __table_args__ = (
@@ -93,7 +94,7 @@ class User(db.Model, BaseModel):
 
 
 class UserGroup(db.Model, BaseModel):
-    """Holds the group prefences of the user.
+    """Holds the group preferences of the user.
 
     Args:
         db (SQLAlchemy): SQLAlchemy connection object

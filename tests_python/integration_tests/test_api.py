@@ -149,8 +149,8 @@ def test_items_api_available_when_switched_on_if_key_sent(equal_weight_client_ap
     """
     response = equal_weight_client_api.get("/api/items", headers={'x-api-key': 'test-key'})
     assert response.status_code == 200
-    assert b'item_id,name,display_name,image_path,created_date' in response.data
-    assert b'1,north_east,North East,item_1.png' in response.data
+    assert b'item_id,name,display_name,image_path,image_description,created_date' in response.data
+    assert b'1,north_east,North East,item_1.png,None' in response.data
 
 
 @pytest.mark.usefixtures('key_file')
