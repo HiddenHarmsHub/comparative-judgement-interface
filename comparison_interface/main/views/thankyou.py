@@ -1,6 +1,7 @@
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import User
+
 from .request import Request
 
 

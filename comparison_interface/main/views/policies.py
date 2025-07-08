@@ -1,6 +1,7 @@
 import os
 
 from comparison_interface.configuration.website import Settings as WS
+
 from .request import Request
 
 

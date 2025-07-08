@@ -9,11 +9,11 @@ from numpy.random import default_rng
 from whitenoise import WhiteNoise
 
 from comparison_interface.cli import blueprint as commands_bp
-from comparison_interface.main import blueprint as main_bp
 from comparison_interface.configuration.flask import Settings as FlaskSettings
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import WebsiteControl
+from comparison_interface.main import blueprint as main_bp
 from comparison_interface.main.views.request import Request
 
 

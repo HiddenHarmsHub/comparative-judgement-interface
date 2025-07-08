@@ -6,6 +6,7 @@ from marshmallow import Schema, ValidationError, fields, post_load, validate, va
 from PIL import Image
 
 from comparison_interface.db.models import WebsiteControl
+
 from .website import Settings as WS
 
 

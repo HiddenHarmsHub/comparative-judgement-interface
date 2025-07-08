@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import Group, User, UserGroup, WebsiteControl
+
 from .request import Request
 
 
