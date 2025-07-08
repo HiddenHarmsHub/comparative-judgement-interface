@@ -4,9 +4,9 @@ from flask import render_template
 from sqlalchemy import MetaData
 from sqlalchemy.exc import SQLAlchemyError
 
-from ..configuration.website import Settings as WS
-from ..db.connection import db
-from ..db.models import Group, User, UserGroup, WebsiteControl
+from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import Group, User, UserGroup, WebsiteControl
 from .request import Request
 
 

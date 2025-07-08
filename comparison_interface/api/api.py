@@ -6,8 +6,8 @@ from cachetools.func import ttl_cache
 from flask import abort, current_app, request, send_file, session
 
 from comparison_interface.api import blueprint
-from comparison_interface.main.db.export import Exporter
-from comparison_interface.main.db.models import Comparison, Item
+from comparison_interface.db.export import Exporter
+from comparison_interface.db.models import Comparison, Item
 from comparison_interface.main.views.request import Request
 
 

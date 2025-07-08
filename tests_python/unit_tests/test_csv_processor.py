@@ -1,4 +1,4 @@
-from comparison_interface.main.configuration.csv_processor import CsvProcessor
+from comparison_interface.configuration.csv_processor import CsvProcessor
 
 
 def test_minimum_csv_processed_correctly():

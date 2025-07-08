@@ -1,6 +1,6 @@
 from flask import redirect, render_template, url_for
 
-from ..configuration.website import Settings as WS
+from comparison_interface.configuration.website import Settings as WS
 
 
 class Request:

@@ -1,5 +1,5 @@
-from comparison_interface.main.db.connection import db
-from comparison_interface.main.db.models import User
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import User
 from comparison_interface.main.views import register
 
 

@@ -1,4 +1,4 @@
-from comparison_interface.main.configuration.website import Settings as WS
+from comparison_interface.configuration.website import Settings as WS
 
 
 def test_configuration_has_key_true(equal_weight_app):

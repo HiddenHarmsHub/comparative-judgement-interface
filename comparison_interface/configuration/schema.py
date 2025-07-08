@@ -5,7 +5,7 @@ import re
 from marshmallow import Schema, ValidationError, fields, post_load, validate, validates
 from PIL import Image
 
-from ..db.models import WebsiteControl
+from comparison_interface.db.models import WebsiteControl
 from .website import Settings as WS
 
 
@@ -35,7 +35,7 @@ class Item(Schema):
 
     @validates('imageName')
     def _validate_image_path(self, image_name, data_key):
-        path = os.path.abspath(os.path.dirname(__file__)) + "/../../static/images/" + image_name
+        path = os.path.abspath(os.path.dirname(__file__)) + "/../static/images/" + image_name
         if not os.path.exists(path):
             raise ValidationError(f"Image {image_name} not found on static/images/ folder.")
 

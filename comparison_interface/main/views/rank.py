@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.expression import func
 
-from ..configuration.website import Settings as WS
-from ..db.connection import db
-from ..db.models import Comparison, CustomItemPair, Item, ItemGroup, User, UserGroup, UserItem, WebsiteControl
+from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import Comparison, CustomItemPair, Item, ItemGroup, User, UserGroup, UserItem, WebsiteControl
 from .request import Request
 
 

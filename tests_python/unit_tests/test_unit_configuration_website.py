@@ -1,4 +1,4 @@
-from comparison_interface.main.configuration.website import Settings
+from comparison_interface.configuration.website import Settings
 
 
 def test_set_configuration_location(equal_weight_app):

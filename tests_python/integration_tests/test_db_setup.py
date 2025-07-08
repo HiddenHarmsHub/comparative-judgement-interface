@@ -1,6 +1,6 @@
 from sqlalchemy import text
 
-from comparison_interface.main.db.connection import db
+from comparison_interface.db.connection import db
 from tests_python.conftest import execute_setup
 
 
@@ -97,7 +97,7 @@ def test_setup_items_with_ids():
     WHEN the database is initialised
     THEN the items are given the ids in the configuration file
     """
-    app = execute_setup("../../tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
     with app.app_context():
         item_count_sql = 'SELECT * FROM "item" WHERE "item_id"=12'
         items = db.session.execute(text(item_count_sql)).all()

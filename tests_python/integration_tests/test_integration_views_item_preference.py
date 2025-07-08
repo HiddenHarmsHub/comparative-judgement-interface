@@ -1,7 +1,7 @@
 import pytest
 
-from comparison_interface.main.db.connection import db
-from comparison_interface.main.db.models import UserItem
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import UserItem
 from tests_python.conftest import execute_setup
 
 
@@ -52,7 +52,7 @@ def test_no_render_prefer_item_selection_when_asked_not_to_in_config(user_data):
     WHEN a user is logged in and the item selection page is requested
     THEN the user is redirected to the ranking page
     """
-    app = execute_setup("../../tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
     with app.app_context():
         client = app.test_client()
         client.post("/register", data=user_data)

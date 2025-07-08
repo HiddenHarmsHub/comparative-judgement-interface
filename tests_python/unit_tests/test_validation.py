@@ -2,10 +2,10 @@ import pytest
 from marshmallow import ValidationError
 
 from app import create_app
-from comparison_interface.main.configuration.validation import Validation
-from comparison_interface.main.configuration.validation import Validation as ConfigValidation
-from comparison_interface.main.configuration.website import Settings as WS
-from comparison_interface.main.db.setup import Setup as DBSetup
+from comparison_interface.configuration.validation import Validation
+from comparison_interface.configuration.validation import Validation as ConfigValidation
+from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.setup import Setup as DBSetup
 
 
 def test_validate_csv_structure_invalid_csv(equal_weight_app, tmp_path):
@@ -45,7 +45,7 @@ def test_setup_works_for_directory_with_csv():
     app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": 'sqlite:///test_database.db'})
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
-    WS.set_configuration_location(app, "../../tests_python/test_configurations/csv_example_1")
+    WS.set_configuration_location(app, "../tests_python/test_configurations/csv_example_1")
     ConfigValidation(app).validate()
 
     # 2. Configure database
@@ -64,7 +64,7 @@ def test_setup_fails_for_directory_with_wrong_files():
     app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": 'sqlite:///test_database.db'})
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
-    WS.set_configuration_location(app, "../../tests_python/test_configurations")
+    WS.set_configuration_location(app, "../tests_python/test_configurations")
     with pytest.raises(SystemExit):
         ConfigValidation(app).validate()
 
@@ -76,7 +76,7 @@ def test_check_config_path_correct(equal_weight_app):
     THEN the system does not exit
     """
     validator = Validation(equal_weight_app)
-    validator.check_config_path("../../tests_python/test_configurations/csv_example_1")
+    validator.check_config_path("../tests_python/test_configurations/csv_example_1")
 
 
 def test_check_config_path_incorrect_directory(equal_weight_app):
@@ -87,7 +87,7 @@ def test_check_config_path_incorrect_directory(equal_weight_app):
     """
     validator = Validation(equal_weight_app)
     with pytest.raises(SystemExit):
-        validator.check_config_path("../../tests_python/test_configurations")
+        validator.check_config_path("../tests_python/test_configurations")
 
 
 def test_check_config_path_incorrect_file(equal_weight_app):
@@ -98,4 +98,4 @@ def test_check_config_path_incorrect_file(equal_weight_app):
     """
     validator = Validation(equal_weight_app)
     with pytest.raises(SystemExit):
-        validator.check_config_path("../../tests_python/test_configurations/csv_example_1/example_1.csv")
+        validator.check_config_path("../tests_python/test_configurations/csv_example_1/example_1.csv")

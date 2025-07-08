@@ -1,6 +1,6 @@
 import os
 
-from comparison_interface.main.configuration.website import Settings as WS
+from comparison_interface.configuration.website import Settings as WS
 
 
 def test_export_equal_weights(equal_weight_client, equal_weight_app, user_data):
