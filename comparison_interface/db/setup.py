@@ -25,6 +25,7 @@ class Setup:
         """
         with self.app.app_context():
             db.drop_all()
+            db.create_all('study_db')
             db.create_all()
 
             # Remove previous exported database content
@@ -44,7 +45,7 @@ class Setup:
             # The setup of the user configuration doesn't use SQLAlchemy ORM. The transaction
             # needs to be committed before inserting the user fields values. The user
             # columns values are dynamically defined so a different process needs to be followed.
-            self._setup_user(db)
+            #self._setup_participant(db)
 
     def _setup_group(self, db):
         """Save the group configuration in the database.
@@ -160,7 +161,7 @@ class Setup:
         else:
             self.app.logger.info("Reusing Item {} relationship with group {}.".format(item.name, group.name))
 
-    def _setup_user(self, db):
+    def _setup_participant(self, db):
         """Save the user configuration in the database.
 
         User fields are dynamically configured using the website configuration file.
@@ -192,21 +193,21 @@ class Setup:
             else:
                 nullable = 'NULL'
             if required is True:
-                basecommand = f'alter table user add column {name} {col_type} {nullable} DEFAULT "{default_value}"'
+                basecommand = f'alter table participant add column {name} {col_type} {nullable} DEFAULT "{default_value}"'
             else:
-                basecommand = f'alter table user add column {name} {col_type} {nullable}'
+                basecommand = f'alter table participant add column {name} {col_type} {nullable}'
             db.session.execute(text(basecommand))
 
-        # Add a field to specify if the user accepted the ethics agreement
+        # Add a field to specify if the participant accepted the ethics agreement
         # if this section was configured to be rendered
         render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
         if render_ethics:
-            db.session.execute(text('alter table user add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"'))
+            db.session.execute(text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"'))
 
     def _setup_website_control_history(self, db):
         """Setup the control history to monitor for changes to the website configuration file.
 
-        Once the project has been setup no changes are allowed to the website configuraiton file.
+        Once the project has been setup no changes are allowed to the website configuration file.
         if the file is changed the web interface will no longer respond to requests. A reset will be necessary and all
         information in the current database will be deleted as part of that process.
 

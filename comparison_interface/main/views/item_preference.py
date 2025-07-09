@@ -3,13 +3,13 @@ from sqlalchemy.sql.expression import func
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Item, ItemGroup, User, UserGroup, UserItem, WebsiteControl
+from comparison_interface.db.models import Item, ItemGroup, Participant, ParticipantGroup, ParticipantItem, WebsiteControl
 
 from .request import Request
 
 
 class ItemsPreference(Request):
-    """This page allows the registered user to specify which items are known and unknown.
+    """This page allows the registered participant to specify which items are known and unknown.
 
     Only known items will be shown during the comparative judgment comparisons.
     """
@@ -17,35 +17,35 @@ class ItemsPreference(Request):
     def get(self, _):
         """Request get handler."""
         if not self._valid_session():
-            return self._redirect('.user_registration')
+            return self._redirect('.participant_registration')
 
         # The item selection won't be allow if either:
         # 1. Manual weights were defined.
-        # 2. The user explicitly configured the website to not render this section.
+        # 2. The participant explicitly configured the website to not render this section.
         render_item_preference = WS.should_render(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._app)
         equal_weight_conf = self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT
         if not equal_weight_conf or not render_item_preference:
             return self._redirect('.rank')
 
-        # Get all items preferences not specified for the user yet.
+        # Get all items preferences not specified for the participant yet.
         query = (
-            db.select(User, UserGroup, ItemGroup, Item, UserItem)
-            .join(UserGroup, UserGroup.user_id == User.user_id, isouter=True)
-            .join(ItemGroup, ItemGroup.group_id == UserGroup.group_id, isouter=True)
+            db.select(Participant, ParticipantGroup, ItemGroup, Item, ParticipantItem)
+            .join(ParticipantGroup, ParticipantGroup.participant_id == Participant.participant_id, isouter=True)
+            .join(ItemGroup, ItemGroup.group_id == ParticipantGroup.group_id, isouter=True)
             .join(Item, ItemGroup.item_id == Item.item_id, isouter=True)
-            .join(UserItem, (UserItem.user_id == User.user_id) & (UserItem.item_id == Item.item_id), isouter=True)
+            .join(ParticipantItem, (ParticipantItem.participant_id == Participant.participant_id) & (ParticipantItem.item_id == Item.item_id), isouter=True)
             .where(
-                User.user_id == self._session['user_id'],
-                UserGroup.group_id.in_(self._session['group_ids']),
+                Participant.participant_id == self._session['participant_id'],
+                ParticipantGroup.group_id.in_(self._session['group_ids']),
                 ItemGroup.group_id.in_(self._session['group_ids']),
                 # WARNING: Don't change test against None to "is None". It won't work correctly.
-                UserItem.user_item_id == None,  # NoQA
+                ParticipantItem.participant_item_id == None,  # NoQA
             )
             .order_by(func.random())
         )
         result = db.session.execute(query).first()
 
-        # After the user had stated all items preferences
+        # After the participant had stated all items preferences
         # moves to the comparison itself.
         if not result:
             return self._redirect('.rank')
@@ -70,8 +70,8 @@ class ItemsPreference(Request):
         if response['action'] == 'agree':
             known = True
 
-        # Save the user preference into the database
-        ui = UserItem(user_id=self._session['user_id'], item_id=response['item_id'], known=known)
+        # Save the participant preference into the database
+        ui = ParticipantItem(participant_id=self._session['participant_id'], item_id=response['item_id'], known=known)
 
         try:
             db.session.add(ui)

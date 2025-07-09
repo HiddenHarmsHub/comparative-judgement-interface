@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Group, User, UserGroup, WebsiteControl
+from comparison_interface.db.models import Group, Participant, ParticipantGroup, WebsiteControl
 
 from .request import Request
 
@@ -52,7 +52,7 @@ class Register(Request):
         db_engine = db.engines[None]
         db_meta = MetaData()
         db_meta.reflect(bind=db_engine)
-        table = db_meta.tables["user"]
+        table = db_meta.tables["participant"]
         dic_user_attr['created_date'] = datetime.now(timezone.utc)
         if not WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app):
             dic_user_attr['completed_cycles'] = None
@@ -63,20 +63,20 @@ class Register(Request):
                 result = connection.execute(new_user_sql)
             # Get last inserted id
             id = result.lastrowid
-            query = db.select(User).where(User.user_id == id)
-            user = db.session.scalars(query).first()
+            query = db.select(Participant).where(Participant.participantid == id)
+            participant = db.session.scalars(query).first()
 
             # Save the user's group preferences
             for id in group_ids:
-                ug = UserGroup()
+                ug = ParticipantGroup()
                 ug.group_id = id
-                ug.user_id = user.user_id
+                ug.participant_id = participant.participant_id
 
                 db.session.add(ug)
                 db.session.commit()
 
             # Save reference to the inserted values in the session
-            self._session['user_id'] = user.user_id
+            self._session['participant_id'] = participant.participant_id
             self._session['group_ids'] = group_ids
             self._session['weight_conf'] = WebsiteControl().get_conf().weight_configuration
             self._session['previous_comparison_id'] = None

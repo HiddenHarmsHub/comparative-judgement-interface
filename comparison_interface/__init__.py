@@ -5,9 +5,12 @@ import os
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, current_app, render_template, session
+from flask_security import Security, SQLAlchemyUserDatastore, auth_required, hash_password
 from numpy.random import default_rng
 from whitenoise import WhiteNoise
 
+from comparison_interface.admin import blueprint as admin_bp
+from comparison_interface.admin import models
 from comparison_interface.cli import blueprint as commands_bp
 from comparison_interface.configuration.flask import Settings as FlaskSettings
 from comparison_interface.configuration.website import Settings as WS
@@ -53,11 +56,20 @@ def create_app(test_config=None):
     # Register the application views
     app.register_blueprint(main_bp)
 
+    # Register the admin blueprint (might be made optional eventually)
+    app.register_blueprint(admin_bp)
+    # Setup Flask-Security
+    user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
+    security = Security(app, user_datastore)
+
+
     # if we have asked for the api blueprint then register this here
     if "API_ACCESS" in app.config and app.config["API_ACCESS"] is True:
         from comparison_interface.api import blueprint as api_bp
 
         app.register_blueprint(api_bp)
+
+
 
     # Register function executed before any request
     app.before_request(_before_request)

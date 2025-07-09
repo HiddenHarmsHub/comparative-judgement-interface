@@ -35,7 +35,7 @@ def policies():
 
 @blueprint.route('/', methods=['GET', 'POST'])
 @blueprint.route('/register', methods=['GET', 'POST'])
-def user_registration():
+def participant_registration():
     """Handle registration URL and the route location when no user session registered."""
     return Request.process(Register(current_app, session), request)
 

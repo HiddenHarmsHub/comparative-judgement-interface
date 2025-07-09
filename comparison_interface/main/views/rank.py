@@ -10,9 +10,9 @@ from comparison_interface.db.models import (
     CustomItemPair,
     Item,
     ItemGroup,
-    User,
-    UserGroup,
-    UserItem,
+    Participant,
+    ParticipantGroup,
+    ParticipantItem,
     WebsiteControl,
 )
 
@@ -30,7 +30,7 @@ class Rank(Request):
     def get(self, request):
         """Request get handler."""
         if not self._valid_session():
-            return self._redirect('.user_registration')
+            return self._redirect('.participant_registration')
 
         allow_ties = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_TIES, self._app)
         allow_skip = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._app)
@@ -58,13 +58,13 @@ class Rank(Request):
             )
 
         if comparison_id is not None:
-            # if we are in a rejudging state get the current state to show to the user
+            # if we are in a rejudging state get the current state to show to the participant
             current_state, selected_item_id = self._get_current_comparison_state(comparison_id)
         else:
             current_state = None
             selected_item_id = None
 
-        # The user can rejudge comparisons if:
+        # The participant can rejudge comparisons if:
         # - at least one comparison has already been made in the session
         # - there is a previous comparison id in the session.
         # this boolean determines whether the previous button is present or not
@@ -129,18 +129,18 @@ class Rank(Request):
         response = request.form.to_dict(flat=True)
         action = response['state']
         if action != self.REJUDGE:
-            # Set the comparison state based on the user's action
+            # Set the comparison state based on the participant's action
             state, selected_item_id = self._calculate_comparison_state(action, response)
 
-            # Verify if the user want to rejudge an item
+            # Verify if the participant want to rejudge an item
             comparison_id = None
             if 'comparison_id' in response and response['comparison_id'] != "":
                 comparison_id = response['comparison_id']
 
             if comparison_id is None:
-                # Save the new user comparison in the database.
+                # Save the new participant comparison in the database.
                 c = Comparison(
-                    user_id=self._session['user_id'],
+                    participant_id=self._session['participant_id'],
                     item_1_id=response['item_1_id'],
                     item_2_id=response['item_2_id'],
                     state=state,
@@ -157,7 +157,7 @@ class Rank(Request):
             else:
                 # Rejudge an existence comparison.
                 query = db.select(Comparison).where(
-                    Comparison.comparison_id == comparison_id, Comparison.user_id == self._session['user_id']
+                    Comparison.comparison_id == comparison_id, Comparison.participant_id == self._session['participant_id']
                 )
                 comparison = db.session.scalars(query).first()
 
@@ -168,7 +168,7 @@ class Rank(Request):
                     comparison.state = state
                     comparison.updated = datetime.now(timezone.utc)
                     db.session.commit()
-                    # Return the pointer to the last comparison made because the user will be given a new one next
+                    # Return the pointer to the last comparison made because the participant will be given a new one next
                     self._session['previous_comparison_id'] = self._session['comparison_ids'][
                         len(self._session['comparison_ids']) - 1
                     ]
@@ -193,10 +193,10 @@ class Rank(Request):
         return res
 
     def _calculate_comparison_state(self, action: str, response: dict):
-        """Get the right comparison parameters based on the user's action.
+        """Get the right comparison parameters based on the participant's action.
 
         Args:
-            action (str): Action triggered by the user
+            action (str): Action triggered by the participant
             response (dict): POST from response
 
         Returns:
@@ -218,20 +218,20 @@ class Rank(Request):
         return state, selected_item_id
 
     def _get_current_cycle(self):
-        """Get the current cycle count for this user.
+        """Get the current cycle count for this participant.
 
         Returns:
-            cycle_count: current cycle of the user
+            cycle_count: current cycle of the participant
         """
-        user = db.session.get(User, self._session['user_id'])
-        if user is None:
+        participant = db.session.get(Participant, self._session['participant_id'])
+        if participant is None:
             return 0
-        return user.completed_cycles
+        return participant.completed_cycles
 
     def _increment_cycle_count(self):
-        """Increment the current user's cycle count."""
-        user = db.session.get(User, self._session['user_id'])
-        user.completed_cycles = user.completed_cycles + 1
+        """Increment the current participant's cycle count."""
+        participant = db.session.get(Participant, self._session['participant_id'])
+        participant.completed_cycles = participant.completed_cycles + 1
         db.session.commit()
 
     def _get_comparison_stats(self):
@@ -246,7 +246,7 @@ class Rank(Request):
 
         query = (
             db.select(Comparison.state, func.count(Comparison.comparison_id))
-            .where(Comparison.user_id == self._session['user_id'])
+            .where(Comparison.participant_id == self._session['participant_id'])
             .group_by(Comparison.state)
         )
         counts = db.session.execute(query).all()
@@ -312,7 +312,7 @@ class Rank(Request):
         """
         # 1. Get the items related to the comparison.
         query = db.select(Comparison).where(
-            Comparison.comparison_id == comparison_id, Comparison.user_id == self._session['user_id']
+            Comparison.comparison_id == comparison_id, Comparison.participant_id == self._session['participant_id']
         )
         comparison = db.session.scalars(query).first()
 
@@ -342,11 +342,11 @@ class Rank(Request):
             Item: Model Item | None
         """
         # 1. Get the the custom pairs. This query assumes that just one group
-        # can be selected by the user when defining custom weights.
+        # can be selected by the participant when defining custom weights.
         query = (
-            db.select(UserGroup, CustomItemPair)
-            .join(CustomItemPair, CustomItemPair.group_id == UserGroup.group_id, isouter=True)
-            .where(UserGroup.user_id == self._session['user_id'], UserGroup.group_id.in_(self._session['group_ids']))
+            db.select(ParticipantGroup, CustomItemPair)
+            .join(CustomItemPair, CustomItemPair.group_id == ParticipantGroup.group_id, isouter=True)
+            .where(ParticipantGroup.participant_id == self._session['participant_id'], ParticipantGroup.group_id.in_(self._session['group_ids']))
         )
         result = db.session.execute(query).all()
         pair_ids = []
@@ -371,17 +371,17 @@ class Rank(Request):
         return items[0], items[1]
 
     def _get_preferred_items(self):
-        """Get a random pair of items from the preferred user's item selection.
+        """Get a random pair of items from the preferred participant's item selection.
 
         Returns:
             Item: Model Item | None
             Item: Model Item | None
         """
-        # 1. Get the user's item preferences
+        # 1. Get the participant's item preferences
         query = (
-            db.select(UserItem, Item)
-            .join(Item, Item.item_id == UserItem.item_id, isouter=True)
-            .where(UserItem.user_id == self._session['user_id'], UserItem.known == 1)
+            db.select(ParticipantItem, Item)
+            .join(Item, Item.item_id == ParticipantItem.item_id, isouter=True)
+            .where(ParticipantItem.participant_id == self._session['participant_id'], ParticipantItem.known == 1)
         )
         result = db.session.execute(query).all()
 
@@ -396,7 +396,7 @@ class Rank(Request):
         if len(items_id) < 2:
             return None, None
 
-        # 2. Select randomly two items from the user's item preferences
+        # 2. Select randomly two items from the participant's item preferences
         selected_items_id = [None, None]
         selected_items_id = self._app.rng.choice(items_id, 2, replace=False)
 
@@ -409,14 +409,14 @@ class Rank(Request):
             Item: Model Item | None
             Item: Model Item | None
         """
-        # 1. Get the items related to the user's group preferences
+        # 1. Get the items related to the participant's group preferences
         query = (
-            db.select(UserGroup, ItemGroup, Item)
-            .join(ItemGroup, ItemGroup.group_id == UserGroup.group_id, isouter=True)
+            db.select(ParticipantGroup, ItemGroup, Item)
+            .join(ItemGroup, ItemGroup.group_id == ParticipantGroup.group_id, isouter=True)
             .join(Item, ItemGroup.item_id == Item.item_id, isouter=True)
             .where(
-                UserGroup.user_id == self._session['user_id'],
-                UserGroup.group_id.in_(self._session['group_ids']),
+                ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.group_id.in_(self._session['group_ids']),
                 ItemGroup.group_id.in_(self._session['group_ids']),
             )
         )
@@ -433,7 +433,7 @@ class Rank(Request):
         if len(items_id) < 2:
             return None, None
 
-        # 2. Select randomly two items using the user's group preferences
+        # 2. Select randomly two items using the participant's group preferences
         selected_items_id = [None, None]
         selected_items_id = self._app.rng.choice(items_id, 2, replace=False)
 

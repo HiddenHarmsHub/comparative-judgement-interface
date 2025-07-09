@@ -5,7 +5,7 @@ import shutil
 from sqlalchemy import MetaData, Table, text
 
 from .connection import db
-from .models import Comparison, CustomItemPair, Group, Item, ItemGroup, UserGroup, UserItem
+from .models import Comparison, CustomItemPair, Group, Item, ItemGroup, ParticipantGroup, ParticipantItem
 
 
 class Exporter:
@@ -14,7 +14,7 @@ class Exporter:
     def __init__(self, app) -> None:
         """Initialise the export with the flask app and the required models."""
         self.app = app
-        self.models = [Group, Item, ItemGroup, UserGroup, Comparison, CustomItemPair, UserItem]
+        self.models = [Group, Item, ItemGroup, ParticipantGroup, Comparison, CustomItemPair, ParticipantItem]
 
     def get_outcome_data(self):
         """Get the data for the outcome table in the form of a list of dictionaries.
@@ -71,16 +71,16 @@ class Exporter:
                     csv_writer.writeheader()
                     csv_writer.writerows(data_list)
 
-        # The user model needs to be accessed manually due the dynamic fields
+        # The participant model needs to be accessed manually due the dynamic fields
         db_engine = db.engines[None]
         db_meta = MetaData()
         db_meta.reflect(bind=db_engine)
-        table = Table('user', db_meta)
+        table = Table('participant', db_meta)
         columns = table.columns.keys()
-        sql = text("select {} from user;".format(', '.join(columns)))
+        sql = text("select {} from participant;".format(', '.join(columns)))
         with db.engine.begin() as connection:
             results = connection.execute(sql)
-        with open(os.path.join(output_directory, f'user.{file_type}'), mode='w', encoding='utf-8') as csv_out:
+        with open(os.path.join(output_directory, f'participant.{file_type}'), mode='w', encoding='utf-8') as csv_out:
             writer = csv.writer(csv_out, delimiter=delimiter)
             writer.writerow(columns)
             for record in results:
