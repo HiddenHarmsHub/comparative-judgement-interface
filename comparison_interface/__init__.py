@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, current_app, render_template, session
+from flask_mailman import Mail
 from flask_security import Security, SQLAlchemyUserDatastore, auth_required, hash_password
 from numpy.random import default_rng
 from whitenoise import WhiteNoise
@@ -57,11 +58,16 @@ def create_app(test_config=None):
     app.register_blueprint(main_bp)
 
     # Register the admin blueprint (might be made optional eventually)
-    app.register_blueprint(admin_bp)
+    app.register_blueprint(admin_bp, url_prefix="/admin")
+
     # Setup Flask-Security
     user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
     security = Security(app, user_datastore)
+    mail = Mail(app)
 
+    @security.context_processor
+    def security_context_processor():
+        return {"website_title": "Test Title"}
 
     # if we have asked for the api blueprint then register this here
     if "API_ACCESS" in app.config and app.config["API_ACCESS"] is True:

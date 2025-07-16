@@ -10,9 +10,18 @@ from sqlalchemy.exc import OperationalError
 from comparison_interface.cli import blueprint
 from comparison_interface.configuration.validation import Validation as ConfigValidation
 from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.connection import db
 from comparison_interface.db.export import Exporter
 from comparison_interface.db.models import WebsiteControl
 from comparison_interface.db.setup import Setup as DBSetup
+
+
+@blueprint.cli.command("setup_admin")
+@with_appcontext
+def setup_admin():
+    app = current_app
+    with app.app_context():
+        db.create_all(None)
 
 
 @blueprint.cli.command("setup")

@@ -49,7 +49,7 @@ class Register(Request):
         # Register the user in the database.
         # Some of the user fields were dynamically added so we are using SQLAlchemy
         # reflection functionality to insert them.
-        db_engine = db.engines[None]
+        db_engine = db.engines['study_db']
         db_meta = MetaData()
         db_meta.reflect(bind=db_engine)
         table = db_meta.tables["participant"]

@@ -2,7 +2,7 @@
 
 import os
 
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
 
 from comparison_interface.configuration.website import Settings as WS
 
@@ -24,9 +24,8 @@ class Setup:
             app (Flask): Flask application.
         """
         with self.app.app_context():
-            db.drop_all()
+            db.drop_all('study_db')
             db.create_all('study_db')
-            db.create_all()
 
             # Remove previous exported database content
             export_location = WS.get_export_location(self.app)
@@ -45,7 +44,7 @@ class Setup:
             # The setup of the user configuration doesn't use SQLAlchemy ORM. The transaction
             # needs to be committed before inserting the user fields values. The user
             # columns values are dynamically defined so a different process needs to be followed.
-            #self._setup_participant(db)
+            self._setup_participant(db)
 
     def _setup_group(self, db):
         """Save the group configuration in the database.
@@ -113,7 +112,7 @@ class Setup:
             )
             item = db.session.scalars(query).first()
 
-            # Insert the item in the database if it doesn't exists
+            # Insert the item in the database if it doesn't exist
             if item is None:
                 if WS.ITEM_ID in i:
                     item = Item(
@@ -171,38 +170,43 @@ class Setup:
         """
         user_conf = WS.get_user_conf(self.app)
         # Create each of the new user columns
-        for f in user_conf:
-            name = f[WS.USER_FIELD_NAME]
-            required = f[WS.USER_FIELD_REQUIRED]
-            type = f[WS.USER_FIELD_TYPE]
-            max_size = None
+        os.chdir(self.app.instance_path)
+        engine = create_engine(self.app.config["SQLALCHEMY_BINDS"]["study_db"])
+        with engine.connect() as conn:
+            for f in user_conf:
+                name = f[WS.USER_FIELD_NAME]
+                required = f[WS.USER_FIELD_REQUIRED]
+                type = f[WS.USER_FIELD_TYPE]
+                max_size = None
 
-            if type == WS.USER_FIELD_TYPE_TEXT or type == WS.USER_FIELD_TYPE_EMAIL:
-                max_size = f[WS.USER_FIELD_MAX_LIMIT]
-                col_type = f'VARCHAR({max_size})'
-                default_value = ""
-            elif type == WS.USER_FIELD_TYPE_DROPDOWN or type == WS.USER_FIELD_TYPE_RADIO:
-                max_size = max([len(x) for x in f[WS.USER_FIELD_SELECT_OPTION]])
-                col_type = f'VARCHAR({max_size})'
-                default_value = ""
-            elif type == WS.USER_FIELD_TYPE_INT:
-                col_type = 'INT'
-                default_value = 0
-            if required is True:
-                nullable = 'NOT NULL'
-            else:
-                nullable = 'NULL'
-            if required is True:
-                basecommand = f'alter table participant add column {name} {col_type} {nullable} DEFAULT "{default_value}"'
-            else:
-                basecommand = f'alter table participant add column {name} {col_type} {nullable}'
-            db.session.execute(text(basecommand))
+                if type == WS.USER_FIELD_TYPE_TEXT or type == WS.USER_FIELD_TYPE_EMAIL:
+                    max_size = f[WS.USER_FIELD_MAX_LIMIT]
+                    col_type = f'VARCHAR({max_size})'
+                    default_value = ""
+                elif type == WS.USER_FIELD_TYPE_DROPDOWN or type == WS.USER_FIELD_TYPE_RADIO:
+                    max_size = max([len(x) for x in f[WS.USER_FIELD_SELECT_OPTION]])
+                    col_type = f'VARCHAR({max_size})'
+                    default_value = ""
+                elif type == WS.USER_FIELD_TYPE_INT:
+                    col_type = 'INT'
+                    default_value = 0
+                if required is True:
+                    nullable = 'NOT NULL'
+                else:
+                    nullable = 'NULL'
 
-        # Add a field to specify if the participant accepted the ethics agreement
-        # if this section was configured to be rendered
-        render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
-        if render_ethics:
-            db.session.execute(text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"'))
+                if required is True:
+                    basecommand = f'alter table participant add column {name} {col_type} {nullable} DEFAULT "{default_value}"'
+                else:
+                    basecommand = f'alter table participant add column {name} {col_type} {nullable}'
+
+                conn.execute(text(basecommand))
+
+            # Add a field to specify if the participant accepted the ethics agreement
+            # if this section was configured to be rendered
+            render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
+            if render_ethics:
+                conn.execute(text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"'))
 
     def _setup_website_control_history(self, db):
         """Setup the control history to monitor for changes to the website configuration file.
