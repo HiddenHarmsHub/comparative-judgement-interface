@@ -67,7 +67,7 @@ def create_app(test_config=None):
 
     @security.context_processor
     def security_context_processor():
-        return {"website_title": "Test Title"}
+        return {"website_title": WS.get_text(WS.WEBSITE_TITLE, app)}
 
     # if we have asked for the api blueprint then register this here
     if "API_ACCESS" in app.config and app.config["API_ACCESS"] is True:

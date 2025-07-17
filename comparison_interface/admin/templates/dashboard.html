@@ -2,19 +2,30 @@
 
        
     {% block css %}
-        <!-- Filepond stylesheet -->
-        <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
+        
     {% endblock %}
 
     {% block content %}
-        <!-- We'll transform this input into a pond -->
-        <input type="file" class="filepond" multiple/>
-
-        <!-- Load FilePond library -->
-        <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
-
-        <!-- Turn all file input elements into ponds -->
-        <script>
-            FilePond.parse(document.body);
-        </script>
+    <h1>Admin Dashboard</h1>
+    <div id="left-column">
+        <div id="export-data">
+            <h2>Start new study</h2>
+            <p>Starting a new study will delete all of the images and other files associated with the current study.</p>
+            <p>When you have uploaded all of the files for the new study the data from the current study will also be deleted.
+            Please ensure you have exported the data before you start this process.
+            </p>
+            <form method="POST" action="/admin/new-study">
+                <input type="submit" value="Start New Study"/>
+            </form>
+        </div>
+    </div>
+    <div id="right-column">
+        <div id="export-data">
+            <h2>Export data</h2>
+            <p>Export the database from the current study (the data will also stay on the server).</p>
+            <form action="/admin/export">
+                <input type="submit" value="Export Data"/>
+            </form>
+        </div>
+    </div>
     {% endblock %}

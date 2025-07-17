@@ -1,0 +1,22 @@
+{% extends "admin-layout.html" %}
+
+{% block content %}
+
+    <h1>Step 2: Upload config file</h1>
+    <div id="config-upload">
+        
+        <form method="POST" action="/admin/upload-config" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            {{ form.config_file }}
+            {% if form.config_file.errors %}
+                <ul class="errors">
+                    {% for error in form.config_file.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}              
+            <input type="submit" value="Upload"/>
+        </form>
+    </div>
+
+{% endblock %}

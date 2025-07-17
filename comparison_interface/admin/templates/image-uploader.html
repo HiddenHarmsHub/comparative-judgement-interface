@@ -1,0 +1,14 @@
+{% extends "admin-layout.html" %}
+
+{% block content %}
+    <h1>Step 1: Upload the images required</h1>
+
+    <div id="image-upload">
+        <form method="POST" action="/admin/upload-images" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            {{ form.image_files }}
+            <input type="submit" value="Upload"/>
+        </form>
+    </div>
+
+{% endblock %}
