@@ -65,7 +65,7 @@ class Request:
 
     def _valid_session(self):
         """Verify that the the user session is valid."""
-        if "user_id" not in self._session or "group_ids" not in self._session:
+        if "participant_id" not in self._session or "group_ids" not in self._session:
             return False
         return True
 

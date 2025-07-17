@@ -2,30 +2,46 @@
 
        
     {% block css %}
-        
+        <link rel="stylesheet" href="{{ url_for('admin.static', filename='css/admin.css') }}">
     {% endblock %}
 
     {% block content %}
-    <h1>Admin Dashboard</h1>
-    <div id="left-column">
-        <div id="export-data">
-            <h2>Start new study</h2>
-            <p>Starting a new study will delete all of the images and other files associated with the current study.</p>
-            <p>When you have uploaded all of the files for the new study the data from the current study will also be deleted.
-            Please ensure you have exported the data before you start this process.
-            </p>
-            <form method="POST" action="/admin/new-study">
-                <input type="submit" value="Start New Study"/>
-            </form>
+        <div id="dashboard" class="container-fluid">
+            <div class="row text-center">
+                <h1 class="fs-3">Admin Dashboard</h1>
+            </div>
+            <hr/>
+            <div class="row">
+                <div id="left-column" class="col-6">
+                    <div id="current-study" class="p-2">
+                        <h2 class="fs-4">Current Study</h2>
+                        <p>Name: {{ website_title }}</p>
+                        <p>Total Participants: {{ participant_count }}</p>
+                        <p>Latest Registration: {{ latest_registration }}</p>
+                        <p>Total Judgements: {{ total_judgements }}</p>
+                    </div>
+                    <hr/>
+                    <div id="export-data" class="p-2">
+                        <h2 class="fs-4">Export data</h2>
+                        <p>Export the database from the current study (the data will also stay on the server).</p>
+                        <form action="/admin/export">
+                            <input type="submit" value="Export Data"/>
+                        </form>
+                    </div>
+                </div>
+                <div id="right-column" class="col-6">
+                    <div id="new-study" class="p-2">
+                        <h2 class="fs-4">Start new study</h2>
+                        <p>Starting a new study will delete all of the images and other files associated with the current study.</p>
+                        <p>When you have uploaded all of the files for the new study the data from the current study will also be deleted.
+                        Please ensure you have exported the data before you start this process.
+                        </p>
+                        <form method="POST" action="/admin/new-study">
+                            <input type="submit" value="Start New Study"/>
+                        </form>
+                    </div>
+                    
+                </div>
+            </div>
         </div>
-    </div>
-    <div id="right-column">
-        <div id="export-data">
-            <h2>Export data</h2>
-            <p>Export the database from the current study (the data will also stay on the server).</p>
-            <form action="/admin/export">
-                <input type="submit" value="Export Data"/>
-            </form>
-        </div>
-    </div>
     {% endblock %}

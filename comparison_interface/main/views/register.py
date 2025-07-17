@@ -16,7 +16,10 @@ class Register(Request):
 
     def get(self, _):
         """Request get handler."""
+        print('here we are')
+        print(self._valid_session())
         if self._valid_session():
+            
             return self._redirect('.item_selection')
 
         # Load components
@@ -59,11 +62,12 @@ class Register(Request):
         new_user_sql = table.insert().values(**dic_user_attr)
         try:
             # Insert the user into the database
-            with db.engine.begin() as connection:
+            with db_engine.begin() as connection:
                 result = connection.execute(new_user_sql)
+
             # Get last inserted id
             id = result.lastrowid
-            query = db.select(Participant).where(Participant.participantid == id)
+            query = db.select(Participant).where(Participant.participant_id == id)
             participant = db.session.scalars(query).first()
 
             # Save the user's group preferences
@@ -81,6 +85,7 @@ class Register(Request):
             self._session['weight_conf'] = WebsiteControl().get_conf().weight_configuration
             self._session['previous_comparison_id'] = None
             self._session['comparison_ids'] = []
+            print(self._session)
         except SQLAlchemyError as e:
             raise RuntimeError(str(e))
 

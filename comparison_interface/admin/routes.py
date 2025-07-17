@@ -6,6 +6,8 @@ from werkzeug.utils import secure_filename
 from comparison_interface.admin import blueprint
 from comparison_interface.admin import forms
 from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import Comparison, Participant
 
 
 @blueprint.route('/dashboard', methods=['GET'])
@@ -13,12 +15,14 @@ from comparison_interface.configuration.website import Settings as WS
 @auth_required('session', within=10)
 def dashboard():
     """Show the admin dashboard."""
-    config_upload_form = forms.ConfigUploadForm()
-    image_upload_form = forms.ImageUploadForm()
+    participant_count = db.session.query(Participant).count()
+
+    total_judgements = db.session.query(Comparison).count()
     data = {
         "website_title": WS.get_text(WS.WEBSITE_TITLE, current_app),
-        "config_upload_form": config_upload_form,
-        "image_upload_form": image_upload_form,
+        "participant_count": participant_count,
+        #"latest_registration": latest_registration,
+        "total_judgements": total_judgements,
     }
     return render_template("dashboard.html", **data)
 
