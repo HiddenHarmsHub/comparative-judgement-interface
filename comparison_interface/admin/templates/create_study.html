@@ -1,0 +1,17 @@
+{% extends "admin-layout.html" %}
+
+{% block content %}
+    <div class="container-fluid">
+        <h1 class="fs-3">Create Study</h1>
+
+        <form method="POST" action="/admin/setup-study">
+            {{ form.csrf_token }}
+            {{ form.deletion_confirmation }}
+            {{ form.deletion_confirmation.label }}
+            <div>
+                <input type="submit" value="Create New Study"/>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}

@@ -4,7 +4,7 @@ import json
 import os
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, current_app, render_template, session
+from flask import Flask, current_app, render_template, request, session
 from flask_mailman import Mail
 from flask_security import Security, SQLAlchemyUserDatastore, auth_required, hash_password
 from numpy.random import default_rng
@@ -110,14 +110,16 @@ def create_app(test_config=None):
 
 
 def _before_request():
-    """Run functions before every request."""
-    _validate_app_integrity()
+    """Run functions before every request except the admin routes and the static files."""
+    if not request.endpoint.startswith('admin.') and request.endpoint not in ['static']:
+        _validate_app_integrity()
     _configure_user_session()
 
 
 def _configure_user_session():
     """Configure the user's session behaviour."""
     app = current_app
+    print(session)
     session.permanent = True
     app.permanent_session_lifetime = timedelta(minutes=app.config['SESSION_MINUTES_VALIDITY'])
     session.modified = True

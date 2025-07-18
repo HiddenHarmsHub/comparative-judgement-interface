@@ -16,10 +16,7 @@ class Register(Request):
 
     def get(self, _):
         """Request get handler."""
-        print('here we are')
-        print(self._valid_session())
         if self._valid_session():
-            
             return self._redirect('.item_selection')
 
         # Load components

@@ -1,13 +1,18 @@
 import os
-from flask import current_app, redirect, render_template, request, url_for
+import shutil
+from tempfile import TemporaryDirectory
+
+from flask import current_app, redirect, render_template, send_file, url_for
 from flask_security import auth_required
 from werkzeug.utils import secure_filename
 
-from comparison_interface.admin import blueprint
-from comparison_interface.admin import forms
+from comparison_interface.admin import blueprint, forms
+from comparison_interface.configuration.validation import Validation as ConfigValidation
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
+from comparison_interface.db.export import Exporter
 from comparison_interface.db.models import Comparison, Participant
+from comparison_interface.db.setup import Setup as DBSetup
 
 
 @blueprint.route('/dashboard', methods=['GET'])
@@ -16,13 +21,22 @@ from comparison_interface.db.models import Comparison, Participant
 def dashboard():
     """Show the admin dashboard."""
     participant_count = db.session.query(Participant).count()
-
+    if participant_count > 0:
+        latest_registration = db.session.query(Participant).order_by(Participant.participant_id.desc()).first().created_date
+    else:
+        latest_registration = 'No participants yet'
     total_judgements = db.session.query(Comparison).count()
+    skipped_judgements = db.session.query(Comparison).where(Comparison.state == 'skipped').count()
+    if WS.CONFIGURATION_LOCATION in current_app.config:
+        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+    else:
+        website_title = 'No active study'
     data = {
-        "website_title": WS.get_text(WS.WEBSITE_TITLE, current_app),
+        "website_title": website_title,
         "participant_count": participant_count,
-        #"latest_registration": latest_registration,
+        "latest_registration": latest_registration,
         "total_judgements": total_judgements,
+        "skipped_judgements": skipped_judgements,
     }
     return render_template("dashboard.html", **data)
 
@@ -40,15 +54,39 @@ def new_study():
     return redirect(url_for("admin.setup_study"))
 
 
-@blueprint.route('/setup-study', methods=['GET'])
+@blueprint.route('/setup-study', methods=['GET', 'POST'])
 @auth_required('session', within=10)
 def setup_study():
+    print('+++++++++++++++++')
+    print(current_app)
+    form = forms.CreateStudyForm()
     """Set up a new study."""
-    if len(os.listdir(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR']))) == 0:
+    if form.deletion_confirmation.data is True:  # form validation prevents submission if not checked
+        conf_file = os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR']))[0]
+        conf = os.path.join( current_app.config['CONFIG_UPLOAD_DIR'], conf_file)
+        print(conf)
+        ConfigValidation(current_app).check_config_path(conf)
+        WS.set_configuration_location(current_app, conf)
+        ConfigValidation(current_app).validate()
+
+        # 2. Configure database
+        current_app.logger.info("Resetting website database")
+        s = DBSetup(current_app)
+        s.exec()
+        return redirect(url_for("admin.dashboard"))
+    elif len(os.listdir(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR']))) == 0:
         return redirect(url_for("admin.upload_images"))
     elif len(os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR']))) == 0:
         return redirect(url_for("admin.upload_config"))
-    return
+    if WS.CONFIGURATION_LOCATION in current_app.config:
+        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+    else:
+        website_title = 'No active study'
+    data = {
+        "website_title": website_title,
+        "form": form,
+    }
+    return render_template("create_study.html", **data)
 
 
 @blueprint.route('/upload-images', methods=['GET', 'POST'])
@@ -56,15 +94,18 @@ def setup_study():
 def upload_images():
     """Image uploading."""
     form = forms.ImageUploadForm()
-    print(form.image_files.data)
     if form.image_files.data:
         if form.validate_on_submit():
             for file in form.image_files.data:
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename))
             return redirect(url_for("admin.setup_study"))
+    if WS.CONFIGURATION_LOCATION in current_app.config:
+        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+    else:
+        website_title = 'No active study'
     data = {
-        "website_title": WS.get_text(WS.WEBSITE_TITLE, current_app),
+        "website_title": website_title,
         "form": form,
     }
     return render_template("image-uploader.html", **data)
@@ -82,8 +123,25 @@ def upload_config():
                 os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'], filename)
             )
             return redirect(url_for("admin.setup_study"))
+    if WS.CONFIGURATION_LOCATION in current_app.config:
+        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+    else:
+        website_title = 'No active study'
     data = {
-        "website_title": WS.get_text(WS.WEBSITE_TITLE, current_app),
+        "website_title": website_title,
         "form": form,
     }
     return render_template("config-uploader.html", **data)
+
+
+@blueprint.route('/export', methods=['POST'])
+@auth_required('session', within=10)
+def download_data():
+    """Download the study database."""
+    temp_dir = TemporaryDirectory()
+    zip_path = os.path.join(temp_dir.name, 'database_export')
+
+    dir = Exporter(current_app).create_data_directory(temp_dir.name)
+    shutil.make_archive(zip_path, 'zip', dir)
+
+    return send_file(f'{zip_path}.zip', download_name='downloaded_data.zip', as_attachment=True)

@@ -1,10 +1,5 @@
 {% extends "admin-layout.html" %}
 
-       
-    {% block css %}
-        <link rel="stylesheet" href="{{ url_for('admin.static', filename='css/admin.css') }}">
-    {% endblock %}
-
     {% block content %}
         <div id="dashboard" class="container-fluid">
             <div class="row text-center">
@@ -19,12 +14,13 @@
                         <p>Total Participants: {{ participant_count }}</p>
                         <p>Latest Registration: {{ latest_registration }}</p>
                         <p>Total Judgements: {{ total_judgements }}</p>
+                        <p>Skipped Judgements: {{ skipped_judgements }}</p>
                     </div>
                     <hr/>
                     <div id="export-data" class="p-2">
                         <h2 class="fs-4">Export data</h2>
                         <p>Export the database from the current study (the data will also stay on the server).</p>
-                        <form action="/admin/export">
+                        <form method="POST" action="/admin/export">
                             <input type="submit" value="Export Data"/>
                         </form>
                     </div>
