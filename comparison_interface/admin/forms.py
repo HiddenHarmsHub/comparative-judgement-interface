@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, MultipleFileField
-from wtforms import BooleanField, validators
+from wtforms import BooleanField, HiddenField, TextAreaField, validators
 
 
 class ImageUploadForm(FlaskForm):
@@ -20,3 +20,9 @@ class CreateStudyForm(FlaskForm):
         have a copy of any data I require.''',
         validators=[validators.DataRequired()]
     )
+
+class EditHtmlPageForm(FlaskForm):
+    """Form for editing the Html pages."""
+    page_type = HiddenField()
+    current_text = HiddenField()
+    md_text = TextAreaField('', validators=[validators.DataRequired()])

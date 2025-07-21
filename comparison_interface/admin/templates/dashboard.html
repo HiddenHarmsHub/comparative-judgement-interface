@@ -8,22 +8,46 @@
             <hr/>
             <div class="row">
                 <div id="left-column" class="col-6">
-                    <div id="current-study" class="p-2">
+                    {% if  active_study %}
+                        <div id="current-study" class="p-2">
+                            <h2 class="fs-4">Current Study</h2>
+                            <p>Name: {{ website_title }}</p>
+                            <p>Total Participants: {{ participant_count }}</p>
+                            <p>Latest Registration: {{ latest_registration }}</p>
+                            <p>Total Judgements: {{ total_judgements }}</p>
+                            <p>Skipped Judgements: {{ skipped_judgements }}</p>
+                        </div>
+                        <hr/>
+                        {% if participant_count > 0 %}
+                            <div id="export-data" class="p-2">
+                                <h2 class="fs-4">Export data</h2>
+                                <p>Export the database from the current study (the data will also stay on the server).</p>
+                                <form method="POST" action="/admin/export">
+                                    <input type="submit" value="Export Data"/>
+                                </form>
+                            </div>
+                            <hr/>
+                        {% endif %}
+                        {% if local_file_edits %}
+                        <div id="edit-pages" class="p-2">
+                            <h2 class="fs-4">Edit Pages</h2>
+                            {% if edit_instructions %}
+                                <form method="POST" action="/admin/edit-page">
+                                    <input type="submit" value="Edit Instructions"/>
+                                </form>
+                            {% endif %}
+                            {% if edit_ethics_agreement %}
+                                
+                            {% endif %}
+                            {% if edit_site_policies %}
+                                
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% else %}
                         <h2 class="fs-4">Current Study</h2>
-                        <p>Name: {{ website_title }}</p>
-                        <p>Total Participants: {{ participant_count }}</p>
-                        <p>Latest Registration: {{ latest_registration }}</p>
-                        <p>Total Judgements: {{ total_judgements }}</p>
-                        <p>Skipped Judgements: {{ skipped_judgements }}</p>
-                    </div>
-                    <hr/>
-                    <div id="export-data" class="p-2">
-                        <h2 class="fs-4">Export data</h2>
-                        <p>Export the database from the current study (the data will also stay on the server).</p>
-                        <form method="POST" action="/admin/export">
-                            <input type="submit" value="Export Data"/>
-                        </form>
-                    </div>
+                        <p>There is no active study. You can start a new one in the 'Start new study' section.</p>
+                    {% endif %}
                 </div>
                 <div id="right-column" class="col-6">
                     <div id="new-study" class="p-2">

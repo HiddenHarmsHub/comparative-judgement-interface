@@ -111,6 +111,7 @@ def create_app(test_config=None):
 
 def _before_request():
     """Run functions before every request except the admin routes and the static files."""
+    print(request.endpoint)
     if not request.endpoint.startswith('admin.') and request.endpoint not in ['static']:
         _validate_app_integrity()
     _configure_user_session()

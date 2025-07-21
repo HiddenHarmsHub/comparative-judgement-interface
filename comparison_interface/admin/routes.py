@@ -2,6 +2,7 @@ import os
 import shutil
 from tempfile import TemporaryDirectory
 
+import markdown
 from flask import current_app, redirect, render_template, send_file, url_for
 from flask_security import auth_required
 from werkzeug.utils import secure_filename
@@ -11,7 +12,7 @@ from comparison_interface.configuration.validation import Validation as ConfigVa
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.export import Exporter
-from comparison_interface.db.models import Comparison, Participant
+from comparison_interface.db.models import Comparison, Participant, WebsiteControl
 from comparison_interface.db.setup import Setup as DBSetup
 
 
@@ -20,6 +21,20 @@ from comparison_interface.db.setup import Setup as DBSetup
 @auth_required('session', within=10)
 def dashboard():
     """Show the admin dashboard."""
+    print(db.session.query(WebsiteControl).count())
+    if db.session.query(WebsiteControl).count() == 1:
+        current_app.config[WS.CONFIGURATION_LOCATION] = db.session.query(WebsiteControl).first().configuration_file
+        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        active_study = True
+    else:
+        website_title = 'No active study'
+        active_study = False
+    if not active_study:
+        data = {
+            "website_title": website_title,
+        }
+        return render_template("dashboard.html", **data)
+
     participant_count = db.session.query(Participant).count()
     if participant_count > 0:
         latest_registration = db.session.query(Participant).order_by(Participant.participant_id.desc()).first().created_date
@@ -27,11 +42,20 @@ def dashboard():
         latest_registration = 'No participants yet'
     total_judgements = db.session.query(Comparison).count()
     skipped_judgements = db.session.query(Comparison).where(Comparison.state == 'skipped').count()
-    if WS.CONFIGURATION_LOCATION in current_app.config:
-        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
-    else:
-        website_title = 'No active study'
+    # get the pages we are expecting from the config
+    local_file_edits = True
+    if local_file_edits is True:
+        edit_instructions = WS.should_render(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE, current_app)
+        edit_ethics_agreement = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, current_app)
+        edit_site_policies = WS.should_render(WS.BEHAVIOUR_RENDER_SITE_POLICIES, current_app)
+    if not edit_instructions and not edit_ethics_agreement and not edit_site_policies:
+        local_file_edits = False
     data = {
+        "local_file_edits": local_file_edits,
+        "edit_instructions": edit_instructions,
+        "edit_ethics_agreement": edit_ethics_agreement,
+        "edit_site_policies": edit_site_policies,
+        "active_study": active_study,
         "website_title": website_title,
         "participant_count": participant_count,
         "latest_registration": latest_registration,
@@ -145,3 +169,45 @@ def download_data():
     shutil.make_archive(zip_path, 'zip', dir)
 
     return send_file(f'{zip_path}.zip', download_name='downloaded_data.zip', as_attachment=True)
+
+
+@blueprint.route('/edit-page', methods=['GET', 'POST'])
+@auth_required('session', within=10)
+def edit_page():
+    """Edit a html page."""
+    form = forms.EditHtmlPageForm()
+    dir = current_app.config['HTML_PAGES_DIR']
+    if form.md_text.data:
+        print('======')
+        print(form.page_type.data)
+        print('======')
+        md_text = form.md_text.data
+        html = markdown.markdown(md_text)
+        filename = form.page_type.data
+        # save the text to the file
+        with open(os.path.join(current_app.root_path, dir, f'{filename}.html'), mode='w', encoding='utf-8') as output:
+            output.write(html)
+        with open(os.path.join(current_app.root_path, dir, f'{filename}.md'), mode='w', encoding='utf-8') as output:
+            output.write(md_text)
+
+        return redirect(url_for("admin.dashboard"))
+    else:
+        form_data = {
+            "page_type": "instructions",
+        }
+        filename = "instructions"
+        if os.path.exists(os.path.join(current_app.root_path, dir, f'{filename}.md')):
+            with open(os.path.join(current_app.root_path, dir, f'{filename}.md'), mode='r') as input:
+                current_text = input.read()
+            form_data["current_text"] = current_text
+        form = forms.EditHtmlPageForm(**form_data)
+    if WS.CONFIGURATION_LOCATION in current_app.config:
+        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+    else:
+        website_title = 'No active study'
+
+    data = {
+        "website_title": website_title,
+        "form": form,
+    }
+    return render_template("edit_page.html", **data)

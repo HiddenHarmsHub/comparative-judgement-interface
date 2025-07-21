@@ -1,0 +1,24 @@
+{% extends "admin-layout.html" %}
+
+
+{% block content %}
+    <div class="container-fluid p-4">
+        <h1 class="fs-3">Edit Pages</h1>
+    
+        <form id="edit-page-form" method="POST" action="/admin/edit-page">
+            {{ form.csrf_token }}
+            {{ form.current_text }}
+            {{ form.page_type }}
+            {{ form.md_text }}
+            <div>
+                <button id="save-button">Save</button>
+            </div>
+        </form>
+    </div>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+    <script src="{{ url_for('admin.static', filename='js/markdown_editor.js') }}"></script>
+
+
+{% endblock %}
