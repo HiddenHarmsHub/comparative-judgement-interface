@@ -175,9 +175,20 @@ def upload_images():
 
 
 def process_errors(errors):
-    for type in errors:
-
-        print(type)
+    processed_errors = {}
+    for typ in errors:
+        for field in errors[typ]:
+            if typ in ["behaviourConfiguration", "websiteTextConfiguration"]:
+                processed_errors[field] = '; '.join(errors[typ][field])
+            else:
+                for group_pos in errors[typ][field]:
+                    group_number = group_pos + 1
+                    for item_pos in errors[typ][field][group_pos]['items']:
+                        item_number = item_pos + 1
+                        for subfield in errors[typ][field][group_pos]['items'][item_pos]:
+                            message = '; '.join(errors[typ][field][group_pos]['items'][item_pos][subfield])
+                            processed_errors[f'group {group_number}, item {item_number}, {subfield}'] = message
+    return processed_errors
 
 
 @blueprint.route('/upload-config', methods=['GET', 'POST'])
@@ -205,9 +216,7 @@ def upload_config():
             try:
                 ConfigValidation(current_app).validate()
             except ValidationError as err:
-                print(err.messages)
-                data["errors"] = err.messages
-                data["processed_errors"] = process_errors(err.messages)
+                data["errors"] = process_errors(err.messages)
                 return render_template("config-uploader.html", **data)
             return redirect(url_for("admin.setup_study"))
     return render_template("config-uploader.html", **data)

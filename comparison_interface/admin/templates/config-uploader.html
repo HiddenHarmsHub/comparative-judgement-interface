@@ -15,13 +15,10 @@
                 </ul>
             {% endif %}
             {% if errors %}
-
                 <h2 class="fs-4 pt-4">Configuration errors</h2>
                 <ul class="errors">
                     {% for error in errors %}
-                        {% for field in errors[error] %}
-                            <li><b>{{ field }}</b>: {{ errors[error][field][0] }}</li>
-                        {% endfor %}
+                        <li><b>{{ error }}</b>: {{ errors[error] }}</li>
                     {% endfor %}
                 </ul>
             {% endif %}
