@@ -5,6 +5,7 @@ import os
 import click
 from flask import current_app
 from flask.cli import with_appcontext
+from marshmallow import ValidationError
 from sqlalchemy.exc import OperationalError
 
 from comparison_interface.cli import blueprint
@@ -42,7 +43,11 @@ def setup(conf):
     ConfigValidation(app).check_config_path(conf)
     app.logger.info("Setting website configuration")
     WS.set_configuration_location(app, conf)
-    ConfigValidation(app).validate()
+    try:
+        ConfigValidation(app).validate()
+    except ValidationError as err:
+        app.logger.critical(err)
+        exit()
 
     # 2. Configure database
     with app.app_context():
@@ -83,7 +88,11 @@ def reset(conf):
         ConfigValidation(app).check_config_path(conf)
         app.logger.info("Setting website configuration")
         WS.set_configuration_location(app, conf)
-        ConfigValidation(app).validate()
+        try:
+            ConfigValidation(app).validate()
+        except ValidationError as err:
+            app.logger.critical(err)
+            exit()
 
         # 2. Configure database
         app.logger.info("Resetting website database")

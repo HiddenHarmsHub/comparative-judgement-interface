@@ -1,14 +1,22 @@
 {% extends "admin-layout.html" %}
 
-{% block content %}
-    <h1>Step 1: Upload the images required</h1>
+{% block css %}
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
+{% endblock %}
 
-    <div id="image-upload">
+{% block content %}
+    
+    <div class="container-fluid">
+        <h1 class="fs-3">Step 1: Upload the images required</h1>
         <form method="POST" action="/admin/upload-images" enctype="multipart/form-data">
             {{ form.csrf_token }}
-            {{ form.image_files }}
-            <input type="submit" value="Upload"/>
+            <input type="file" class="filepond" name="image_files" multiple allowMultiple="true" data-max-file-size="3MB"/>
+            <input class="btn btn-secondary" type="submit" value="Upload"/>
         </form>
     </div>
 
+    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+
+    <script src="{{ url_for('admin.static', filename='js/image_uploader.js') }}"></script>
 {% endblock %}

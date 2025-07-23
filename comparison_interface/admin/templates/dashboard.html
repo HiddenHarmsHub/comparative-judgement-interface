@@ -32,15 +32,28 @@
                         <div id="edit-pages" class="p-2">
                             <h2 class="fs-4">Edit Pages</h2>
                             {% if edit_instructions %}
-                                <form method="POST" action="/admin/edit-page">
-                                    <input type="submit" value="Edit Instructions"/>
-                                </form>
+                                <div class="pb-2 pt-2">
+                                    <form method="POST" action="/admin/edit-page">
+                                        <input type="hidden" name="page_type" value="instructions"/>
+                                        <input class="btn btn-secondary" type="submit" value="Edit Instructions"/>
+                                    </form>
+                                </div>
                             {% endif %}
                             {% if edit_ethics_agreement %}
-                                
+                                <div  class="pb-2 pt-2">
+                                    <form method="POST" action="/admin/edit-page">
+                                        <input type="hidden" name="page_type" value="ethics"/>
+                                        <input class="btn btn-secondary" type="submit" value="Edit Ethics Agreement"/>
+                                    </form>
+                                </div>
                             {% endif %}
                             {% if edit_site_policies %}
-                                
+                                <div  class="pb-2 pt-2">
+                                    <form method="POST" action="/admin/edit-page">
+                                        <input type="hidden" name="page_type" value="policies"/>
+                                        <input class="btn btn-secondary"  type="submit" value="Edit Site Policies"/>
+                                    </form>
+                                </div>
                             {% endif %}
                         </div>
                         {% endif %}
@@ -52,12 +65,21 @@
                 <div id="right-column" class="col-6">
                     <div id="new-study" class="p-2">
                         <h2 class="fs-4">Start new study</h2>
-                        <p>Starting a new study will delete all of the images and other files associated with the current study.</p>
+                        <p>Starting a new study will delete all of the images and other files associated with the current study so the current study will stop working.</p>
                         <p>When you have uploaded all of the files for the new study the data from the current study will also be deleted.
                         Please ensure you have exported the data before you start this process.
                         </p>
                         <form method="POST" action="/admin/new-study">
-                            <input type="submit" value="Start New Study"/>
+                            {{ form.csrf_token }}                           
+                            <div class="row pb-4">
+                                <div class="col-1">
+                                    {{ form.deletion_confirmation }}
+                                </div>
+                                <div class="col-11">
+                                    {{ form.deletion_confirmation.label }}
+                                </div>
+                            </div>
+                            <input class="btn btn-secondary" type="submit" value="Start New Study"/>
                         </form>
                     </div>
                     

@@ -1,10 +1,12 @@
+import json
 import os
 import shutil
 from tempfile import TemporaryDirectory
 
 import markdown
-from flask import current_app, redirect, render_template, send_file, url_for
+from flask import current_app, flash, redirect, render_template, request, send_file, url_for
 from flask_security import auth_required
+from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
 
 from comparison_interface.admin import blueprint, forms
@@ -21,7 +23,6 @@ from comparison_interface.db.setup import Setup as DBSetup
 @auth_required('session', within=10)
 def dashboard():
     """Show the admin dashboard."""
-    print(db.session.query(WebsiteControl).count())
     if db.session.query(WebsiteControl).count() == 1:
         current_app.config[WS.CONFIGURATION_LOCATION] = db.session.query(WebsiteControl).first().configuration_file
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
@@ -42,14 +43,23 @@ def dashboard():
         latest_registration = 'No participants yet'
     total_judgements = db.session.query(Comparison).count()
     skipped_judgements = db.session.query(Comparison).where(Comparison.state == 'skipped').count()
+
     # get the pages we are expecting from the config
     local_file_edits = True
     if local_file_edits is True:
         edit_instructions = WS.should_render(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE, current_app)
+        if edit_instructions and WS.configuration_has_key(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, current_app):
+            edit_instructions = False
         edit_ethics_agreement = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, current_app)
+        if edit_ethics_agreement and WS.configuration_has_key(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, current_app):
+            edit_ethics_agreement = False
         edit_site_policies = WS.should_render(WS.BEHAVIOUR_RENDER_SITE_POLICIES, current_app)
+        if edit_site_policies and WS.configuration_has_key(WS.BEHAVIOUR_SITE_POLICIES_HTML, current_app):
+            edit_site_policies = False
     if not edit_instructions and not edit_ethics_agreement and not edit_site_policies:
         local_file_edits = False
+
+    form = forms.StartStudyForm()
     data = {
         "local_file_edits": local_file_edits,
         "edit_instructions": edit_instructions,
@@ -61,7 +71,9 @@ def dashboard():
         "latest_registration": latest_registration,
         "total_judgements": total_judgements,
         "skipped_judgements": skipped_judgements,
+        "form": form,
     }
+
     return render_template("dashboard.html", **data)
 
 
@@ -69,26 +81,27 @@ def dashboard():
 @auth_required('session', within=10)
 def new_study():
     """Start a new study by deleting any existing files and redirecting to setup-study."""
-    for filename in os.listdir(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'])):
-        filepath = os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename)
-        os.unlink(filepath)
-    for filename in os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'])):
-        filepath = os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'], filename)
-        os.unlink(filepath)
-    return redirect(url_for("admin.setup_study"))
+    form = forms.StartStudyForm()
+    if form.deletion_confirmation.data is True:  # form validation prevents submission if not checked
+        for filename in os.listdir(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'])):
+            filepath = os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename)
+            os.unlink(filepath)
+        for filename in os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'])):
+            filepath = os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'], filename)
+            os.unlink(filepath)
+        return redirect(url_for("admin.setup_study"))
+    return redirect(url_for("admin.dashboard"))
 
 
 @blueprint.route('/setup-study', methods=['GET', 'POST'])
 @auth_required('session', within=10)
 def setup_study():
-    print('+++++++++++++++++')
-    print(current_app)
-    form = forms.CreateStudyForm()
     """Set up a new study."""
-    if form.deletion_confirmation.data is True:  # form validation prevents submission if not checked
+    form = forms.CreateStudyForm()
+    form.uploads_complete.data
+    if form.uploads_complete.data == 'true':
         conf_file = os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR']))[0]
         conf = os.path.join( current_app.config['CONFIG_UPLOAD_DIR'], conf_file)
-        print(conf)
         ConfigValidation(current_app).check_config_path(conf)
         WS.set_configuration_location(current_app, conf)
         ConfigValidation(current_app).validate()
@@ -98,7 +111,7 @@ def setup_study():
         s = DBSetup(current_app)
         s.exec()
         return redirect(url_for("admin.dashboard"))
-    elif len(os.listdir(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR']))) == 0:
+    if len(os.listdir(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR']))) == 0:
         return redirect(url_for("admin.upload_images"))
     elif len(os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR']))) == 0:
         return redirect(url_for("admin.upload_config"))
@@ -113,17 +126,43 @@ def setup_study():
     return render_template("create_study.html", **data)
 
 
+@blueprint.route("/process", methods=["POST"])
+@auth_required('session', within=10)
+def process():
+    """Filepond image uploader."""
+    file_names = []
+    for key in request.files:
+        file = request.files[key]
+        filename = secure_filename(file.filename)
+        file_names.append(filename)
+        try:
+            file.save(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename))
+        except Exception:
+            print("save fail: " + filename)
+    return json.dumps({"filename": [f for f in file_names]})
+
+
+@blueprint.route("/revert", methods=["DELETE"])
+@auth_required('session', within=10)
+def revert():
+    """Filepond image deletion."""
+    parsed = json.loads(request.data)
+    filename = parsed["filename"][0]
+    filepath = os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename)
+    try:
+        os.remove(filepath)
+    except Exception:
+        print("delete fail: " + filename)
+    return json.dumps({"filename": filename})
+
+
 @blueprint.route('/upload-images', methods=['GET', 'POST'])
 @auth_required('session', within=10)
 def upload_images():
     """Image uploading."""
     form = forms.ImageUploadForm()
-    if form.image_files.data:
-        if form.validate_on_submit():
-            for file in form.image_files.data:
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename))
-            return redirect(url_for("admin.setup_study"))
+    if request.method == 'POST':
+        return redirect(url_for("admin.setup_study"))
     if WS.CONFIGURATION_LOCATION in current_app.config:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
     else:
@@ -135,18 +174,17 @@ def upload_images():
     return render_template("image-uploader.html", **data)
 
 
+def process_errors(errors):
+    for type in errors:
+
+        print(type)
+
+
 @blueprint.route('/upload-config', methods=['GET', 'POST'])
 @auth_required('session', within=30)
 def upload_config():
     """Upload a new config file."""
     form = forms.ConfigUploadForm()
-    if form.config_file.data:
-        if form.validate_on_submit():
-            filename = secure_filename(form.config_file.data.filename)
-            form.config_file.data.save(
-                os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'], filename)
-            )
-            return redirect(url_for("admin.setup_study"))
     if WS.CONFIGURATION_LOCATION in current_app.config:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
     else:
@@ -155,6 +193,23 @@ def upload_config():
         "website_title": website_title,
         "form": form,
     }
+    if form.config_file.data:
+        if form.validate_on_submit():
+            filename = secure_filename(form.config_file.data.filename)
+            relative_filepath = os.path.join(current_app.config['CONFIG_UPLOAD_DIR'], filename)
+            filepath = os.path.join(current_app.root_path, relative_filepath)
+            form.config_file.data.save(filepath)
+            # we have to save it first because validation works off a file location
+            ConfigValidation(current_app).check_config_path(relative_filepath)
+            WS.set_configuration_location(current_app, relative_filepath)
+            try:
+                ConfigValidation(current_app).validate()
+            except ValidationError as err:
+                print(err.messages)
+                data["errors"] = err.messages
+                data["processed_errors"] = process_errors(err.messages)
+                return render_template("config-uploader.html", **data)
+            return redirect(url_for("admin.setup_study"))
     return render_template("config-uploader.html", **data)
 
 
@@ -176,37 +231,46 @@ def download_data():
 def edit_page():
     """Edit a html page."""
     form = forms.EditHtmlPageForm()
-    dir = current_app.config['HTML_PAGES_DIR']
+    folder = current_app.config['HTML_PAGES_DIR']
     if form.md_text.data:
-        print('======')
-        print(form.page_type.data)
-        print('======')
         md_text = form.md_text.data
         html = markdown.markdown(md_text)
         filename = form.page_type.data
         # save the text to the file
-        with open(os.path.join(current_app.root_path, dir, f'{filename}.html'), mode='w', encoding='utf-8') as output:
+        with open(
+            os.path.join(current_app.root_path, folder, f'{filename}.html'), mode='w', encoding='utf-8'
+        ) as output:
             output.write(html)
-        with open(os.path.join(current_app.root_path, dir, f'{filename}.md'), mode='w', encoding='utf-8') as output:
+        with open(os.path.join(current_app.root_path, folder, f'{filename}.md'), mode='w', encoding='utf-8') as output:
             output.write(md_text)
 
         return redirect(url_for("admin.dashboard"))
     else:
         form_data = {
-            "page_type": "instructions",
+            "page_type": form.page_type.data,
         }
-        filename = "instructions"
-        if os.path.exists(os.path.join(current_app.root_path, dir, f'{filename}.md')):
-            with open(os.path.join(current_app.root_path, dir, f'{filename}.md'), mode='r') as input:
+        filename = form.page_type.data
+        if os.path.exists(os.path.join(current_app.root_path, folder, f'{filename}.md')):
+            with open(os.path.join(current_app.root_path, folder, f'{filename}.md'), mode='r') as input:
                 current_text = input.read()
             form_data["current_text"] = current_text
         form = forms.EditHtmlPageForm(**form_data)
     if WS.CONFIGURATION_LOCATION in current_app.config:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        if filename == 'instructions':
+            page_name = WS.get_text(WS.PAGE_TITLE_INTRODUCTION, current_app)
+        elif filename == 'ethics':
+            page_name = WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, current_app)
+        elif filename == 'policies':
+            page_name = WS.get_text(WS.PAGE_TITLE_POLICIES, current_app)
+        else:
+            page_name = filename
     else:
         website_title = 'No active study'
+        page_name = filename
 
     data = {
+        "page_name": page_name,
         "website_title": website_title,
         "form": form,
     }

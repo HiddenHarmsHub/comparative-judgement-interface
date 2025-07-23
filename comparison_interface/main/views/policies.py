@@ -13,9 +13,14 @@ class Policies(Request):
 
     def get(self, _):
         """Request get handler."""
-        site_policies_html = WS.get_behaviour_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app)
-        with open(os.path.join(self._app.root_path, site_policies_html)) as input_file:
-            html = input_file.read()
+        if WS.configuration_has_key(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app):
+            site_policies_html = WS.get_behaviour_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app)
+            with open(os.path.join(self._app.root_path, site_policies_html)) as input_file:
+                html = input_file.read()
+        else:
+            folder = self._app.config['HTML_PAGES_DIR']
+            with open(os.path.join(self._app.root_path, folder, 'policies.html')) as input_file:
+                html = input_file.read()
 
         if html.startswith('<html'):
             fragment = False

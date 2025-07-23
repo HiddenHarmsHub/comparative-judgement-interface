@@ -14,16 +14,9 @@ $('#save-button').on('click', function(event) {
 
 const easyMDE = new EasyMDE(
     {
-        // toolbar: [
-        //     {
-        //         name: "preview",
-        //         action: EasyMDE.togglePreview,
-        //         className: "no-disable",
-        //         title: "Toggle Preview",
-        //         text: "Preview"
-        //     },
-        //     '|', 'bold', 'italic', 'heading', '|', 'unordered-list', 'ordered-list'
-        // ],
+        toolbar: [
+            'bold', 'italic', 'heading', '|', 'unordered-list', 'ordered-list', '|', 'quote', 'link', '|', 'preview', '|', 'guide' 
+        ],
         shortcuts: {
             "toggleSideBySide": null,
             "toggleFullScreen": null

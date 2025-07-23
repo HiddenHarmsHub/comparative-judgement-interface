@@ -3,7 +3,7 @@
 
 {% block content %}
     <div class="container-fluid p-4">
-        <h1 class="fs-3">Edit Pages</h1>
+        <h1 class="fs-3">Edit {{ page_name }} Page</h1>
     
         <form id="edit-page-form" method="POST" action="/admin/edit-page">
             {{ form.csrf_token }}
@@ -11,7 +11,8 @@
             {{ form.page_type }}
             {{ form.md_text }}
             <div>
-                <button id="save-button">Save</button>
+                <button class="btn btn-secondary" id="save-button">Save</button>
+                <a role="button" class="btn btn-secondary" href="{{ url_for('admin.dashboard') }}">Back</a>
             </div>
         </form>
     </div>

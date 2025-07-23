@@ -7,11 +7,8 @@
         "maximumCyclesPerUser": 3,
         "allowTies": true,
         "allowSkip": true,
-        "allowBack": true,
         "renderUserInstructionPage":  true,
-        "userInstructionHtml": "examples/html/instructions.html",
         "renderEthicsAgreementPage":  true,
-        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
         "renderSitePoliciesPage":  true,
         "sitePoliciesHtml": "examples/html/site-policies.html",
         "renderCookieBanner":  true    
@@ -55,7 +52,7 @@
         }
     ],
     "websiteTextConfiguration":  {
-        "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
+        "userRegistrationGroupQuestionLabels": "Which of these regions are you familiar with?",
         "userRegistrationGroupSelectionErr": "Please select at least one region.",
         "rankItemInstructionLabel": "Click the region that has the higher rate of deprivation, then click on the blue confirm button.",
         "additionalRegistrationPageText": ["The boundary outlines used in the images on this website are taken from the Office for National Statistics licensed under the Open Government Licence v.3.0 and Contains OS data © Crown copyright and database right 2024"]
@@ -77,7 +74,7 @@
                         "name": "north_west",
                         "displayName": "North West",
                         "imageDescription": "A Map showing the boundary of the North West of England",
-                        "imageName": "item_2.png"
+                        "imageName": "%sitem_2.png"
                     },
                     {
                         "name": "yorkshire",

@@ -5,11 +5,10 @@
         <h1 class="fs-3">Create Study</h1>
 
         <form method="POST" action="/admin/setup-study">
-            {{ form.csrf_token }}
-            {{ form.deletion_confirmation }}
-            {{ form.deletion_confirmation.label }}
+            <input type="hidden" name="uploads_complete" value="true"/>
+
             <div>
-                <input type="submit" value="Create New Study"/>
+                <input class="btn btn-secondary" type="submit" value="Create New Study"/>
             </div>
         </form>
     </div>
