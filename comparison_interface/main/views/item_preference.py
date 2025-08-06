@@ -3,7 +3,14 @@ from sqlalchemy.sql.expression import func
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Item, ItemGroup, Participant, ParticipantGroup, ParticipantItem, WebsiteControl
+from comparison_interface.db.models import (
+    Item,
+    ItemGroup,
+    Participant,
+    ParticipantGroup,
+    ParticipantItem,
+    WebsiteControl,
+)
 
 from .request import Request
 
@@ -33,7 +40,12 @@ class ItemsPreference(Request):
             .join(ParticipantGroup, ParticipantGroup.participant_id == Participant.participant_id, isouter=True)
             .join(ItemGroup, ItemGroup.group_id == ParticipantGroup.group_id, isouter=True)
             .join(Item, ItemGroup.item_id == Item.item_id, isouter=True)
-            .join(ParticipantItem, (ParticipantItem.participant_id == Participant.participant_id) & (ParticipantItem.item_id == Item.item_id), isouter=True)
+            .join(
+                ParticipantItem,
+                (ParticipantItem.participant_id == Participant.participant_id)
+                & (ParticipantItem.item_id == Item.item_id),
+                isouter=True,
+            )
             .where(
                 Participant.participant_id == self._session['participant_id'],
                 ParticipantGroup.group_id.in_(self._session['group_ids']),

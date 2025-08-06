@@ -196,7 +196,9 @@ class Setup:
                     nullable = 'NULL'
 
                 if required is True:
-                    basecommand = f'alter table participant add column {name} {col_type} {nullable} DEFAULT "{default_value}"'
+                    basecommand = (
+                        f'alter table participant add column {name} {col_type} {nullable} DEFAULT "{default_value}"'
+                    )
                 else:
                     basecommand = f'alter table participant add column {name} {col_type} {nullable}'
 
@@ -206,7 +208,9 @@ class Setup:
             # if this section was configured to be rendered
             render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
             if render_ethics:
-                conn.execute(text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"'))
+                conn.execute(
+                    text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"')
+                )
 
     def _setup_website_control_history(self, db):
         """Setup the control history to monitor for changes to the website configuration file.

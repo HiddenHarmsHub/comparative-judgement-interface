@@ -157,7 +157,8 @@ class Rank(Request):
             else:
                 # Rejudge an existence comparison.
                 query = db.select(Comparison).where(
-                    Comparison.comparison_id == comparison_id, Comparison.participant_id == self._session['participant_id']
+                    Comparison.comparison_id == comparison_id,
+                    Comparison.participant_id == self._session['participant_id'],
                 )
                 comparison = db.session.scalars(query).first()
 
@@ -346,7 +347,10 @@ class Rank(Request):
         query = (
             db.select(ParticipantGroup, CustomItemPair)
             .join(CustomItemPair, CustomItemPair.group_id == ParticipantGroup.group_id, isouter=True)
-            .where(ParticipantGroup.participant_id == self._session['participant_id'], ParticipantGroup.group_id.in_(self._session['group_ids']))
+            .where(
+                ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.group_id.in_(self._session['group_ids']),
+            )
         )
         result = db.session.execute(query).all()
         pair_ids = []
