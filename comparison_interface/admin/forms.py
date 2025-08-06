@@ -1,15 +1,10 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed, FileField, FileRequired, MultipleFileField
+from flask_wtf.file import FileAllowed, FileField, FileRequired
 from wtforms import BooleanField, HiddenField, TextAreaField, validators
 
 
 class ImageUploadForm(FlaskForm):
     """Form for image upload."""
-
-    # image_files = TextField('Paths', validators=[validators.required()])
-    # image_files = MultipleFileField(
-    #     'Image files', validators=[FileRequired(), FileAllowed(['png, jpg, jpeg'], 'Images must be png or jpg files')]
-    # )
 
 
 class ConfigUploadForm(FlaskForm):

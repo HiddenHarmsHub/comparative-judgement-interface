@@ -169,7 +169,7 @@ class Rank(Request):
                     comparison.state = state
                     comparison.updated = datetime.now(timezone.utc)
                     db.session.commit()
-                    # Return the pointer to the last comparison made because the participant will be given a new one next
+                    # Return the pointer to the last comparison made as the participant will be given a new one next
                     self._session['previous_comparison_id'] = self._session['comparison_ids'][
                         len(self._session['comparison_ids']) - 1
                     ]

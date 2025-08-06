@@ -271,7 +271,8 @@ class UserField(Schema):
         match = re.match(r'^[a-z0-9_-]+$', name)
         if not match:
             raise ValidationError(
-                "Name can be only alpha numeric lower case values with underscores or dashes. i.e. this_is_a_valid_name"
+                "Name can be only alpha numeric lower case values with underscores or dashes."
+                "i.e. this_is_a_valid_name"
             )
 
     @post_load
@@ -330,15 +331,6 @@ class BehaviourConfiguration(Schema):
 
     @post_load
     def _post_load_validation(self, data, **kwargs):
-        # if data['renderEthicsAgreementPage'] and 'userEthicsAgreementHtml' not in data:
-        #     raise ValidationError("The userEthicsAgreementHtml field is required if renderEthicsAgreementPage is true")
-
-        # if data['renderUserInstructionPage'] and 'userInstructionHtml' not in data:
-        #     raise ValidationError("The userInstructionHtml field is required if renderUserInstructionPage is true")
-
-        # if data['renderSitePoliciesPage'] and 'sitePoliciesHtml' not in data:
-        #     raise ValidationError("The sitePoliciesHtml field is required if renderSitePoliciesPage is true")
-
         if data['offerEscapeRouteBetweenCycles'] and ('cycleLength' not in data or 'maximumCyclesPerUser' not in data):
             raise ValidationError(
                 "The fields cycleLength and maximumCyclesPerUser are both required if offerEscapeRouteBetweenCycles "

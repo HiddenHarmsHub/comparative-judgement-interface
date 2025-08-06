@@ -20,6 +20,10 @@ from comparison_interface.db.setup import Setup as DBSetup
 @blueprint.cli.command("setup_admin")
 @with_appcontext
 def setup_admin():
+    """Set up the admin side of the system.
+
+    Admin user accounts will also need to be created on the command line using the flask-security commands.
+    """
     app = current_app
     with app.app_context():
         db.create_all(None)

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from flask import Flask, current_app, render_template, request, session
 from flask_mailman import Mail
-from flask_security import Security, SQLAlchemyUserDatastore, auth_required, hash_password
+from flask_security import Security, SQLAlchemyUserDatastore
 from numpy.random import default_rng
 from whitenoise import WhiteNoise
 
@@ -63,7 +63,7 @@ def create_app(test_config=None):
     # Setup Flask-Security
     user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
     security = Security(app, user_datastore)
-    mail = Mail(app)
+    mail = Mail(app)  # NoQA
 
     @security.context_processor
     def security_context_processor():
@@ -112,15 +112,13 @@ def create_app(test_config=None):
 
 def _before_request():
     """Run functions before every request except the admin routes and the static files."""
-    print(f'***{request.endpoint}***')
-    #     if (
-    #         request.endpoint is not None
-    #         and not request.endpoint.startswith('admin.')
-    #         and not request.endpoint.startswith('security.')
-    #         and request.endpoint not in ['static']
-    #     ):
-    #         _validate_app_integrity()
-    print(request)
+    if (
+        request.endpoint is not None
+        and not request.endpoint.startswith('admin.')
+        and not request.endpoint.startswith('security.')
+        and request.endpoint not in ['static']
+    ):
+        _validate_app_integrity()
     _configure_user_session()
 
 
