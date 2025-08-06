@@ -28,7 +28,7 @@
   {% include "security/_messages.html" %}
   <div class="container-fluid">
     <h1 class="fs-3">{{ _fsdomain("Two-Factor authentication adds an extra layer of security to your account") }}</h1>
-    <h2 class="fs-4">{{ _fsdomain("In addition to your username and password, you'll need to use a code.") }}</h3>
+    <h2 class="fs-4">{{ _fsdomain("In addition to your username and password, you'll need to use a code.") }}</h2>
     <form action="{{ url_for_security('two_factor_setup') }}" method="post" name="two_factor_setup_form">
       {{ two_factor_setup_form.hidden_tag() }}
       {{ render_form_errors(two_factor_setup_form) }}
