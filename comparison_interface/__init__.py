@@ -67,15 +67,16 @@ def create_app(test_config=None):
 
     @security.context_processor
     def security_context_processor():
-        return {"website_title": WS.get_text(WS.WEBSITE_TITLE, app)}
+        if WS.CONFIGURATION_LOCATION in app.config:
+            return {"website_title": WS.get_text(WS.WEBSITE_TITLE, app)}
+        else:
+            return {"website_title": "No active study"}
 
     # if we have asked for the api blueprint then register this here
     if "API_ACCESS" in app.config and app.config["API_ACCESS"] is True:
         from comparison_interface.api import blueprint as api_bp
 
         app.register_blueprint(api_bp)
-
-
 
     # Register function executed before any request
     app.before_request(_before_request)
@@ -111,9 +112,15 @@ def create_app(test_config=None):
 
 def _before_request():
     """Run functions before every request except the admin routes and the static files."""
-    print(request.endpoint)
-    if not request.endpoint.startswith('admin.') and request.endpoint not in ['static']:
-        _validate_app_integrity()
+    print(f'***{request.endpoint}***')
+#     if (
+#         request.endpoint is not None
+#         and not request.endpoint.startswith('admin.')
+#         and not request.endpoint.startswith('security.')
+#         and request.endpoint not in ['static']
+#     ):
+#         _validate_app_integrity()
+    print(request)
     _configure_user_session()
 
 

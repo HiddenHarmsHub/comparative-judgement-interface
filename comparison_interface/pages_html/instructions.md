@@ -1,4 +1,4 @@
-# my Instructions page 
+# proper Instructions page 
 
 1. test
 2. another test

@@ -7,6 +7,9 @@
         <form method="POST" action="/admin/upload-config" enctype="multipart/form-data">
             {{ form.csrf_token }}
             {{ form.config_file }}
+            <div class="pt-3">
+                <input class="btn btn-secondary" type="submit" value="Upload"/>
+            </div>
             {% if form.config_file.errors %}
                 <ul class="errors">
                     {% for error in form.config_file.errors %}
@@ -21,10 +24,12 @@
                         <li><b>{{ error }}</b>: {{ errors[error] }}</li>
                     {% endfor %}
                 </ul>
-            {% endif %}
-            <div class="pt-3">
-                <input class="btn btn-secondary" type="submit" value="Upload"/>
-            </div>
+                {% if missing_images %}
+                    <div class="">
+                        <a href="/admin/upload-images">Change uploaded images</a>
+                    </div>
+                {% endif %}
+            {% endif %}  
         </form>
     </div>
 

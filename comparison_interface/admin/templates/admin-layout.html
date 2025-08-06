@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/jquery-3.7.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom-style.css') }}">
     <link rel="stylesheet" href="{{ url_for('admin.static', filename='css/admin.css') }}">
     {% block css %}
@@ -33,7 +33,11 @@
       <div class="collapse navbar-collapse" id="main-navigation">
         <ul class="navbar-nav ms-md-auto">
           <li class="nav-item">
-            <a class="nav-link focus-ring ml-2" href="{{ url_for('security.logout') }}">Log out</a>
+            {% if logged_out %}
+              <a class="nav-link focus-ring ml-2" href="{{ url_for('security.login') }}">Log in</a>
+            {% else %}
+              <a class="nav-link focus-ring ml-2" href="{{ url_for('security.logout') }}">Log out</a>
+            {% endif %}
           </li>
         </ul>
       </div>

@@ -1,10 +1,11 @@
 import json
 import os
 import shutil
+from json.decoder import JSONDecodeError
 from tempfile import TemporaryDirectory
 
 import markdown
-from flask import current_app, flash, redirect, render_template, request, send_file, url_for
+from flask import current_app, redirect, render_template, request, send_file, url_for
 from flask_security import auth_required
 from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
@@ -18,27 +19,38 @@ from comparison_interface.db.models import Comparison, Participant, WebsiteContr
 from comparison_interface.db.setup import Setup as DBSetup
 
 
-@blueprint.route('/dashboard', methods=['GET'])
 @blueprint.route('/', methods=['GET'])
+@auth_required('session', within=10)
+def admin_root():
+    """Redirect to admin/dashboard."""
+    return redirect(url_for("admin.dashboard"))
+
+
+@blueprint.route('/dashboard', methods=['GET'])
 @auth_required('session', within=10)
 def dashboard():
     """Show the admin dashboard."""
-    if db.session.query(WebsiteControl).count() == 1:
+    form = forms.StartStudyForm()
+    if db.session.query(WebsiteControl).count() == 1 and os.path.exists(
+        os.path.join(current_app.root_path, db.session.query(WebsiteControl).first().configuration_file)
+    ):
         current_app.config[WS.CONFIGURATION_LOCATION] = db.session.query(WebsiteControl).first().configuration_file
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
         active_study = True
     else:
         website_title = 'No active study'
         active_study = False
-    if not active_study:
+    if active_study is False:
         data = {
             "website_title": website_title,
+            "form": form,
         }
         return render_template("dashboard.html", **data)
-
     participant_count = db.session.query(Participant).count()
     if participant_count > 0:
-        latest_registration = db.session.query(Participant).order_by(Participant.participant_id.desc()).first().created_date
+        latest_registration = (
+            db.session.query(Participant).order_by(Participant.participant_id.desc()).first().created_date
+        )
     else:
         latest_registration = 'No participants yet'
     total_judgements = db.session.query(Comparison).count()
@@ -59,7 +71,6 @@ def dashboard():
     if not edit_instructions and not edit_ethics_agreement and not edit_site_policies:
         local_file_edits = False
 
-    form = forms.StartStudyForm()
     data = {
         "local_file_edits": local_file_edits,
         "edit_instructions": edit_instructions,
@@ -75,6 +86,23 @@ def dashboard():
     }
 
     return render_template("dashboard.html", **data)
+
+
+@blueprint.route('/logged-out', methods=['GET'])
+def logged_out():
+    """Display a post log out page."""
+    if WS.CONFIGURATION_LOCATION in current_app.config:
+        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        has_current_study = True
+    else:
+        website_title = 'No active study'
+        has_current_study = False
+    data = {
+        "logged_out": True,
+        "has_current_study": has_current_study,
+        "website_title": website_title,
+    }
+    return render_template("logged-out.html", **data)
 
 
 @blueprint.route('/new-study', methods=['POST'])
@@ -101,7 +129,7 @@ def setup_study():
     form.uploads_complete.data
     if form.uploads_complete.data == 'true':
         conf_file = os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR']))[0]
-        conf = os.path.join( current_app.config['CONFIG_UPLOAD_DIR'], conf_file)
+        conf = os.path.join(current_app.config['CONFIG_UPLOAD_DIR'], conf_file)
         ConfigValidation(current_app).check_config_path(conf)
         WS.set_configuration_location(current_app, conf)
         ConfigValidation(current_app).validate()
@@ -146,14 +174,34 @@ def process():
 @auth_required('session', within=10)
 def revert():
     """Filepond image deletion."""
-    parsed = json.loads(request.data)
-    filename = parsed["filename"][0]
-    filepath = os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename)
+    try:
+        parsed = json.loads(request.data)
+        filename = parsed["filename"][0]
+    except JSONDecodeError:
+        filename = request.data.decode()
+    filepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"], filename)
     try:
         os.remove(filepath)
     except Exception:
         print("delete fail: " + filename)
     return json.dumps({"filename": filename})
+
+
+@blueprint.route("/load/<item>", methods=["GET"])
+@auth_required('session', within=10)
+def load(item):
+    """Load the details of the currently uploaded images."""
+    filepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"], item)
+    return send_file(filepath)
+
+
+@blueprint.route("/current-files", methods=["GET"])
+@auth_required('session', within=10)
+def current_files():
+    """Get the filenames of the currently uploaded images."""
+    dirpath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"])
+    files = os.listdir(dirpath)
+    return json.dumps({"filenames": '|'.join(files)})
 
 
 @blueprint.route('/upload-images', methods=['GET', 'POST'])
@@ -163,6 +211,11 @@ def upload_images():
     form = forms.ImageUploadForm()
     if request.method == 'POST':
         return redirect(url_for("admin.setup_study"))
+    # we may have been redirected here and if so we should clear the current config file because it will
+    # have failed the validation
+    for filename in os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'])):
+        filepath = os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'], filename)
+        os.unlink(filepath)
     if WS.CONFIGURATION_LOCATION in current_app.config:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
     else:
@@ -175,6 +228,7 @@ def upload_images():
 
 
 def process_errors(errors):
+    """Organise the errors for displaying on the screen."""
     processed_errors = {}
     for typ in errors:
         for field in errors[typ]:
@@ -217,6 +271,13 @@ def upload_config():
                 ConfigValidation(current_app).validate()
             except ValidationError as err:
                 data["errors"] = process_errors(err.messages)
+                data["missing_images"] = False
+                for entry in data["errors"]:
+                    if "Image " in data["errors"][entry] and " not found " in data["errors"][entry]:
+                        data["missing_images"] = True
+                        break
+                    # remove the saved config file
+                    WS.set_configuration_location(current_app, None)
                 return render_template("config-uploader.html", **data)
             return redirect(url_for("admin.setup_study"))
     return render_template("config-uploader.html", **data)
