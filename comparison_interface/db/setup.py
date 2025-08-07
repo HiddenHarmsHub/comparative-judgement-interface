@@ -41,8 +41,8 @@ class Setup:
             self._setup_website_control_history(db)
             db.session.commit()
 
-            # The setup of the user configuration doesn't use SQLAlchemy ORM. The transaction
-            # needs to be committed before inserting the user fields values. The user
+            # The setup of the participant configuration doesn't use SQLAlchemy ORM. The transaction
+            # needs to be committed before inserting the participant fields values. The participant
             # columns values are dynamically defined so a different process needs to be followed.
             self._setup_participant(db)
 
@@ -161,19 +161,19 @@ class Setup:
             self.app.logger.info("Reusing Item {} relationship with group {}.".format(item.name, group.name))
 
     def _setup_participant(self, db):
-        """Save the user configuration in the database.
+        """Save the participant configuration in the database.
 
         User fields are dynamically configured using the website configuration file.
 
         Args:
             db (SQLAlchemy): Database connection
         """
-        user_conf = WS.get_user_conf(self.app)
-        # Create each of the new user columns
+        participant_conf = WS.get_user_conf(self.app)
+        # Create each of the new participant columns
         os.chdir(self.app.instance_path)
         engine = create_engine(self.app.config["SQLALCHEMY_BINDS"]["study_db"])
         with engine.connect() as conn:
-            for f in user_conf:
+            for f in participant_conf:
                 name = f[WS.USER_FIELD_NAME]
                 required = f[WS.USER_FIELD_REQUIRED]
                 type = f[WS.USER_FIELD_TYPE]
