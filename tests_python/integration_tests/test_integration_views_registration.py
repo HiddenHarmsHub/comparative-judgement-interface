@@ -40,7 +40,8 @@ def test_register_participant_with_escape_route_on(equal_weight_client, particip
     """
     GIVEN a flask app configured for testing and equal weights and with the escape route on
     WHEN a new participant registers on the site
-    THEN the participant is stored in the database with cycle count set at 0 and is redirected to the item selection page
+    THEN the participant is stored in the database with cycle count set at 0 and is redirected to the item
+    selection page
     """
     with equal_weight_client:
         response = equal_weight_client.post("/register", data=participant_data)
@@ -61,7 +62,8 @@ def test_register_participant_with_escape_route_off(mocker, equal_weight_client,
     """
     GIVEN a flask app configured for testing and equal weights and with the escape route off
     WHEN a new participant registers on the site
-    THEN the participant is stored in the database with cycle count set to None and is redirected to the item selection page
+    THEN the participant is stored in the database with cycle count set to None and is redirected to the item
+    selection page
     """
     with equal_weight_client:
         escape_route_setting = mocker.patch.object(register.WS, 'get_behaviour_conf')

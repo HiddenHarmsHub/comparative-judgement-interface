@@ -15,8 +15,8 @@ class Settings(object):
     HTML_PAGES_DIR = 'pages_html'
     CONFIG_UPLOAD_DIR = 'project_configuration'
     MAIL_BACKEND = 'console'
-    #MAIL_SERVER = 'our path'
-    #MAIL_PORT = 25
+    # MAIL_SERVER = 'our path'
+    # MAIL_PORT = 25
     SECURITY_PASSWORD_SALT = 'ttr5redsijokj'
     SECURITY_URL_PREFIX = '/admin'
     SECURITY_LOGIN_USER_TEMPLATE = 'user_login.html'

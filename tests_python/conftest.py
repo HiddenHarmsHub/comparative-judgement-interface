@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 
 import pytest
-from sqlalchemy import MetaData, Table
+from sqlalchemy import MetaData
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import create_app
@@ -20,7 +20,7 @@ def execute_setup(conf_file):
             "API_ACCESS": False,
             "LANGUAGE": "en",
             "SQLALCHEMY_DATABASE_URI": "sqlite:///test_admin_database.db",
-            "SQLALCHEMY_BINDS": {"study_db": "sqlite:///test_database.db"}
+            "SQLALCHEMY_BINDS": {"study_db": "sqlite:///test_database.db"},
         }
     )
     # 1. Validate the website configuration

@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, text
 
-from comparison_interface.db.connection import db
 from tests_python.conftest import execute_setup
 
 
