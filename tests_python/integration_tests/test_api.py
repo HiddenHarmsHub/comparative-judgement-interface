@@ -42,7 +42,7 @@ def equal_weight_app_api():
     with app.app_context():
         db.session.remove()
         db.drop_all()
-        os.unlink('instance/test_database.db')
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 
 @pytest.fixture()

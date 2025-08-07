@@ -620,14 +620,14 @@ def test_random_item_retrieval_only_one_item(equal_weight_app):
         'accepted_ethics_agreement': '1',
     }
     user_data['created_date'] = datetime.now(timezone.utc)
-    db_engine = db.engines[None]
+    db_engine = db.engines['study_db']
     db_meta = MetaData()
     db_meta.reflect(bind=db_engine)
     table = db_meta.tables["participant"]
     new_user_sql = table.insert().values(**user_data)
     try:
         # Insert the user into the database
-        with db.engine.begin() as connection:
+        with db_engine.begin() as connection:
             result = connection.execute(new_user_sql)
         id = result.lastrowid
     except SQLAlchemyError as e:

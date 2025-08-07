@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 
 import pytest
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, Table
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import create_app
@@ -44,7 +44,7 @@ def equal_weight_app():
     with app.app_context():
         db.session.remove()
         db.drop_all()
-        os.unlink('instance/test_database.db')
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 
 @pytest.fixture()
@@ -63,7 +63,7 @@ def custom_weight_app():
     with app.app_context():
         db.session.remove()
         db.drop_all()
-        os.unlink('instance/test_database.db')
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 
 @pytest.fixture()
@@ -100,14 +100,14 @@ def add_basic_data_custom(custom_weight_client):
         'accepted_ethics_agreement': '1',
     }
     participant_data['created_date'] = datetime.now(timezone.utc)
-    db_engine = db.engines[None]
+    db_engine = db.engines['study_db']
     db_meta = MetaData()
     db_meta.reflect(bind=db_engine)
     table = db_meta.tables["participant"]
     new_participant_sql = table.insert().values(**participant_data)
     try:
         # Insert the participant into the database
-        with db.engine.begin() as connection:
+        with db_engine.begin() as connection:
             result = connection.execute(new_participant_sql)
         id = result.lastrowid
     except SQLAlchemyError as e:
@@ -138,14 +138,14 @@ def add_basic_data_equal(equal_weight_client):
         'accepted_ethics_agreement': '1',
     }
     participant_data['created_date'] = datetime.now(timezone.utc)
-    db_engine = db.engines[None]
+    db_engine = db.engines['study_db']
     db_meta = MetaData()
     db_meta.reflect(bind=db_engine)
     table = db_meta.tables["participant"]
     new_participant_sql = table.insert().values(**participant_data)
     try:
         # Insert the participant into the database
-        with db.engine.begin() as connection:
+        with db_engine.begin() as connection:
             result = connection.execute(new_participant_sql)
         id = result.lastrowid
     except SQLAlchemyError as e:
@@ -185,14 +185,14 @@ def add_basic_data_equal(equal_weight_client):
         'accepted_ethics_agreement': '1',
     }
     participant_data['created_date'] = datetime.now(timezone.utc)
-    db_engine = db.engines[None]
+    db_engine = db.engines['study_db']
     db_meta = MetaData()
     db_meta.reflect(bind=db_engine)
     table = db_meta.tables["participant"]
     new_participant_sql = table.insert().values(**participant_data)
     try:
         # Insert the participant into the database
-        with db.engine.begin() as connection:
+        with db_engine.begin() as connection:
             result = connection.execute(new_participant_sql)
         id = result.lastrowid
     except SQLAlchemyError as e:
