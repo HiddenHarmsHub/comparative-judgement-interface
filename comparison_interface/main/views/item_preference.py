@@ -1,9 +1,10 @@
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.expression import func
 
-from ..configuration.website import Settings as WS
-from ..db.connection import db
-from ..db.models import Item, ItemGroup, User, UserGroup, UserItem, WebsiteControl
+from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import Item, ItemGroup, User, UserGroup, UserItem, WebsiteControl
+
 from .request import Request
 
 
@@ -52,7 +53,7 @@ class ItemsPreference(Request):
         # Render the item preference template
         _, _, _, item, _ = result
         return self._render_template(
-            'pages/item_preference.html',
+            'main/pages/item_preference.html',
             {
                 'item': item,
                 'item_selection_question': WS.get_text(WS.ITEM_SELECTION_QUESTION_LABEL, self._app),

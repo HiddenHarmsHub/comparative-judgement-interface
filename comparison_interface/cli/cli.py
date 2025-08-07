@@ -3,17 +3,16 @@
 import os
 
 import click
-from flask import Blueprint, current_app
+from flask import current_app
 from flask.cli import with_appcontext
 from sqlalchemy.exc import OperationalError
 
+from comparison_interface.cli import blueprint
 from comparison_interface.configuration.validation import Validation as ConfigValidation
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.export import Exporter
 from comparison_interface.db.models import WebsiteControl
 from comparison_interface.db.setup import Setup as DBSetup
-
-blueprint = Blueprint("commands", __name__, cli_group=None)
 
 
 @blueprint.cli.command("setup")

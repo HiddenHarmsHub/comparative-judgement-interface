@@ -1,6 +1,7 @@
-from ..configuration.website import Settings as WS
-from ..db.connection import db
-from ..db.models import User
+from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import User
+
 from .request import Request
 
 
@@ -19,7 +20,7 @@ class Thankyou(Request):
         }
         if self._can_continue():
             data['continue'] = True
-        return self._render_template('pages/thankyou.html', data)
+        return self._render_template('main/pages/thankyou.html', data)
 
     def _can_continue(self):
         """Check if this user can complete another cycle."""

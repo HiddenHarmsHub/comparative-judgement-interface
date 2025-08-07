@@ -4,7 +4,7 @@ from flask import session
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import Comparison, User
-from comparison_interface.views import rank
+from comparison_interface.main.views import rank
 from tests_python.conftest import execute_setup
 
 
@@ -300,7 +300,7 @@ def test_hard_stop_at_max_cycles(equal_weight_client, equal_weight_app):
     """
     GIVEN a flask app configured for testing and equal weights and basic data
     WHEN a logged in user tries to continue ranking items after the end of the final permitted cycle
-    THEN they are sent to the thankyou page and the page does not have a continue button
+    THEN they are sent to the thank you page and the page does not have a continue button
     """
     with equal_weight_client.session_transaction() as session:
         session['user_id'] = 1
@@ -348,7 +348,7 @@ def test_redirect_after_final_cycle_end(mocker, equal_weight_client, equal_weigh
     """
     GIVEN a flask app configured for testing and equal weights and basic data
     WHEN a logged in user gets to the end of the final permitted cycle
-    THEN they are redirected to the thankyou page and the page does not have a continue button
+    THEN they are redirected to the thank you page and the page does not have a continue button
     """
     with equal_weight_client.session_transaction() as session:
         session['user_id'] = 1

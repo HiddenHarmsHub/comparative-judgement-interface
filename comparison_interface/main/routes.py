@@ -1,6 +1,8 @@
 """Handles all the URL routing."""
 
-from flask import Blueprint, current_app, request, session
+from flask import current_app, request, session
+
+from comparison_interface.main import blueprint
 
 from .views.ethics import Ethics
 from .views.introduction import Introduction
@@ -11,8 +13,6 @@ from .views.rank import Rank
 from .views.register import Register
 from .views.request import Request
 from .views.thankyou import Thankyou
-
-blueprint = Blueprint('views', __name__, template_folder='templates')
 
 
 @blueprint.route('/introduction', methods=['GET'])

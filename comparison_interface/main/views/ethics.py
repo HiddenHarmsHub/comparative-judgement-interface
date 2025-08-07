@@ -1,6 +1,7 @@
 import os
 
-from ..configuration.website import Settings as WS
+from comparison_interface.configuration.website import Settings as WS
+
 from .request import Request
 
 
@@ -21,7 +22,7 @@ class Ethics(Request):
         else:
             fragment = True
         return self._render_template(
-            'pages/ethics.html',
+            'main/pages/ethics.html',
             {
                 'fragment': fragment,
                 'html_string': html,

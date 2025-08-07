@@ -32,21 +32,21 @@
         <ul class="navbar-nav ms-md-auto">
           {% if render_user_instructions %}
             <li class="nav-item">
-              <a class="nav-link focus-ring mx-2" href="{{ url_for('views.introduction') }}">{{introduction_page_title}}</a>
+              <a class="nav-link focus-ring mx-2" href="{{ url_for('main.introduction') }}">{{introduction_page_title}}</a>
             </li>
           {% endif %}
           {% if render_user_ethics_agreement %}
             <li class="nav-item">
-              <a class="nav-link focus-ring mx-2" href="{{ url_for('views.ethics_agreement') }}">{{ethics_agreement_page_title}}</a>
+              <a class="nav-link focus-ring mx-2" href="{{ url_for('main.ethics_agreement') }}">{{ethics_agreement_page_title}}</a>
             </li>
           {% endif %}
           {% if render_site_policies %}
             <li class="nav-item">
-              <a class="nav-link focus-ring mx-2" href="{{ url_for('views.policies') }}">{{policies_page_title}}</a>
+              <a class="nav-link focus-ring mx-2" href="{{ url_for('main.policies') }}">{{policies_page_title}}</a>
             </li>
           {% endif %}
           <li class="nav-item">
-            <a class="nav-link focus-ring ml-2" href="{{ url_for('views.logout') }}">{{logout_page_title}}</a>
+            <a class="nav-link focus-ring ml-2" href="{{ url_for('main.logout') }}">{{logout_page_title}}</a>
           </li>
         </ul>
       </div>

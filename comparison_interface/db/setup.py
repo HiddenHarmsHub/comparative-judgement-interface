@@ -4,7 +4,8 @@ import os
 
 from sqlalchemy import text
 
-from ..configuration.website import Settings as WS
+from comparison_interface.configuration.website import Settings as WS
+
 from .connection import db, persist
 from .models import CustomItemPair, Group, Item, ItemGroup, WebsiteControl
 

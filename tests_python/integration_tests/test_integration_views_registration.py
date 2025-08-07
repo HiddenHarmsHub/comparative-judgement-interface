@@ -1,6 +1,6 @@
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import User
-from comparison_interface.views import register
+from comparison_interface.main.views import register
 
 
 def test_page_links_all_true(equal_weight_client):
