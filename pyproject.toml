@@ -15,6 +15,7 @@ dependencies = [
     "pillow",
     "numpy",
     "cachetools",
+    "markdown",
 ]
 
 [project.optional-dependencies]
