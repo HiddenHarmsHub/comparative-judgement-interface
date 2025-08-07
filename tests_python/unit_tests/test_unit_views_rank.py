@@ -2,34 +2,35 @@ from datetime import datetime, timezone
 
 import pytest
 from numpy import random
-from sqlalchemy import MetaData, text
+from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison, Group, Item, ItemGroup, UserGroup
+from comparison_interface.db.models import Comparison, Group, Item, ItemGroup, ParticipantGroup
 from comparison_interface.main.views import rank
 from comparison_interface.main.views.register import Request
 
 
-@pytest.mark.usefixtures('equal_weight_app', 'add_basic_data_equal')
-def test_equal_data_setup():
+@pytest.mark.usefixtures('add_basic_data_equal')
+def test_equal_data_setup(equal_weight_app):
     """
     GIVEN a flask app configured for testing and equal weights
     WHEN the add_basic_data_equal fixture is also used
     THEN the fixture data is added correctly
     """
+    engine = create_engine(equal_weight_app.config["SQLALCHEMY_BINDS"]["study_db"])
+    with engine.connect() as conn:
+        participant_sql = 'SELECT * FROM "participant"'
+        participants = conn.execute(text(participant_sql)).all()
+        assert len(participants) == 2
 
-    user_sql = 'SELECT * FROM "user"'
-    users = db.session.execute(text(user_sql)).all()
-    assert len(users) == 2
+        participant_group_sql = 'SELECT * FROM "participant_group"'
+        participant_groups = conn.execute(text(participant_group_sql)).all()
+        assert len(participant_groups) == 2
 
-    user_group_sql = 'SELECT * FROM "user_group"'
-    user_groups = db.session.execute(text(user_group_sql)).all()
-    assert len(user_groups) == 2
-
-    user_item_sql = 'SELECT * FROM "user_item"'
-    user_items = db.session.execute(text(user_item_sql)).all()
-    assert len(user_items) == 10
+        participant_item_sql = 'SELECT * FROM "participant_item"'
+        participant_items = conn.execute(text(participant_item_sql)).all()
+        assert len(participant_items) == 10
 
 
 def test_item_retrieval_function_choice_with_id(mocker, equal_weight_app):
@@ -39,7 +40,7 @@ def test_item_retrieval_function_choice_with_id(mocker, equal_weight_app):
     THEN the correct function runs
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -59,7 +60,7 @@ def test_item_retrieval_function_choice_with_custom_weights(mocker, custom_weigh
     THEN the correct function runs
     """
     request = Request(custom_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'manual'
     request._session['previous_comparison_id'] = None
@@ -79,7 +80,7 @@ def test_item_retrieval_function_choice_with_preference(mocker, equal_weight_app
     THEN the correct function runs
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -99,7 +100,7 @@ def test_item_retrieval_function_choice_without_preference(mocker, equal_weight_
     THEN the correct function runs
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -119,7 +120,7 @@ def test_item_retrieval_function_choice_with_unrecognised_setting(mocker, equal_
     THEN two None values are returned
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'wrong_setting'
     request._session['previous_comparison_id'] = None
@@ -141,7 +142,7 @@ def test_get_comparison_items_normal_order(equal_weight_app):
     # add some decisions to retrieve
     comparison_data_list = [
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -150,7 +151,7 @@ def test_get_comparison_items_normal_order(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -165,7 +166,7 @@ def test_get_comparison_items_normal_order(equal_weight_app):
     db.session.commit()
 
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
@@ -185,7 +186,7 @@ def test_get_comparison_items_different_order(equal_weight_app):
     """
     comparison_data_list = [
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -194,7 +195,7 @@ def test_get_comparison_items_different_order(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -209,7 +210,7 @@ def test_get_comparison_items_different_order(equal_weight_app):
     db.session.commit()
 
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
@@ -230,7 +231,7 @@ def test_get_comparison_items_invalid_id(equal_weight_app):
     # add some decisions to retrieve
     comparison_data_list = [
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -239,7 +240,7 @@ def test_get_comparison_items_invalid_id(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -255,7 +256,7 @@ def test_get_comparison_items_invalid_id(equal_weight_app):
 
     with pytest.raises(Exception):
         request = Request(equal_weight_app, {})
-        request._session['user_id'] = 1
+        request._session['participant_id'] = 1
         request._session['group_ids'] = [1]
         request._session['weight_conf'] = 'equal'
         request._session['previous_comparison_id'] = 1
@@ -271,7 +272,7 @@ def test_calculate_comparison_state_tied(equal_weight_app):
     THEN the correct details are returned
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
@@ -290,7 +291,7 @@ def test_calculate_comparison_state_selected(equal_weight_app):
     THEN the correct details are returned
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
@@ -309,7 +310,7 @@ def test_calculate_comparison_state_skipped(equal_weight_app):
     THEN the correct details are returned
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
@@ -329,7 +330,7 @@ def test_increment_cycle_count(equal_weight_app):
     THEN the cycle count for the logged in user is incremented by 1
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
@@ -354,7 +355,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
     """
     comparison_data_list = [
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -363,7 +364,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -372,7 +373,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -381,7 +382,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 1,
             'item_2_id': 3,
             'selected_item_id': 3,
@@ -390,7 +391,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 2,
             'item_2_id': 4,
             'selected_item_id': 2,
@@ -399,7 +400,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -408,7 +409,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -417,7 +418,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 2,
             'item_2_id': 7,
             'selected_item_id': 2,
@@ -426,7 +427,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': 3,
@@ -435,7 +436,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -444,7 +445,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
             'updated': datetime.now(timezone.utc),
         },
         {
-            'user_id': 1,
+            'participant_id': 1,
             'item_1_id': 4,
             'item_2_id': 6,
             'selected_item_id': None,
@@ -459,7 +460,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
     db.session.commit()
 
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
@@ -478,7 +479,7 @@ def test_comparison_stats_retrieval_no_data(equal_weight_app):
     THEN the correct figures are returned
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
@@ -497,7 +498,7 @@ def test_custom_item_retrieval(mocker, custom_weight_app):
     THEN the correct group ids and weightings are supplied to the random generator function and two items are returned
     """
     request = Request(custom_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [2]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -520,7 +521,7 @@ def test_preferred_item_retrieval(mocker, equal_weight_app):
     THEN only items that are known are selected for comparison
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -543,7 +544,7 @@ def test_preferred_item_retrieval_not_enough_items(equal_weight_app):
     THEN no items are returned for comparison because there is only one to choose from
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 2
+    request._session['participant_id'] = 2
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -567,7 +568,7 @@ def test_random_item_retrieval(mocker, equal_weight_app):
     function can still be unit tested with these settings.
     """
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = 1
+    request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -622,7 +623,7 @@ def test_random_item_retrieval_only_one_item(equal_weight_app):
     db_engine = db.engines[None]
     db_meta = MetaData()
     db_meta.reflect(bind=db_engine)
-    table = db_meta.tables["user"]
+    table = db_meta.tables["participant"]
     new_user_sql = table.insert().values(**user_data)
     try:
         # Insert the user into the database
@@ -634,16 +635,16 @@ def test_random_item_retrieval_only_one_item(equal_weight_app):
     db.session.commit
     # insert the group preferences for the user (assumes groups are always added the same way)
     user_group_data = {
-        'user_id': id,
+        'participant_id': id,
         'group_id': 3,
         'created_date': datetime.now(timezone.utc),
     }
-    user_group = UserGroup(**user_group_data)
+    user_group = ParticipantGroup(**user_group_data)
     db.session.add(user_group)
     db.session.commit()
 
     request = Request(equal_weight_app, {})
-    request._session['user_id'] = id
+    request._session['participant_id'] = id
     request._session['group_ids'] = [3]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None

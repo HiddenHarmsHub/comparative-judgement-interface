@@ -10,7 +10,7 @@ def test_render_404(equal_weight_client):
 
 def test_render_home_no_login(equal_weight_client):
     """
-    GIVEN a flask app configured for testing with equal weights and no logged in user
+    GIVEN a flask app configured for testing with equal weights and no logged in participant
     WHEN the route location is requested
     THEN the registration page is shown
     """
@@ -19,9 +19,9 @@ def test_render_home_no_login(equal_weight_client):
     assert b'Comparison Software: User Registration' in response.data
 
 
-def test_render_user_register(equal_weight_client):
+def test_render_participant_register(equal_weight_client):
     """
-    GIVEN a flask app configured for testing with equal weights and no logged in user
+    GIVEN a flask app configured for testing with equal weights and no logged in participant
     WHEN the route location is requested
     THEN the registration page is shown
     """
@@ -65,12 +65,12 @@ def test_render_policies(equal_weight_client):
 
 def test_render_logout(equal_weight_client):
     """
-    GIVEN a flask app configured for testing with equal weights and a logged in user
-    WHEN the user logs out
+    GIVEN a flask app configured for testing with equal weights and a logged in participant
+    WHEN the participant logs out
     THEN they are redirected to the registration page and the session is cleared
     """
     with equal_weight_client.session_transaction() as session:
-        session['user_id'] = 1
+        session['participant_id'] = 1
         session['group_ids'] = [1]
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
@@ -81,4 +81,4 @@ def test_render_logout(equal_weight_client):
     assert response.request.path == "/register"
     # there should be no session data
     with equal_weight_client.session_transaction() as session:
-        assert 'user_id' not in session
+        assert 'participant_id' not in session

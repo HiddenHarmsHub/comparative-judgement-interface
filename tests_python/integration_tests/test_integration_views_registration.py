@@ -1,5 +1,5 @@
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import User
+from comparison_interface.db.models import Participant
 from comparison_interface.main.views import register
 
 
@@ -36,45 +36,45 @@ def test_page_links_all_false(mocker, equal_weight_client):
         assert b'href="/logout"' in response.data
 
 
-def test_register_user_with_escape_route_on(equal_weight_client, user_data):
+def test_register_participant_with_escape_route_on(equal_weight_client, participant_data):
     """
     GIVEN a flask app configured for testing and equal weights and with the escape route on
-    WHEN a new user registers on the site
-    THEN the user is stored in the database with cycle count set at 0 and is redirected to the item selection page
+    WHEN a new participant registers on the site
+    THEN the participant is stored in the database with cycle count set at 0 and is redirected to the item selection page
     """
     with equal_weight_client:
-        response = equal_weight_client.post("/register", data=user_data)
+        response = equal_weight_client.post("/register", data=participant_data)
 
         # Check that there was a redirect to the next page.
         assert response.status_code == 302
         assert b'href="/selection/items"' in response.data
 
-        # Verify the user was inserted into the database with the cycle count set as 0 and added to the session
+        # Verify the participant was inserted into the database with the cycle count set as 0 and added to the session
         with equal_weight_client.session_transaction() as session:
-            user = db.session.scalars(db.select(User).order_by(User.user_id.desc())).first()
-            assert user.completed_cycles == 0
-            assert isinstance(user.user_id, int)
-            assert user.user_id == session['user_id']
+            participant = db.session.scalars(db.select(Participant).order_by(Participant.participant_id.desc())).first()
+            assert participant.completed_cycles == 0
+            assert isinstance(participant.participant_id, int)
+            assert participant.participant_id == session['participant_id']
 
 
-def test_register_user_with_escape_route_off(mocker, equal_weight_client, user_data):
+def test_register_participant_with_escape_route_off(mocker, equal_weight_client, participant_data):
     """
     GIVEN a flask app configured for testing and equal weights and with the escape route off
-    WHEN a new user registers on the site
-    THEN the user is stored in the database with cycle count set to None and is redirected to the item selection page
+    WHEN a new participant registers on the site
+    THEN the participant is stored in the database with cycle count set to None and is redirected to the item selection page
     """
     with equal_weight_client:
         escape_route_setting = mocker.patch.object(register.WS, 'get_behaviour_conf')
         escape_route_setting.side_effect = [False]
-        response = equal_weight_client.post("/register", data=user_data)
+        response = equal_weight_client.post("/register", data=participant_data)
 
         # Check that there was a redirect to the next page.
         assert response.status_code == 302
         assert b'href="/selection/items"' in response.data
 
-        # Verify the user was inserted into the database with the cycle count set as 0 and added to the session
+        # Verify the participant was inserted into the database with the cycle count set as 0 and added to the session
         with equal_weight_client.session_transaction() as session:
-            user = db.session.scalars(db.select(User).order_by(User.user_id.desc())).first()
-            assert user.completed_cycles is None
-            assert isinstance(user.user_id, int)
-            assert user.user_id == session['user_id']
+            participant = db.session.scalars(db.select(Participant).order_by(Participant.participant_id.desc())).first()
+            assert participant.completed_cycles is None
+            assert isinstance(participant.participant_id, int)
+            assert participant.participant_id == session['participant_id']
