@@ -174,12 +174,15 @@ def process():
 @auth_required('session', within=10)
 def revert():
     """Filepond image deletion."""
+    basepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"])
     try:
         parsed = json.loads(request.data)
-        filename = parsed["filename"][0]
+        filename = secure_filename(parsed["filename"][0])
     except JSONDecodeError:
-        filename = request.data.decode()
-    filepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"], filename)
+        filename = secure_filename(request.data.decode())
+    filepath = os.path.normpath(os.path.join(basepath, filename))
+    if not filepath.startswith(basepath):
+        return Response('Access not permitted.', 403)
     try:
         os.remove(filepath)
     except Exception:
