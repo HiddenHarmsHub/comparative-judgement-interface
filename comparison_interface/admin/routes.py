@@ -5,7 +5,7 @@ from json.decoder import JSONDecodeError
 from tempfile import TemporaryDirectory
 
 import markdown
-from flask import current_app, redirect, render_template, request, send_file, url_for
+from flask import Response, current_app, redirect, render_template, request, send_file, url_for
 from flask_security import auth_required
 from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
@@ -191,7 +191,11 @@ def revert():
 @auth_required('session', within=10)
 def load(item):
     """Load the details of the currently uploaded images."""
-    filepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"], item)
+    basepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"])
+    filename = secure_filename(item)
+    filepath = os.path.normpath(os.path.join(basepath, filename))
+    if not filepath.startswith(basepath):
+        return Response('Access not permitted.', 403)
     return send_file(filepath)
 
 
