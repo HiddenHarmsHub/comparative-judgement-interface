@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+from datetime import datetime
 from json.decoder import JSONDecodeError
 from tempfile import TemporaryDirectory
 
@@ -51,8 +52,13 @@ def dashboard():
         latest_registration = (
             db.session.query(Participant).order_by(Participant.participant_id.desc()).first().created_date
         )
+        latest_registration_date = (
+            f"{latest_registration.date()} {latest_registration.hour}:{latest_registration.minute}"
+        )
     else:
-        latest_registration = "No participants yet"
+        latest_registration_date = "No participants yet"
+    date_created = db.session.query(WebsiteControl).first().setup_exec_date
+    date_study_created = f"{date_created.date()} {date_created.hour}:{date_created.minute}"
     total_judgements = db.session.query(Comparison).count()
     skipped_judgements = db.session.query(Comparison).where(Comparison.state == "skipped").count()
 
@@ -72,6 +78,7 @@ def dashboard():
         local_file_edits = False
 
     data = {
+        "date_study_created": date_study_created,
         "local_file_edits": local_file_edits,
         "edit_instructions": edit_instructions,
         "edit_ethics_agreement": edit_ethics_agreement,
@@ -79,7 +86,7 @@ def dashboard():
         "active_study": active_study,
         "website_title": website_title,
         "participant_count": participant_count,
-        "latest_registration": latest_registration,
+        "latest_registration": latest_registration_date,
         "total_judgements": total_judgements,
         "skipped_judgements": skipped_judgements,
         "form": form,
