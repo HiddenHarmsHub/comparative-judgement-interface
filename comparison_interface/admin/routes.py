@@ -250,7 +250,7 @@ def process_errors(errors):
                         for subfield in errors[typ][field][group_pos]["items"][item_pos]:
                             message = "; ".join(errors[typ][field][group_pos]["items"][item_pos][subfield])
                             if "Image " in message and " not found " in message:
-                                missing_images.append(message[6:message.find(" not found ")])
+                                missing_images.append(message[6 : message.find(" not found ")])
                             else:
                                 processed_errors[f"group {group_number}, item {item_number}, {subfield}"] = message
     return processed_errors, missing_images
