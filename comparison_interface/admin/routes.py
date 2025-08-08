@@ -19,15 +19,15 @@ from comparison_interface.db.models import Comparison, Participant, WebsiteContr
 from comparison_interface.db.setup import Setup as DBSetup
 
 
-@blueprint.route('/', methods=['GET'])
-@auth_required('session', within=10)
+@blueprint.route("/", methods=["GET"])
+@auth_required("session", within=10)
 def admin_root():
     """Redirect to admin/dashboard."""
     return redirect(url_for("admin.dashboard"))
 
 
-@blueprint.route('/dashboard', methods=['GET'])
-@auth_required('session', within=10)
+@blueprint.route("/dashboard", methods=["GET"])
+@auth_required("session", within=10)
 def dashboard():
     """Show the admin dashboard."""
     form = forms.StartStudyForm()
@@ -38,7 +38,7 @@ def dashboard():
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
         active_study = True
     else:
-        website_title = 'No active study'
+        website_title = "No active study"
         active_study = False
     if active_study is False:
         data = {
@@ -52,9 +52,9 @@ def dashboard():
             db.session.query(Participant).order_by(Participant.participant_id.desc()).first().created_date
         )
     else:
-        latest_registration = 'No participants yet'
+        latest_registration = "No participants yet"
     total_judgements = db.session.query(Comparison).count()
-    skipped_judgements = db.session.query(Comparison).where(Comparison.state == 'skipped').count()
+    skipped_judgements = db.session.query(Comparison).where(Comparison.state == "skipped").count()
 
     # get the pages we are expecting from the config
     local_file_edits = True
@@ -88,14 +88,14 @@ def dashboard():
     return render_template("dashboard.html", **data)
 
 
-@blueprint.route('/logged-out', methods=['GET'])
+@blueprint.route("/logged-out", methods=["GET"])
 def logged_out():
     """Display a post log out page."""
-    if WS.CONFIGURATION_LOCATION in current_app.config:
+    if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
         has_current_study = True
     else:
-        website_title = 'No active study'
+        website_title = "No active study"
         has_current_study = False
     data = {
         "logged_out": True,
@@ -105,31 +105,31 @@ def logged_out():
     return render_template("logged-out.html", **data)
 
 
-@blueprint.route('/new-study', methods=['POST'])
-@auth_required('session', within=10)
+@blueprint.route("/new-study", methods=["POST"])
+@auth_required("session", within=10)
 def new_study():
     """Start a new study by deleting any existing files and redirecting to setup-study."""
     form = forms.StartStudyForm()
     if form.deletion_confirmation.data is True:  # form validation prevents submission if not checked
-        for filename in os.listdir(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'])):
-            filepath = os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename)
+        for filename in os.listdir(os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"])):
+            filepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"], filename)
             os.unlink(filepath)
-        for filename in os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'])):
-            filepath = os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'], filename)
+        for filename in os.listdir(os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"])):
+            filepath = os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"], filename)
             os.unlink(filepath)
         return redirect(url_for("admin.setup_study"))
     return redirect(url_for("admin.dashboard"))
 
 
-@blueprint.route('/setup-study', methods=['GET', 'POST'])
-@auth_required('session', within=10)
+@blueprint.route("/setup-study", methods=["GET", "POST"])
+@auth_required("session", within=10)
 def setup_study():
     """Set up a new study."""
     form = forms.CreateStudyForm()
     form.uploads_complete.data
-    if form.uploads_complete.data == 'true':
-        conf_file = os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR']))[0]
-        conf = os.path.join(current_app.config['CONFIG_UPLOAD_DIR'], conf_file)
+    if form.uploads_complete.data == "true":
+        conf_file = os.listdir(os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"]))[0]
+        conf = os.path.join(current_app.config["CONFIG_UPLOAD_DIR"], conf_file)
         ConfigValidation(current_app).check_config_path(conf)
         WS.set_configuration_location(current_app, conf)
         ConfigValidation(current_app).validate()
@@ -139,14 +139,14 @@ def setup_study():
         s = DBSetup(current_app)
         s.exec()
         return redirect(url_for("admin.dashboard"))
-    if len(os.listdir(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR']))) == 0:
+    if len(os.listdir(os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"]))) == 0:
         return redirect(url_for("admin.upload_images"))
-    elif len(os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR']))) == 0:
+    elif len(os.listdir(os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"]))) == 0:
         return redirect(url_for("admin.upload_config"))
-    if WS.CONFIGURATION_LOCATION in current_app.config:
+    if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
     else:
-        website_title = 'No active study'
+        website_title = "No active study"
     data = {
         "website_title": website_title,
         "form": form,
@@ -155,7 +155,7 @@ def setup_study():
 
 
 @blueprint.route("/process", methods=["POST"])
-@auth_required('session', within=10)
+@auth_required("session", within=10)
 def process():
     """Filepond image uploader."""
     file_names = []
@@ -164,14 +164,14 @@ def process():
         filename = secure_filename(file.filename)
         file_names.append(filename)
         try:
-            file.save(os.path.join(current_app.root_path, current_app.config['IMAGE_UPLOAD_DIR'], filename))
+            file.save(os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"], filename))
         except Exception:
             print("save fail: " + filename)
     return json.dumps({"filename": [f for f in file_names]})
 
 
 @blueprint.route("/revert", methods=["DELETE"])
-@auth_required('session', within=10)
+@auth_required("session", within=10)
 def revert():
     """Filepond image deletion."""
     basepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"])
@@ -182,7 +182,7 @@ def revert():
         filename = secure_filename(request.data.decode())
     filepath = os.path.normpath(os.path.join(basepath, filename))
     if not filepath.startswith(basepath):
-        return Response('Access not permitted.', 403)
+        return Response("Access not permitted.", 403)
     try:
         os.remove(filepath)
     except Exception:
@@ -191,42 +191,42 @@ def revert():
 
 
 @blueprint.route("/load/<item>", methods=["GET"])
-@auth_required('session', within=10)
+@auth_required("session", within=10)
 def load(item):
     """Load the details of the currently uploaded images."""
     basepath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"])
     filename = secure_filename(item)
     filepath = os.path.normpath(os.path.join(basepath, filename))
     if not filepath.startswith(basepath):
-        return Response('Access not permitted.', 403)
+        return Response("Access not permitted.", 403)
     return send_file(filepath)
 
 
 @blueprint.route("/current-files", methods=["GET"])
-@auth_required('session', within=10)
+@auth_required("session", within=10)
 def current_files():
     """Get the filenames of the currently uploaded images."""
     dirpath = os.path.join(current_app.root_path, current_app.config["IMAGE_UPLOAD_DIR"])
     files = os.listdir(dirpath)
-    return json.dumps({"filenames": '|'.join(files)})
+    return json.dumps({"filenames": "|".join(files)})
 
 
-@blueprint.route('/upload-images', methods=['GET', 'POST'])
-@auth_required('session', within=10)
+@blueprint.route("/upload-images", methods=["GET", "POST"])
+@auth_required("session", within=10)
 def upload_images():
     """Image uploading."""
     form = forms.ImageUploadForm()
-    if request.method == 'POST':
+    if request.method == "POST":
         return redirect(url_for("admin.setup_study"))
     # we may have been redirected here and if so we should clear the current config file because it will
     # have failed the validation
-    for filename in os.listdir(os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'])):
-        filepath = os.path.join(current_app.root_path, current_app.config['CONFIG_UPLOAD_DIR'], filename)
+    for filename in os.listdir(os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"])):
+        filepath = os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"], filename)
         os.unlink(filepath)
-    if WS.CONFIGURATION_LOCATION in current_app.config:
+    if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
     else:
-        website_title = 'No active study'
+        website_title = "No active study"
     data = {
         "website_title": website_title,
         "form": form,
@@ -237,30 +237,34 @@ def upload_images():
 def process_errors(errors):
     """Organise the errors for displaying on the screen."""
     processed_errors = {}
+    missing_images = []
     for typ in errors:
         for field in errors[typ]:
             if typ in ["behaviourConfiguration", "websiteTextConfiguration"]:
-                processed_errors[field] = '; '.join(errors[typ][field])
+                processed_errors[field] = "; ".join(errors[typ][field])
             else:
                 for group_pos in errors[typ][field]:
                     group_number = group_pos + 1
-                    for item_pos in errors[typ][field][group_pos]['items']:
+                    for item_pos in errors[typ][field][group_pos]["items"]:
                         item_number = item_pos + 1
-                        for subfield in errors[typ][field][group_pos]['items'][item_pos]:
-                            message = '; '.join(errors[typ][field][group_pos]['items'][item_pos][subfield])
-                            processed_errors[f'group {group_number}, item {item_number}, {subfield}'] = message
-    return processed_errors
+                        for subfield in errors[typ][field][group_pos]["items"][item_pos]:
+                            message = "; ".join(errors[typ][field][group_pos]["items"][item_pos][subfield])
+                            if "Image " in message and " not found " in message:
+                                missing_images.append(message[6:message.find(" not found ")])
+                            else:
+                                processed_errors[f"group {group_number}, item {item_number}, {subfield}"] = message
+    return processed_errors, missing_images
 
 
-@blueprint.route('/upload-config', methods=['GET', 'POST'])
-@auth_required('session', within=30)
+@blueprint.route("/upload-config", methods=["GET", "POST"])
+@auth_required("session", within=30)
 def upload_config():
     """Upload a new config file."""
     form = forms.ConfigUploadForm()
-    if WS.CONFIGURATION_LOCATION in current_app.config:
+    if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
     else:
-        website_title = 'No active study'
+        website_title = "No active study"
     data = {
         "website_title": website_title,
         "form": form,
@@ -268,7 +272,7 @@ def upload_config():
     if form.config_file.data:
         if form.validate_on_submit():
             filename = secure_filename(form.config_file.data.filename)
-            relative_filepath = os.path.join(current_app.config['CONFIG_UPLOAD_DIR'], filename)
+            relative_filepath = os.path.join(current_app.config["CONFIG_UPLOAD_DIR"], filename)
             filepath = os.path.join(current_app.root_path, relative_filepath)
             form.config_file.data.save(filepath)
             # we have to save it first because validation works off a file location
@@ -277,48 +281,42 @@ def upload_config():
             try:
                 ConfigValidation(current_app).validate()
             except ValidationError as err:
-                data["errors"] = process_errors(err.messages)
-                data["missing_images"] = False
-                for entry in data["errors"]:
-                    if "Image " in data["errors"][entry] and " not found " in data["errors"][entry]:
-                        data["missing_images"] = True
-                        break
-                    # remove the saved config file
-                    WS.set_configuration_location(current_app, None)
+                data["errors"], data["missing_images"] = process_errors(err.messages)
+                WS.set_configuration_location(current_app, None)
                 return render_template("config-uploader.html", **data)
             return redirect(url_for("admin.setup_study"))
     return render_template("config-uploader.html", **data)
 
 
-@blueprint.route('/export', methods=['POST'])
-@auth_required('session', within=10)
+@blueprint.route("/export", methods=["POST"])
+@auth_required("session", within=10)
 def download_data():
     """Download the study database."""
     temp_dir = TemporaryDirectory()
-    zip_path = os.path.join(temp_dir.name, 'database_export')
+    zip_path = os.path.join(temp_dir.name, "database_export")
 
     dir = Exporter(current_app).create_data_directory(temp_dir.name)
-    shutil.make_archive(zip_path, 'zip', dir)
+    shutil.make_archive(zip_path, "zip", dir)
 
-    return send_file(f'{zip_path}.zip', download_name='downloaded_data.zip', as_attachment=True)
+    return send_file(f"{zip_path}.zip", download_name="downloaded_data.zip", as_attachment=True)
 
 
-@blueprint.route('/edit-page', methods=['GET', 'POST'])
-@auth_required('session', within=10)
+@blueprint.route("/edit-page", methods=["GET", "POST"])
+@auth_required("session", within=10)
 def edit_page():
     """Edit a html page."""
     form = forms.EditHtmlPageForm()
-    folder = current_app.config['HTML_PAGES_DIR']
+    folder = current_app.config["HTML_PAGES_DIR"]
     if form.md_text.data:
         md_text = form.md_text.data
         html = markdown.markdown(md_text)
         filename = form.page_type.data
         # save the text to the file
         with open(
-            os.path.join(current_app.root_path, folder, f'{filename}.html'), mode='w', encoding='utf-8'
+            os.path.join(current_app.root_path, folder, f"{filename}.html"), mode="w", encoding="utf-8"
         ) as output:
             output.write(html)
-        with open(os.path.join(current_app.root_path, folder, f'{filename}.md'), mode='w', encoding='utf-8') as output:
+        with open(os.path.join(current_app.root_path, folder, f"{filename}.md"), mode="w", encoding="utf-8") as output:
             output.write(md_text)
 
         return redirect(url_for("admin.dashboard"))
@@ -327,23 +325,23 @@ def edit_page():
             "page_type": form.page_type.data,
         }
         filename = form.page_type.data
-        if os.path.exists(os.path.join(current_app.root_path, folder, f'{filename}.md')):
-            with open(os.path.join(current_app.root_path, folder, f'{filename}.md'), mode='r') as input:
+        if os.path.exists(os.path.join(current_app.root_path, folder, f"{filename}.md")):
+            with open(os.path.join(current_app.root_path, folder, f"{filename}.md"), mode="r") as input:
                 current_text = input.read()
             form_data["current_text"] = current_text
         form = forms.EditHtmlPageForm(**form_data)
-    if WS.CONFIGURATION_LOCATION in current_app.config:
+    if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
         website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
-        if filename == 'instructions':
+        if filename == "instructions":
             page_name = WS.get_text(WS.PAGE_TITLE_INTRODUCTION, current_app)
-        elif filename == 'ethics':
+        elif filename == "ethics":
             page_name = WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, current_app)
-        elif filename == 'policies':
+        elif filename == "policies":
             page_name = WS.get_text(WS.PAGE_TITLE_POLICIES, current_app)
         else:
             page_name = filename
     else:
-        website_title = 'No active study'
+        website_title = "No active study"
         page_name = filename
 
     data = {

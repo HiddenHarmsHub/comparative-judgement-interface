@@ -125,7 +125,6 @@ def _before_request():
 def _configure_user_session():
     """Configure the user's session behaviour."""
     app = current_app
-    print(session)
     session.permanent = True
     app.permanent_session_lifetime = timedelta(minutes=app.config['SESSION_MINUTES_VALIDITY'])
     session.modified = True

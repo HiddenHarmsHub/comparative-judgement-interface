@@ -24,12 +24,16 @@
                         <li><b>{{ error }}</b>: {{ errors[error] }}</li>
                     {% endfor %}
                 </ul>
-                {% if missing_images %}
-                    <div class="">
-                        <a href="/admin/upload-images">Change uploaded images</a>
-                    </div>
-                {% endif %}
-            {% endif %}  
+            {% endif %}
+            {% if missing_images|length > 0 %}
+                <h2 class="fs-4 pt-4">Missing images</h2>
+                <ul class="errors">
+                    {% for image in missing_images %}
+                        <li>{{ image }}</li>
+                    {% endfor %}
+                </ul>
+                <a href="/admin/upload-images">Change uploaded images</a>
+            {% endif %}
         </form>
     </div>
 

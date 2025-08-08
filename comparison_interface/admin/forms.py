@@ -11,7 +11,7 @@ class ConfigUploadForm(FlaskForm):
     """Form for configuration file upload."""
 
     config_file = FileField(
-        'Configuration file', validators=[FileRequired(), FileAllowed(['json'], 'config must be a JSON file')]
+        "Configuration file", validators=[FileRequired(), FileAllowed(["json"], "config must be a JSON file")]
     )
 
 
@@ -36,4 +36,4 @@ class EditHtmlPageForm(FlaskForm):
 
     page_type = HiddenField()
     current_text = HiddenField()
-    md_text = TextAreaField('', validators=[validators.DataRequired()])
+    md_text = TextAreaField("", validators=[validators.DataRequired()])

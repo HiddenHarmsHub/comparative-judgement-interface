@@ -5,10 +5,9 @@
         <h1 class="fs-3">Admin Logged Out</h1>
         <p>You have been logged out of the admin interface.</p>
         {% if has_current_study %}
-            <p>There is no current study so you will need to log in again to create a study. You can log in using the link in the header.</p>
-
-        {% else %}
             <a href="/">Go to participant view of current study</a>
+        {% else %}
+            <p>There is no current study so you will need to log in again to create a study. You can log in using the link in the header.</p>
         {% endif %}
     </div>
 {% endblock %}

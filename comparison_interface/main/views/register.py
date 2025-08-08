@@ -82,7 +82,6 @@ class Register(Request):
             self._session['weight_conf'] = WebsiteControl().get_conf().weight_configuration
             self._session['previous_comparison_id'] = None
             self._session['comparison_ids'] = []
-            print(self._session)
         except SQLAlchemyError as e:
             raise RuntimeError(str(e))
 

@@ -53,6 +53,7 @@
         }
     ],
     "websiteTextConfiguration":  {
+        "websiteTitle": "Equal Weight Example",
         "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
         "userRegistrationGroupSelectionErr": "Please select at least one region.",
         "rankItemInstructionLabel": "Click the region that has the higher rate of deprivation, then click on the blue confirm button.",

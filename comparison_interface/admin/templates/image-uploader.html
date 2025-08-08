@@ -11,7 +11,7 @@
         <form method="POST" action="/admin/upload-images" enctype="multipart/form-data">
             {{ form.csrf_token }}
             <input type="file" class="filepond" name="image_files" multiple allowMultiple="true" data-max-file-size="3MB"/>
-            <input class="btn btn-secondary" type="submit" value="Upload"/>
+            <input class="btn btn-secondary" type="submit" value="Confirm"/>
         </form>
     </div>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
