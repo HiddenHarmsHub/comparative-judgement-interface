@@ -1,7 +1,6 @@
 import json
 import os
 import shutil
-from datetime import datetime
 from json.decoder import JSONDecodeError
 from tempfile import TemporaryDirectory
 
@@ -135,8 +134,12 @@ def setup_study():
     form = forms.CreateStudyForm()
     form.uploads_complete.data
     if form.uploads_complete.data == "true":
-        conf_file = os.listdir(os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"]))[0]
-        conf = os.path.join(current_app.config["CONFIG_UPLOAD_DIR"], conf_file)
+        uploaded_files = os.listdir(os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"]))
+        if len(uploaded_files) == 1:
+            conf_path = uploaded_files[0]
+        else:
+            conf_path = ''
+        conf = os.path.join(current_app.config["CONFIG_UPLOAD_DIR"], conf_path)
         ConfigValidation(current_app).check_config_path(conf)
         WS.set_configuration_location(current_app, conf)
         ConfigValidation(current_app).validate()
@@ -241,26 +244,73 @@ def upload_images():
     return render_template("image-uploader.html", **data)
 
 
+def process_image_errors(errors):
+    """Organise the image errors for displaying on the screen."""
+    processed_errors = {}
+    missing_images = []
+    for field in errors:
+        for group_pos in errors[field]:
+            print(group_pos)
+            group_number = group_pos + 1
+            for item_pos in errors[field][group_pos]["items"]:
+                item_number = item_pos + 1
+                for subfield in errors[field][group_pos]["items"][item_pos]:
+                    message = "; ".join(errors[field][group_pos]["items"][item_pos][subfield])
+                    if "Image " in message and " not found " in message:
+                        missing_images.append(message[6 : message.find(" not found ")])
+                    else:
+                        processed_errors[f"group {group_number}, item {item_number}, {subfield}"] = message
+    return processed_errors, missing_images
+
+
 def process_errors(errors):
     """Organise the errors for displaying on the screen."""
     processed_errors = {}
-    missing_images = []
+    all_missing_images = []
     for typ in errors:
-        for field in errors[typ]:
-            if typ in ["behaviourConfiguration", "websiteTextConfiguration"]:
-                processed_errors[field] = "; ".join(errors[typ][field])
-            else:
-                for group_pos in errors[typ][field]:
-                    group_number = group_pos + 1
-                    for item_pos in errors[typ][field][group_pos]["items"]:
-                        item_number = item_pos + 1
-                        for subfield in errors[typ][field][group_pos]["items"][item_pos]:
-                            message = "; ".join(errors[typ][field][group_pos]["items"][item_pos][subfield])
-                            if "Image " in message and " not found " in message:
-                                missing_images.append(message[6 : message.find(" not found ")])
-                            else:
-                                processed_errors[f"group {group_number}, item {item_number}, {subfield}"] = message
-    return processed_errors, missing_images
+        if typ == "groups":
+            image_errors, missing_images = process_image_errors(errors)
+        else:
+            for field in errors[typ]:
+                if typ in ["behaviourConfiguration", "websiteTextConfiguration"]:
+                    processed_errors[field] = "; ".join(errors[typ][field])
+                else:
+                    image_errors, missing_images = process_image_errors(errors[typ])
+        processed_errors.update(image_errors)
+        all_missing_images.extend(missing_images)
+    return processed_errors, all_missing_images
+
+
+@blueprint.route("/upload-csv", methods=["GET", "POST"])
+@auth_required("session", within=30)
+def upload_csv():
+    """Upload an image csv file."""
+    form = forms.CsvUploadForm()
+    if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
+        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+    else:
+        website_title = "No active study"
+    data = {
+        "website_title": website_title,
+        "form": form,
+    }
+    if form.csv_file.data:
+        if form.validate_on_submit():
+            filename = secure_filename(form.csv_file.data.filename)
+            relative_filepath = os.path.join(current_app.config["CONFIG_UPLOAD_DIR"], filename)
+            filepath = os.path.join(current_app.root_path, relative_filepath)
+            form.csv_file.data.save(filepath)
+            # we need the config path set to the upload directory when dealing with csv based image configs
+            ConfigValidation(current_app).check_config_path(current_app.config["CONFIG_UPLOAD_DIR"])
+            WS.set_configuration_location(current_app, current_app.config["CONFIG_UPLOAD_DIR"])
+            try:
+                ConfigValidation(current_app).validate()
+            except ValidationError as err:
+                data["errors"], data["missing_images"] = process_errors(err.messages)
+                WS.set_configuration_location(current_app, None)
+                return render_template("csv-uploader.html", **data)
+            return redirect(url_for("admin.setup_study"))
+    return render_template("csv-uploader.html", **data)
 
 
 @blueprint.route("/upload-config", methods=["GET", "POST"])
@@ -285,8 +335,11 @@ def upload_config():
             # we have to save it first because validation works off a file location
             ConfigValidation(current_app).check_config_path(relative_filepath)
             WS.set_configuration_location(current_app, relative_filepath)
+            # if this also requires a csv file then redirect for that
             try:
                 ConfigValidation(current_app).validate()
+            except NotADirectoryError:
+                return redirect(url_for("admin.upload_csv"))
             except ValidationError as err:
                 data["errors"], data["missing_images"] = process_errors(err.messages)
                 WS.set_configuration_location(current_app, None)
@@ -311,7 +364,7 @@ def download_data():
 @blueprint.route("/edit-page", methods=["GET", "POST"])
 @auth_required("session", within=10)
 def edit_page():
-    """Edit a html page."""
+    """Edit a the markdown behing an html page."""
     form = forms.EditHtmlPageForm()
     folder = current_app.config["HTML_PAGES_DIR"]
     if form.md_text.data:

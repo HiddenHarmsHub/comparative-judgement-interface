@@ -15,6 +15,14 @@ class ConfigUploadForm(FlaskForm):
     )
 
 
+class CsvUploadForm(FlaskForm):
+    """Form for configuration file upload."""
+
+    csv_file = FileField(
+        "CSV file", validators=[FileRequired(), FileAllowed(["csv"], "config must be a CSV file")]
+    )
+
+
 class StartStudyForm(FlaskForm):
     """Form to setup study."""
 
