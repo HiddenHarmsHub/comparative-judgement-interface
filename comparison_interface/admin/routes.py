@@ -364,7 +364,7 @@ def download_data():
 @blueprint.route("/edit-page", methods=["GET", "POST"])
 @auth_required("session", within=10)
 def edit_page():
-    """Edit a the markdown behing an html page."""
+    """Edit the markdown behind an html page."""
     form = forms.EditHtmlPageForm()
     folder = current_app.config["HTML_PAGES_DIR"]
     if form.md_text.data:
