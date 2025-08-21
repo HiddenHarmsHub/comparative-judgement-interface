@@ -5,13 +5,9 @@ import os
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, current_app, render_template, request, session
-from flask_mailman import Mail
-from flask_security import Security, SQLAlchemyUserDatastore
 from numpy.random import default_rng
 from whitenoise import WhiteNoise
 
-from comparison_interface.admin import blueprint as admin_bp
-from comparison_interface.admin import models
 from comparison_interface.cli import blueprint as commands_bp
 from comparison_interface.configuration.flask import Settings as FlaskSettings
 from comparison_interface.configuration.website import Settings as WS
@@ -30,9 +26,12 @@ def create_app(test_config=None):
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True, static_folder="static")
     app.config.from_object(FlaskSettings)
+
     if test_config is not None:
         app.config.from_mapping(test_config)
     try:
+        language = app.config["LANGUAGE"].split(':')[1]
+    except IndexError:
         language = app.config["LANGUAGE"]
     except KeyError:
         language = 'en'
@@ -57,26 +56,34 @@ def create_app(test_config=None):
     # Register the application views
     app.register_blueprint(main_bp)
 
-    # Register the admin blueprint (might be made optional eventually)
-    app.register_blueprint(admin_bp, url_prefix="/admin")
-
-    # Setup Flask-Security
-    user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
-    security = Security(app, user_datastore)
-    mail = Mail(app)  # NoQA
-
-    @security.context_processor
-    def security_context_processor():
-        if WS.CONFIGURATION_LOCATION in app.config:
-            return {"website_title": WS.get_text(WS.WEBSITE_TITLE, app)}
-        else:
-            return {"website_title": "No active study"}
-
     # if we have asked for the api blueprint then register this here
     if "API_ACCESS" in app.config and app.config["API_ACCESS"] is True:
         from comparison_interface.api import blueprint as api_bp
 
         app.register_blueprint(api_bp)
+
+    if "ADMIN_ACCESS" in app.config and app.config["ADMIN_ACCESS"] is True:
+
+        from flask_mailman import Mail
+        from flask_security import Security, SQLAlchemyUserDatastore
+
+        from comparison_interface.admin import blueprint as admin_bp
+        from comparison_interface.admin import models
+
+        # Register the admin blueprint (might be made optional eventually)
+        app.register_blueprint(admin_bp, url_prefix="/admin")
+
+        # Setup Flask-Security
+        user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
+        app.security = Security(app, user_datastore)
+        mail = Mail(app)  # NoQA
+
+        @app.security.context_processor
+        def security_context_processor():
+            if WS.CONFIGURATION_LOCATION in app.config:
+                return {"website_title": WS.get_text(WS.WEBSITE_TITLE, app)}
+            else:
+                return {"website_title": "No active study"}
 
     # Register function executed before any request
     app.before_request(_before_request)
@@ -120,6 +127,7 @@ def _before_request():
     ):
         _validate_app_integrity()
     _configure_user_session()
+    print(session)
 
 
 def _configure_user_session():
@@ -167,11 +175,20 @@ def _validate_app_integrity():
 
 def _page_not_found(e):
     """Return 404 page."""
-    data = {
-        'error_404_title': WS.get_text(WS.ERROR_404_TITLE, current_app),
-        'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, current_app),
-        'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, current_app),
-    }
+    # this is a backup system for when system is not configured yet (or sometimes the admin isn't set up)
+    if WS.CONFIGURATION_LOCATION not in current_app.config:
+        data = {
+            'error_404_title': '404',
+            'error_404_message': 'Page not found',
+            'error_404_home_link': 'Go to home page',
+        }
+        return render_template('404.html', **data)
+    else:
+        data = {
+            'error_404_title': WS.get_text(WS.ERROR_404_TITLE, current_app),
+            'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, current_app),
+            'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, current_app),
+        }
     return render_template('404.html', **{**data, **Request(current_app, session).get_layout_text()}), 404
 
 
