@@ -63,7 +63,6 @@ def create_app(test_config=None):
         app.register_blueprint(api_bp)
 
     if "ADMIN_ACCESS" in app.config and app.config["ADMIN_ACCESS"] is True:
-
         from flask_mailman import Mail
         from flask_security import Security, SQLAlchemyUserDatastore
 
