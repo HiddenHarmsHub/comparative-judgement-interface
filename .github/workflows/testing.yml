@@ -23,6 +23,7 @@ jobs:
             source venv/bin/activate
             mv comparison_interface/static/example.images/ comparison_interface/static/images/
             mv  comparison_interface/configuration/example.flask.py comparison_interface/configuration/flask.py
+            mv .env-example .env
             pytest -v tests_python
 
     javascript_tests:
