@@ -126,7 +126,6 @@ def _before_request():
     ):
         _validate_app_integrity()
     _configure_user_session()
-    print(session)
 
 
 def _configure_user_session():
