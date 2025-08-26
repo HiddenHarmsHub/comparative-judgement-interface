@@ -26,6 +26,10 @@ class Settings(object):
     }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_MINUTES_VALIDITY = 240  # Session expires after 4 hours of inactivity
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'strict'
+    MAX_CONTENT_LENGTH = 4 * 1024 * 1024
     LANGUAGE = os.getenv('LANGUAGE', 'en')
     API_ACCESS = os.getenv('API_ACCESS', False)
     API_KEY_FILE = os.getenv('API_KEY_FILE')

@@ -8,7 +8,7 @@
             {{ form.csrf_token }}
             {{ form.csv_file }}
             <div class="pt-3">
-                <input class="btn btn-secondary" type="submit" value="Upload"/>
+                <input class="btn btn-secondary" type="submit" value="Upload" accept=".csv"/>
             </div>
             {% if form.csv_file.errors %}
                 <ul class="errors">

@@ -1,5 +1,6 @@
 FilePond.registerPlugin(
   FilePondPluginFileValidateSize,
+  FilePondPluginFileValidateType,
 );
 
 $(function () {
@@ -31,6 +32,7 @@ $(function () {
 FilePond.setOptions({
   maxFileSize: "4MB",
   acceptedFileTypes: ["image/png", "image/jpeg"],
+  labelFileTypeNotAllowed: 'Only png and jpeg files can be uploaded',
 
   server: {
     headers: {"X-CSRF-TOKEN": document.querySelector('input[name="csrf_token"]').getAttribute("value")},
