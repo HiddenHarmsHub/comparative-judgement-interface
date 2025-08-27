@@ -26,6 +26,9 @@ Admin Login
       {{ render_field_errors(login_user_form.csrf_token) }}
       {{ render_field(login_user_form.submit) }}
     </form>
+    {% if security.recoverable %}
+      <a href="{{ url_for_security('forgot_password') }}">{{ _fsdomain('Forgot password') }}</a>
+    {% endif %}
   </div>
   
 {% endblock content %}
