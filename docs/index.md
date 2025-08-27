@@ -19,6 +19,8 @@ The images presented to the user are selected in different ways depending on the
 
 Example configuration files for each of these models are provided with the application along with a small set of images.[^1]
 
+An optional administration interface is provided which shows logged in users some useful statistics from the currently active study, download the data from the current study and set up a new study by uploading images and configuration files through the interface.
+
 This version of software expands over the initial application build by Bertrand Perrat that can be found [here](https://github.com/BPerrat/BSBT-Interface). The code in this version of the interface was written by Fabián Hernández with additional features and general updates by Catherine Smith in the Research Software Group, part of Advanced Research Computing, University of Birmingham.
 
 ## Getting Started
