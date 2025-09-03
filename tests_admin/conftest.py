@@ -1,9 +1,7 @@
 import os
-from datetime import datetime, timezone
+from tempfile import TemporaryDirectory
 
 import pytest
-from sqlalchemy import MetaData
-from sqlalchemy.exc import SQLAlchemyError
 
 from app import create_app
 from comparison_interface.admin.models import User
@@ -14,19 +12,20 @@ from comparison_interface.db.setup import Setup as DBSetup
 
 
 def execute_setup(conf_file):
+    """Setup a test system with admin turned on."""
+
     app = create_app(
+        testing=True,
+        test_config={"ADMIN_ACCESS": True},
+    )
+    temp_dir = TemporaryDirectory(dir=app.root_path)
+    dir_name = temp_dir.name.replace(app.root_path + '/', '')
+
+    app.config.from_mapping(
         {
-            "TESTING": True,
-            "API_ACCESS": False,
-            "ADMIN_ACCESS": True,
-            "LANGUAGE": "en",
-            "SQLALCHEMY_DATABASE_URI": "sqlite:///test_admin_database.db",
-            "SQLALCHEMY_BINDS": {"study_db": "sqlite:///test_database.db"},
-            "SECURITY_TWO_FACTOR": False,
-            "SECURITY_TWO_FACTOR_REQUIRED": False,
-            "WTF_CSRF_ENABLED": False,
-            "SECURITY_PASSWORD_HASH": "plaintext",
-            "LOGIN_DISABLED": False
+            "IMAGE_UPLOAD_DIR": f"{dir_name}/static/images/",
+            "HTML_PAGES_DIR": f"{dir_name}/pages_html",
+            "CONFIG_UPLOAD_DIR": f"{dir_name}/project_configuration",
         }
     )
 
@@ -39,21 +38,24 @@ def execute_setup(conf_file):
     app.logger.info("Resetting website database")
     s = DBSetup(app)
     s.exec()
-    return app
+    return app, temp_dir
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def app():
-    """Set up the project for testing with equal weights."""
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights.json")
+    """Set up the admin project for testing with equal weights."""
+
+    app, temp_dir = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
     with app.app_context():
         db.create_all()
-        db.session.add_all([
-            User(email="test@example.co.uk", password="password", active=1, fs_uniquifier="1")
-        ])
+        db.session.add_all([User(email="test@example.co.uk", password="password", active=1, fs_uniquifier="1")])
         db.session.commit()
-        user = app.security.datastore.find_user(email="test@example.co.uk")
-        print(user)
+
+    # directories need to be made already
+    os.makedirs(os.path.join(app.root_path, app.config["IMAGE_UPLOAD_DIR"]))
+    os.makedirs(os.path.join(app.root_path, app.config["HTML_PAGES_DIR"]))
+    os.makedirs(os.path.join(app.root_path, app.config["CONFIG_UPLOAD_DIR"]))
+
     yield app
 
     with app.app_context():
