@@ -66,6 +66,7 @@ ignore = ["D417", "D100", "D104"]
 [tool.ruff.lint.per-file-ignores]
 # ignore docstrings in test files (following pytest guidelines instead)
 "tests_python/*" = ["D"]
+"tests_admin/*" = ["D"]
 
 
 [tool.ruff.lint.pydocstyle]
