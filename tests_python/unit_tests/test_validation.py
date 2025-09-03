@@ -42,7 +42,7 @@ def test_setup_works_for_directory_with_csv():
     WHEN the location is set using an valid directory path
     THEN the app is created
     """
-    app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": 'sqlite:///test_database.db'})
+    app = create_app(testing=True)
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
     WS.set_configuration_location(app, "../tests_python/test_configurations/csv_example_1")
@@ -61,7 +61,7 @@ def test_setup_fails_for_directory_with_wrong_files():
     WHEN the location is set using an invalid directory path
     THEN the system exits
     """
-    app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": 'sqlite:///test_database.db'})
+    app = create_app(testing=True)
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
     WS.set_configuration_location(app, "../tests_python/test_configurations")
