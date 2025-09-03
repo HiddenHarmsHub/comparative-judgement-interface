@@ -38,6 +38,8 @@ test = [
     "pytest",
     "pytest-mock",
     "pytest-cov",
+    "pytest-flask",
+    "pytest-playwright",
 ]
 
 
