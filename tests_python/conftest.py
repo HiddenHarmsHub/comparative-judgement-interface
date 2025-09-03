@@ -14,6 +14,7 @@ from comparison_interface.db.setup import Setup as DBSetup
 
 
 def execute_setup(conf_file):
+    """Setup a test system."""
     app = create_app(testing=True)
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
