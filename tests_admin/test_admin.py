@@ -1,7 +1,72 @@
 import os
+from datetime import datetime, timezone
 
 from flask import url_for
 from playwright.sync_api import expect
+from sqlalchemy import MetaData
+from sqlalchemy.exc import SQLAlchemyError
+
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import Comparison
+
+
+def add_data():
+    # add a participant
+    participant_data = {
+        'name': 'Tester One',
+        'country': 'England',
+        'allergies': 'Yes',
+        'age': '30',
+        'email': 'dummy@test',
+        'accepted_ethics_agreement': '1',
+    }
+    participant_data['created_date'] = datetime(2025, 4, 5)
+    db_engine = db.engines['study_db']
+    db_meta = MetaData()
+    db_meta.reflect(bind=db_engine)
+    table = db_meta.tables["participant"]
+    new_participant_sql = table.insert().values(**participant_data)
+    try:
+        # Insert the participant into the database
+        with db_engine.begin() as connection:
+            connection.execute(new_participant_sql)
+    except SQLAlchemyError as e:
+        raise RuntimeError(str(e))
+    db.session.commit
+    # add some comparisons
+    comparison_data_list = [
+        {
+            'participant_id': 1,
+            'item_1_id': 1,
+            'item_2_id': 2,
+            'selected_item_id': 1,
+            'state': 'selected',
+            'created': datetime.now(timezone.utc),
+            'updated': datetime.now(timezone.utc),
+        },
+        {
+            'participant_id': 1,
+            'item_1_id': 3,
+            'item_2_id': 1,
+            'selected_item_id': 1,
+            'state': 'selected',
+            'created': datetime.now(timezone.utc),
+            'updated': datetime.now(timezone.utc),
+        },
+        {
+            'participant_id': 1,
+            'item_1_id': 4,
+            'item_2_id': 3,
+            'selected_item_id': None,
+            'state': 'skipped',
+            'created': datetime.now(timezone.utc),
+            'updated': datetime.now(timezone.utc),
+        },
+    ]
+    for comparison_data in comparison_data_list:
+        comparison = Comparison(**comparison_data)
+        db.session.add(comparison)
+    db.session.commit()
 
 
 def test_admin_page_requires_login(live_server, page):
@@ -38,15 +103,17 @@ def test_dashboard_content(live_server, page):
     WHEN the a logged in user goes to the admin dashboard
     THEN the user sees current project stats and buttons for editing html pages and setting up a new study
     """
+    add_data()
     # login (not part of test)
     page.goto(url_for("security.login", _external=True))
     page.get_by_label("Email Address").fill("test@example.co.uk")
     page.get_by_label("Password").fill("password")
     page.get_by_role("button", name="Login").click()
     # test features of dashboard
-    page.screenshot(path="dashboard.png")
     # the stats are showing correctly
-    # TODO: try to add some data in a fixture and check the stats
+    expect(page.get_by_text("Total Participants: 1")).to_be_visible()
+    expect(page.get_by_text("Total Judgements: 3")).to_be_visible()
+    expect(page.get_by_text("Skipped Judgements: 1")).to_be_visible()
     # only the correct pages are available for editing
     expect(page.get_by_role("button", name="Edit Instructions")).to_be_visible()
     expect(page.get_by_role("button", name="Edit Ethics Agreement")).to_be_visible()
