@@ -47,11 +47,17 @@ test = [
 packages = []
 
 
+[tool.pytest.ini_options]
+live_server_scope = "function"
+
+
 [tool.ruff]
 line-length = 120
 
+
 [tool.ruff.format]
 quote-style = "preserve"
+
 
 [tool.ruff.lint]
 select = [
