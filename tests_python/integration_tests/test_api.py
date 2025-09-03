@@ -18,7 +18,7 @@ def execute_setup_with_api(conf_file):
         test_config={
             "API_ACCESS": True,
             "API_KEY_FILE": ".tstkyapi",
-        }
+        },
     )
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
