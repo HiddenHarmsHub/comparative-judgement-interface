@@ -49,15 +49,16 @@ packages = []
 
 [tool.pytest.ini_options]
 live_server_scope = "function"
+# uncomment this to see logging in tests (useful for debugging)
+# log_cli = true
+# log_cli_level = "INFO"
 
 
 [tool.ruff]
 line-length = 120
 
-
 [tool.ruff.format]
 quote-style = "preserve"
-
 
 [tool.ruff.lint]
 select = [
@@ -70,18 +71,10 @@ select = [
 
 ignore = ["D417", "D100", "D104"]
 
-
 [tool.ruff.lint.per-file-ignores]
 # ignore docstrings in test files (following pytest guidelines instead)
 "tests_python/*" = ["D"]
 "tests_admin/*" = ["D"]
 
-
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-
-# uncomment this to see logging in tests (useful for debugging)
-# [tool.pytest.ini_options]
-# log_cli = true
-# log_cli_level = "INFO"
