@@ -17,7 +17,7 @@ jobs:
           run: |
             python -m venv venv
             source venv/bin/activate
-            pip install ".[test]"
+            pip install ".[test,admin]"
         - name: Run Pytest
           run: |
             source venv/bin/activate
