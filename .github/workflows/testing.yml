@@ -25,6 +25,7 @@ jobs:
             mv  comparison_interface/configuration/example.flask.py comparison_interface/configuration/flask.py
             mv .env-example .env
             pytest -v tests_python
+            pytest -v tests_admin
 
     javascript_tests:
         permissions:
