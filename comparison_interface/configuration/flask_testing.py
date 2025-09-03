@@ -16,10 +16,12 @@ class TestSettings(object):
     LANGUAGE = 'en'
     API_ACCESS = False
     ADMIN_ACCESS = False
-    IMAGE_UPLOAD_DIR = 'temp_testing/static/images/'
-    HTML_PAGES_DIR = 'temp_testing/pages_html'
-    CONFIG_UPLOAD_DIR = 'temp_testing/project_configuration'
+    IMAGE_UPLOAD_DIR = 'static/images/'
+    HTML_PAGES_DIR = 'pages_html'
+    CONFIG_UPLOAD_DIR = 'project_configuration'
+    WTF_CSRF_ENABLED = False
     SECURITY_PASSWORD_SALT = 'hdys^d54$djf8fkas*'
+    SECURITY_PASSWORD_HASH = 'plaintext'
     SECURITY_URL_PREFIX = '/admin'
     SECURITY_LOGIN_USER_TEMPLATE = 'user_login.html'
     SECURITY_TWO_FACTOR = False
