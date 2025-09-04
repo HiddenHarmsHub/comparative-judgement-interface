@@ -45,7 +45,7 @@ def execute_setup(conf_file):
 def app():
     """Set up the admin project for testing with equal weights."""
 
-    app, temp_dir = execute_setup("../tests/tests_python/test_configurations/config-equal-item-weights-2.json")
+    app, temp_dir = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     with app.app_context():
         db.create_all()
         db.session.add_all([User(email="test@example.co.uk", password="password", active=1, fs_uniquifier="1")])

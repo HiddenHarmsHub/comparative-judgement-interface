@@ -52,7 +52,7 @@ def test_no_render_prefer_item_selection_when_asked_not_to_in_config(participant
     WHEN a participant is logged in and the item selection page is requested
     THEN the participant is redirected to the ranking page
     """
-    app = execute_setup("../tests/tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     with app.app_context():
         client = app.test_client()
         client.post("/register", data=participant_data)
