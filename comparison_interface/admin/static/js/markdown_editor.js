@@ -35,7 +35,6 @@ $('.editor-toolbar > button').attr('tabindex', '0');
 
 // set the text if we have some
 const current_text = document.getElementById('current_text').value;
-console.log(current_text)
 easyMDE.value(current_text);
 
 easyMDE.codemirror.on('blur', function () {
