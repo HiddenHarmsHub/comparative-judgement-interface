@@ -3,6 +3,7 @@ $('#save-button').on('click', function(event) {
     event.preventDefault();
     $(easyMDE.codemirror.getTextArea()).val(easyMDE.value());
     data = $('#edit-page-form').serialize();
+    console.log(data)
     if (easyMDE.value().length === 0) {
         alert('You must add text to the page.')
     } else {
@@ -35,6 +36,7 @@ $('.editor-toolbar > button').attr('tabindex', '0');
 
 // set the text if we have some
 const current_text = document.getElementById('current_text').value;
+console.log(current_text)
 easyMDE.value(current_text);
 
 easyMDE.codemirror.on('blur', function () {

@@ -29,7 +29,6 @@ class Settings(object):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'strict'
-    SECURITY_RECOVERABLE = True
     MAX_CONTENT_LENGTH = 4 * 1024 * 1024
     LANGUAGE = os.getenv('LANGUAGE', 'en')
     API_ACCESS = os.getenv('API_ACCESS', False)
@@ -43,14 +42,12 @@ class Settings(object):
     MAIL_PORT = os.getenv('MAIL_PORT')
     SECURITY_PASSWORD_SALT = os.getenv('SECURITY_PASSWORD_SALT')
     SECURITY_URL_PREFIX = '/admin'
-    SECURITY_LOGIN_USER_TEMPLATE = 'user-login.html'
+    SECURITY_LOGIN_USER_TEMPLATE = 'user_login.html'
     SECURITY_TWO_FACTOR = get_bool_value('SECURITY_TWO_FACTOR', False)
     SECURITY_TWO_FACTOR_REQUIRED = get_bool_value('SECURITY_TWO_FACTOR_REQUIRED', False)
     SECURITY_TWO_FACTOR_ENABLED_METHODS = ['email']
-    SECURITY_TWO_FACTOR_VERIFY_CODE_TEMPLATE = '2fa-verify.html'
-    SECURITY_TWO_FACTOR_SETUP_TEMPLATE = '2fa-setup.html'
-    SECURITY_RESET_PASSWORD_TEMPLATE = 'reset-password.html'
-    SECURITY_FORGOT_PASSWORD_TEMPLATE = 'forgot-password.html'
+    SECURITY_TWO_FACTOR_VERIFY_CODE_TEMPLATE = '2fa_verify.html'
+    SECURITY_TWO_FACTOR_SETUP_TEMPLATE = '2fa_setup.html'
     SECURITY_TOTP_SECRETS = loads(os.getenv('SECURITY_TOTP_SECRETS', '{}'))
     SECURITY_TOTP_ISSUER = 'flask admin'
     SECURITY_POST_LOGIN_VIEW = '/admin/dashboard'

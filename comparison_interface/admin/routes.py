@@ -161,7 +161,7 @@ def setup_study():
         "website_title": website_title,
         "form": form,
     }
-    return render_template("create-study.html", **data)
+    return render_template("create_study.html", **data)
 
 
 @blueprint.route("/process", methods=["POST"])
@@ -250,6 +250,7 @@ def process_image_errors(errors):
     missing_images = []
     for field in errors:
         for group_pos in errors[field]:
+            print(group_pos)
             group_number = group_pos + 1
             for item_pos in errors[field][group_pos]["items"]:
                 item_number = item_pos + 1
@@ -408,4 +409,4 @@ def edit_page():
         "website_title": website_title,
         "form": form,
     }
-    return render_template("edit-page.html", **data)
+    return render_template("edit_page.html", **data)
