@@ -271,7 +271,7 @@ class UserField(Schema):
         match = re.match(r'^[a-z0-9_-]+$', name)
         if not match:
             raise ValidationError(
-                "Name can be only alpha numeric lower case values with underscores or dashes.i.e. this_is_a_valid_name"
+                "Name can be only alpha numeric lower case values with underscores or dashes, i.e. this_is_a_valid_name"
             )
 
     @post_load
