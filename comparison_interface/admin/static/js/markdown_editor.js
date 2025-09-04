@@ -3,7 +3,6 @@ $('#save-button').on('click', function(event) {
     event.preventDefault();
     $(easyMDE.codemirror.getTextArea()).val(easyMDE.value());
     data = $('#edit-page-form').serialize();
-    console.log(data)
     if (easyMDE.value().length === 0) {
         alert('You must add text to the page.')
     } else {
