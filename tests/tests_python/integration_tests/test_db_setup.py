@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, text
 
-from tests_python.conftest import execute_setup
+from tests.tests_python.conftest import execute_setup
 
 
 def test_participant_setup(equal_weight_app):
@@ -99,7 +99,7 @@ def test_setup_items_with_ids():
     WHEN the database is initialised
     THEN the items are given the ids in the configuration file
     """
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     engine = create_engine(app.config["SQLALCHEMY_BINDS"]["study_db"])
     with engine.connect() as conn:
         item_count_sql = 'SELECT * FROM "item" WHERE "item_id"=12'

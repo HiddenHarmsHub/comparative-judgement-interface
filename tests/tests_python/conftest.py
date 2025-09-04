@@ -14,6 +14,7 @@ from comparison_interface.db.setup import Setup as DBSetup
 
 
 def execute_setup(conf_file):
+    """Setup a test system."""
     app = create_app(testing=True)
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
@@ -30,7 +31,7 @@ def execute_setup(conf_file):
 @pytest.fixture()
 def equal_weight_app():
     """Set up the project for testing with equal weights."""
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights.json")
     yield app
 
     with app.app_context():
@@ -50,7 +51,7 @@ def equal_weight_client(equal_weight_app):
 @pytest.fixture()
 def custom_weight_app():
     """Set up the project for testing with custom weights."""
-    app = execute_setup("../tests_python/test_configurations/config-custom-item-weights.json")
+    app = execute_setup("../tests/test_configurations/config-custom-item-weights.json")
     yield app
 
     with app.app_context():
