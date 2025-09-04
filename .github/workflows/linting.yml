@@ -58,7 +58,7 @@ jobs:
         run: |
           npm i eslint
           npm i globals
-          node_modules/eslint/bin/eslint.js comparison_interface/static/js/src/*.js tests/tests_javascript/*.js tests_accessibility/*.js
+          node_modules/eslint/bin/eslint.js comparison_interface/static/js/src/*.js tests/tests_javascript/*.js tests/tests_accessibility/*.js
 
     stylelint:
       permissions:
