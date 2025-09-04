@@ -38,14 +38,14 @@ def execute_setup(conf_file):
     app.logger.info("Resetting website database")
     s = DBSetup(app)
     s.exec()
-    return app, temp_dir
+    return app
 
 
 @pytest.fixture()
 def app():
     """Set up the admin project for testing with equal weights."""
 
-    app, temp_dir = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     with app.app_context():
         db.create_all()
         db.session.add_all([User(email="test@example.co.uk", password="password", active=1, fs_uniquifier="1")])
