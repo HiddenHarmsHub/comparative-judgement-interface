@@ -64,6 +64,6 @@ jobs:
             mv comparison_interface/static/example.images/ comparison_interface/static/images/
             mv  comparison_interface/configuration/example.flask.py comparison_interface/configuration/flask.py
             mv .env-example .env
-            flask --debug setup ../tests_python/test_configurations/config-equal-item-weights.json
+            flask --debug setup ../tests/tests_python/test_configurations/config-equal-item-weights.json
             flask --debug run --host=0.0.0.0 --port=5001 & sleep 5
-            npx jest -- tests_accessibility/accessibility-item-select.test.js
+            npx jest -- tests/tests_accessibility/accessibility-item-select.test.js

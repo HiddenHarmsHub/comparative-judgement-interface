@@ -35,7 +35,7 @@ def execute_setup_with_api(conf_file):
 @pytest.fixture()
 def equal_weight_app_api():
     """Set up the project for testing with equal weights with the api."""
-    app = execute_setup_with_api("../tests_python/test_configurations/config-equal-item-weights.json")
+    app = execute_setup_with_api("../tests/tests_python/test_configurations/config-equal-item-weights.json")
     yield app
 
     with app.app_context():

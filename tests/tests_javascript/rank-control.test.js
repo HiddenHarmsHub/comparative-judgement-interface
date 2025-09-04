@@ -3,7 +3,7 @@
  */
 /* global describe, require, test, expect */
 
-const rankControl = require('../comparison_interface/static/js/src/rank-control.js');
+const rankControl = require('../../comparison_interface/static/js/src/rank-control.js');
 
 describe('unit tests for standalone functions in rank-control.js', () => {
 
