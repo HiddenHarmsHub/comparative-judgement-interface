@@ -29,7 +29,12 @@ def create_app(testing=False, test_config=None):
 
     # if we are testing then start with the base test config otherwise the main ones
     if testing:
-        app.config.from_object(TestSettings)
+        test_conf_filepath = os.path.join(
+            os.path.dirname(__file__), "..", "tests", "test_configurations", "flask_testing_config.json"
+        )
+        with open(test_conf_filepath, mode='r', encoding='utf-8') as config_file:
+            base_test_config = json.load(config_file)
+        app.config.from_mapping(base_test_config)
     else:
         app.config.from_object(FlaskSettings)
     # override the base settings with some extras passed in
@@ -48,11 +53,7 @@ def create_app(testing=False, test_config=None):
     if not os.path.exists(language_filepath):
         raise RuntimeError("The required file for the language requested in the flask configuration is not available.")
 
-    with open(
-        language_filepath,
-        mode='r',
-        encoding='utf-8',
-    ) as config_file:
+    with open(language_filepath, mode='r', encoding='utf-8') as config_file:
         app.language_config = json.load(config_file)
 
     # Register the database
