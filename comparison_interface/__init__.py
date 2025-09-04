@@ -10,6 +10,7 @@ from whitenoise import WhiteNoise
 
 from comparison_interface.cli import blueprint as commands_bp
 from comparison_interface.configuration.flask import Settings as FlaskSettings
+from comparison_interface.configuration.flask_testing import TestSettings
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import WebsiteControl
@@ -17,7 +18,7 @@ from comparison_interface.main import blueprint as main_bp
 from comparison_interface.main.views.request import Request
 
 
-def create_app(test_config=None):
+def create_app(testing=False, test_config=None):
     """Start Flask website application.
 
     Args:
@@ -25,10 +26,17 @@ def create_app(test_config=None):
     """
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True, static_folder="static")
-    app.config.from_object(FlaskSettings)
 
+    # if we are testing then start with the base test config otherwise the main ones
+    if testing:
+        app.config.from_object(TestSettings)
+    else:
+        app.config.from_object(FlaskSettings)
+    # override the base settings with some extras passed in
     if test_config is not None:
         app.config.from_mapping(test_config)
+
+    # make sure the language setting is consistent
     try:
         language = app.config["LANGUAGE"].split(':')[1]
     except IndexError:

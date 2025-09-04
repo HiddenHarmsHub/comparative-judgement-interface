@@ -14,15 +14,7 @@ from comparison_interface.db.setup import Setup as DBSetup
 
 
 def execute_setup(conf_file):
-    app = create_app(
-        {
-            "TESTING": True,
-            "API_ACCESS": False,
-            "LANGUAGE": "en",
-            "SQLALCHEMY_DATABASE_URI": "sqlite:///test_admin_database.db",
-            "SQLALCHEMY_BINDS": {"study_db": "sqlite:///test_database.db"},
-        }
-    )
+    app = create_app(testing=True)
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
     WS.set_configuration_location(app, conf_file)
@@ -44,6 +36,7 @@ def equal_weight_app():
     with app.app_context():
         db.session.remove()
         db.drop_all()
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_admin_database.db'))
         os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 
@@ -63,6 +56,7 @@ def custom_weight_app():
     with app.app_context():
         db.session.remove()
         db.drop_all()
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_admin_database.db'))
         os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 
