@@ -87,7 +87,7 @@ jobs:
           run: |
             python -m venv venv
             source venv/bin/activate
-            pip install .
+            pip install .[admin]
         - name: Install node dependencies
           run: |
             npm install jest jest-environment-node puppeteer pa11y
