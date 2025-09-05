@@ -27,7 +27,7 @@ class Settings(object):
     SECURITY_PASSWORD_SALT = 'hdys^d54$djf8fkas*'
     SECURITY_PASSWORD_HASH = 'plaintext'
     SECURITY_URL_PREFIX = '/admin'
-    SECURITY_LOGIN_USER_TEMPLATE = 'user_login.html'
+    SECURITY_LOGIN_USER_TEMPLATE = 'user-login.html'
     SECURITY_TWO_FACTOR = False
     SECURITY_TWO_FACTOR_REQUIRED = False
     SECURITY_POST_LOGIN_VIEW = '/admin/dashboard'
