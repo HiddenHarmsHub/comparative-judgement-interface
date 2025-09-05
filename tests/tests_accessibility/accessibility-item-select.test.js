@@ -1,19 +1,5 @@
-/* global require, beforeAll, afterAll, test, expect */
+/* global test, expect */
 
-const puppeteer = require('puppeteer');
-
-let browser;
-
-beforeAll(async () => {
-    browser = await puppeteer.launch({
-        headless: "new",
-        args: ['--no-sandbox']
-    });
-});
-
-afterAll(async () => {
-    await browser.close();
-});
 
 test('Test the item selection page', async () => {
     const url = 'http://localhost:5001/selection/items';
