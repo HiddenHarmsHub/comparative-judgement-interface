@@ -19,7 +19,9 @@ The images presented to the user are selected in different ways depending on the
 
 Example configuration files for each of these models are provided with the application along with a small set of images.[^1]
 
-An optional administration interface is provided which shows logged in users some useful statistics from the currently active study, download the data from the current study and set up a new study by uploading images and configuration files through the interface.
+An optional administration interface is also provided. This offers several features to logged in users, including being able to download the database and set up a new study without needing to use any of the command line tools, as well as showing some useful summary information from the currently active study to allow an easy way of tracking progress.
+
+An optional API is provided for quick access to some of the data generated during a study.
 
 This version of software expands over the initial application build by Bertrand Perrat that can be found [here](https://github.com/BPerrat/BSBT-Interface). The code in this version of the interface was written by Fabián Hernández with additional features and general updates by Catherine Smith in the Research Software Group, part of Advanced Research Computing, University of Birmingham.
 
@@ -31,12 +33,21 @@ Instructions for installing the application and running the provided example con
 [installation page](installation.md). A number of different configuration files are provided in the repository. These
 examples can be run to test an installation or evaluate the different modes available in the software. They can also
 serve as good starting points for your own configurations. The example files themselves can be found in in the
-comparison_interface/examples directory.
+`comparison_interface/examples` directory.
 
 ### Configuring the system
 
 There are a few different ways that the system can be configured depending on the behaviour you need. Instructions for 
 configuration can be found on the [configuration page](configuration.md) page.
+
+### The API
+
+There is an optional API which provides access to some key data from the study that is useful for performing real time
+analysis as data is collected. Details of how to setup the API are provided in the [Exporting section](export-data.md#api).
+
+### The admin interface
+
+The setup and configuration steps for the optional admin interface are described on the [admin interface](admin.md) page.
 
 ### Testing
 

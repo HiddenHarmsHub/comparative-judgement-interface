@@ -14,7 +14,7 @@ To set up the virtual environment and install the Python requirements use the fo
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip3 install -e .
+pip3 install .
 ```
 
 If you are using Windows then you may need to change the way the that you activate the virtual environment (the second line in the example above) and instead use the following command.
@@ -23,16 +23,23 @@ If you are using Windows then you may need to change the way the that you activa
 .\venv\Scripts\activate
 ```
 
-If you want to run the Python linters and tests you will also need the dependencies in the lint and test sections. 
+If you want to use the admin interface then you will also need the dependencies in the `admin` section.
 
 ```bash
-pip3 install -e ".[lint,test]"
+pip3 install ".[admin]"
+```
+
+If you want to run the Python linters and tests you will also need the dependencies in the `lint` and `test` sections. 
+
+```bash
+pip3 install ".[lint,test]"
 ```
 
 The JavaScript and accessibility test requirements are covered in the [testing section](testing.md).
 
-Flask provides a development webserver which is good enough to evaluate the software and for local testing/development. For use in production follow the advice provided in the [Flask documentation](https://flask.palletsprojects.com/en/3.0.x/deploying/). 
-If you are deploying in a multi-process uwsgi environment you will also need the requirements in the server section of the pyproject.toml, this ensures the random number generators are not the same in each thread. Depending on the environment this may in turn need the python3-dev or python3-devel package installed in the operating system.
+Flask provides a development webserver which is good enough to evaluate the software and for local testing/development. For use in production follow the advice provided in the [Flask documentation](https://flask.palletsprojects.com/en/3.0.x/deploying/).
+
+If you are deploying in a multi-threaded uwsgi environment you will also need the requirements in the `server` section of the pyproject.toml. This ensures the random number generators are not the same in each thread. Depending on the environment this may in turn need the python3-dev or python3-devel package installed in the operating system.
 
 ## Running the Provided Examples
 
@@ -44,20 +51,22 @@ This sequence of commands will allow you to setup and run one of the pre-configu
 1. config-custom-item-weights.json
 
 In addition to the full JSON configurations listed above there is an example of a configuration of the first of them
-with the images configured with a csv file. This configuration can be found in the ```examples/csv_example``` directory.
+with the images configured with a csv file. This configuration can be found in the `examples/csv_example` directory.
+
+This page only describes how to set up the study side of the system. Instructions for setting up the admin interface can be found
+on the [admin interface](admin.md) page.
 
 
 ### Initial setup
 
 If you are not using the dev container provided then:
 
-+ rename the `example.images` file in `comparison_interface/static/` to `images`.
-+ rename the `example.flask.py` file in `comparison_interface/configuration/` to `flask.py`.
++ rename or copy the `example.images` file in `comparison_interface/static/` to `images`.
++ rename or copy the `example.flask.py` file in `comparison_interface/configuration/` to `flask.py`.
++ rename or copy the `.env-example file` to `.env` and change the various secrets and keys.
 
-When running in production the secret key in the flask.py should also be changed.
-
-Open a terminal and run these commands replacing ```[configuration_file_name]``` with the name of the configuration file you want to try. To try
-the csv file options replace with the the directory containing the JSON file and CSV file (```examples/csv_example```).
+Open a terminal and run these commands replacing `[configuration_file_name]` with the name of the configuration file you want to try. To try
+the csv file options replace with the the directory containing the JSON file and CSV file (`examples/csv_example`).
 
 ```bash
 flask --debug setup examples/[configuration_file_name]

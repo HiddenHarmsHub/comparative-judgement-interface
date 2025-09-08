@@ -3,8 +3,9 @@ id: export-data
 title: Exporting the Data
 ---
 
-By default the data stored by the system can be exported on the command line. There is also an option to configure the
-system to expose two specific tables from the database via an API. This can be useful for quick checks on the judgements
+By default the data stored by the system can be exported on the command line. if the admin interface is enabled then 
+admin users can also download the data from the admin dashboard. There is also an option to configure the system to
+expose three specific tables from the database via an API. This can be useful for quick checks on the judgements
 or for running continuous analysis on the results.
 
 ## Command Line Export
@@ -45,16 +46,21 @@ The outcome data are:
 This data is in a form that can be directly input into the
 [Bayesian Spatial Bradley--Terry model BSBT](https://github.com/rowlandseymour/BSBT) analysis. 
 
+## Admin Interface
+
+If the admin interface is enabled then the admin dashboard page allows a logged in admin user to generate the 
+csv download of the database. More information about the admin interface can be found on the [admin interface](admin.md) page.
+
 ## API 
 
-There is also an option to expose the table containing the decisions made by users (no user details), the outcome table 
+There is an option to expose the table containing the decisions made by users (no user details), the outcome table 
 generated from those decisions and the table containing the item details via a secured API. 
 
 To enable the API:
 
-+ set the `API_ACCESS` variable in the `configuration/flask.py` file to `True`
++ add the `API_ACCESS` variable to the `.env` file and set it to `True`
 + create a file at the top level of the repository which should contain the secret key which will be used to authenticate API calls
-+ set the `API_KEY_FILE` variable n the `configuration/flask.py` file to the name of the file containing the secret key (the default is `.apikey`)
++ add the `API_KEY_FILE` variable to the `.env` file and set it to name of the file containing the secret key (the default is `.apikey`)
 
 Once the API is enabled the three tables can be accessed at the following urls:
 
