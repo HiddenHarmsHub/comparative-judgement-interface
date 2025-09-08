@@ -32,7 +32,7 @@ class Settings(object):
     MAX_CONTENT_LENGTH = 4 * 1024 * 1024
     LANGUAGE = os.getenv('LANGUAGE', 'en')
     API_ACCESS = os.getenv('API_ACCESS', False)
-    API_KEY_FILE = os.getenv('API_KEY_FILE')
+    API_KEY_FILE = os.getenv('API_KEY_FILE', '.apikey')
     ADMIN_ACCESS = get_bool_value('ADMIN_ACCESS', False)
     IMAGE_UPLOAD_DIR = 'static/images/'
     HTML_PAGES_DIR = 'pages_html'
