@@ -2,7 +2,7 @@ import pytest
 
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import ParticipantItem
-from tests_python.conftest import execute_setup
+from tests.tests_python.conftest import execute_setup
 
 
 def test_redirect_to_registration(equal_weight_client):
@@ -52,7 +52,7 @@ def test_no_render_prefer_item_selection_when_asked_not_to_in_config(participant
     WHEN a participant is logged in and the item selection page is requested
     THEN the participant is redirected to the ranking page
     """
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     with app.app_context():
         client = app.test_client()
         client.post("/register", data=participant_data)

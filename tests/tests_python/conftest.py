@@ -14,15 +14,8 @@ from comparison_interface.db.setup import Setup as DBSetup
 
 
 def execute_setup(conf_file):
-    app = create_app(
-        {
-            "TESTING": True,
-            "API_ACCESS": False,
-            "LANGUAGE": "en",
-            "SQLALCHEMY_DATABASE_URI": "sqlite:///test_admin_database.db",
-            "SQLALCHEMY_BINDS": {"study_db": "sqlite:///test_database.db"},
-        }
-    )
+    """Setup a test system."""
+    app = create_app(testing=True)
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
     WS.set_configuration_location(app, conf_file)
@@ -38,12 +31,13 @@ def execute_setup(conf_file):
 @pytest.fixture()
 def equal_weight_app():
     """Set up the project for testing with equal weights."""
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights.json")
     yield app
 
     with app.app_context():
         db.session.remove()
         db.drop_all()
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_admin_database.db'))
         os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 
@@ -57,12 +51,13 @@ def equal_weight_client(equal_weight_app):
 @pytest.fixture()
 def custom_weight_app():
     """Set up the project for testing with custom weights."""
-    app = execute_setup("../tests_python/test_configurations/config-custom-item-weights.json")
+    app = execute_setup("../tests/test_configurations/config-custom-item-weights.json")
     yield app
 
     with app.app_context():
         db.session.remove()
         db.drop_all()
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_admin_database.db'))
         os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 

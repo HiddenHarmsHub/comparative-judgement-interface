@@ -2,8 +2,8 @@
 module.exports = {
 
     "roots": [
-        'tests_accessibility/',
-        'tests_javascript/'
+        'tests/tests_accessibility/',
+        'tests/tests_javascript/'
     ],
 
     "setupFiles": [

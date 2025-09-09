@@ -17,7 +17,7 @@ from comparison_interface.main import blueprint as main_bp
 from comparison_interface.main.views.request import Request
 
 
-def create_app(test_config=None):
+def create_app(testing=False, test_config=None):
     """Start Flask website application.
 
     Args:
@@ -25,10 +25,22 @@ def create_app(test_config=None):
     """
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True, static_folder="static")
-    app.config.from_object(FlaskSettings)
 
+    # if we are testing then start with the base test config otherwise the main ones
+    if testing:
+        test_conf_filepath = os.path.join(
+            os.path.dirname(__file__), "..", "tests", "test_configurations", "flask_testing_config.json"
+        )
+        with open(test_conf_filepath, mode='r', encoding='utf-8') as config_file:
+            base_test_config = json.load(config_file)
+        app.config.from_mapping(base_test_config)
+    else:
+        app.config.from_object(FlaskSettings)
+    # override the base settings with some extras passed in
     if test_config is not None:
         app.config.from_mapping(test_config)
+
+    # make sure the language setting is consistent
     try:
         language = app.config["LANGUAGE"].split(':')[1]
     except IndexError:
@@ -40,11 +52,7 @@ def create_app(test_config=None):
     if not os.path.exists(language_filepath):
         raise RuntimeError("The required file for the language requested in the flask configuration is not available.")
 
-    with open(
-        language_filepath,
-        mode='r',
-        encoding='utf-8',
-    ) as config_file:
+    with open(language_filepath, mode='r', encoding='utf-8') as config_file:
         app.language_config = json.load(config_file)
 
     # Register the database

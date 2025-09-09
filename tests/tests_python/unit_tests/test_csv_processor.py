@@ -8,7 +8,7 @@ def test_minimum_csv_processed_correctly():
     THEN the correct data is produced
     """
     processor = CsvProcessor()
-    data = processor.create_config_from_csv('../tests_python/test_configurations/csv_example_1/example_1.csv')
+    data = processor.create_config_from_csv('../tests/test_configurations/csv_example_1/example_1.csv')
     expected_data = {
         "groups": [
             {
@@ -84,7 +84,7 @@ def test_maximal_csv_processed_correctly():
     THEN the correct data is produced
     """
     processor = CsvProcessor()
-    data = processor.create_config_from_csv('../tests_python/test_configurations/csv_example_2/example_2.csv')
+    data = processor.create_config_from_csv('../tests/test_configurations/csv_example_2/example_2.csv')
     expected_data = {
         "groups": [
             {

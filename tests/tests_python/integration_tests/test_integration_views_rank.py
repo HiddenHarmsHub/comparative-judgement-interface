@@ -5,7 +5,7 @@ from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import Comparison, Participant
 from comparison_interface.main.views import rank
-from tests_python.conftest import execute_setup
+from tests.tests_python.conftest import execute_setup
 
 
 def test_redirect_if_not_logged_in(equal_weight_client):
@@ -45,7 +45,7 @@ def test_render_rank_comparison_no_item_choice(participant_data):
     WHEN a participant logs in in and requests the rank page
     THEN the participant sees ranking page
     """
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     client = app.test_client()
     client.post("/register", data=participant_data)
     response = client.get("/rank", follow_redirects=True)
@@ -375,7 +375,7 @@ def test_no_escape_route_if_setting_off(mocker, participant_data):
     WHEN a logged in participant gets to the end of a cycle but the escape route setting is off
     THEN they can continue ranking items with no redirect
     """
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     client = app.test_client()
     client.post("/register", data=participant_data)
     with client.session_transaction() as session:
@@ -420,7 +420,7 @@ def test_no_skip_button_if_setting_false(participant_data):
     WHEN a participant logs in in and requests the rank page
     THEN the participant sees ranking page but there is no skip button
     """
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     client = app.test_client()
     client.post("/register", data=participant_data)
     response = client.get("/rank", follow_redirects=True)
@@ -457,7 +457,7 @@ def test_no_previous_button_if_setting_false(participant_data):
     WHEN a participant logs in in and requests the rank page
     THEN the participant sees ranking page but there is no previous button
     """
-    app = execute_setup("../tests_python/test_configurations/config-equal-item-weights-2.json")
+    app = execute_setup("../tests/test_configurations/config-equal-item-weights-2.json")
     client = app.test_client()
     client.post("/register", data=participant_data)
     with client.session_transaction() as session:

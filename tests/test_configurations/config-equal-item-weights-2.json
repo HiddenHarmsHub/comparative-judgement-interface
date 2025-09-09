@@ -12,8 +12,6 @@
         "allowTies": true,
         "allowSkip": false,
         "allowBack": false,
-        "userInstructionHtml": "examples/html/instructions.html",
-        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
         "sitePoliciesHtml": "examples/html/site-policies.html"
     },
     "comparisonConfiguration" : {

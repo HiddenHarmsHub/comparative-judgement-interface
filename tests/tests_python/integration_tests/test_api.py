@@ -14,12 +14,11 @@ from comparison_interface.db.setup import Setup as DBSetup
 # custom fixtures for these tests
 def execute_setup_with_api(conf_file):
     app = create_app(
-        {
-            "TESTING": True,
+        testing=True,
+        test_config={
             "API_ACCESS": True,
             "API_KEY_FILE": ".tstkyapi",
-            "SQLALCHEMY_DATABASE_URI": 'sqlite:///test_database.db',
-        }
+        },
     )
     # 1. Validate the website configuration
     app.logger.info("Setting website configuration")
@@ -36,12 +35,13 @@ def execute_setup_with_api(conf_file):
 @pytest.fixture()
 def equal_weight_app_api():
     """Set up the project for testing with equal weights with the api."""
-    app = execute_setup_with_api("../tests_python/test_configurations/config-equal-item-weights.json")
+    app = execute_setup_with_api("../tests/test_configurations/config-equal-item-weights.json")
     yield app
 
     with app.app_context():
         db.session.remove()
         db.drop_all()
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_admin_database.db'))
         os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 
