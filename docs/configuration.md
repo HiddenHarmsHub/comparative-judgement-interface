@@ -125,7 +125,7 @@ the content you want to display. If you choose one of the HTML options then the 
 to the HTML file. If ensuring that the website is accessible is important to you then the best option would be to write
 your own HTML fragment and make sure that it follows the WCAG guidelines.
 
-The keys and their corresponding link/html keys are listed below.
+The keys and their corresponding html keys are listed below.
 
 + **renderUserInstructionPage** [boolean]
   + **userInstructionHtml** [filepath]
