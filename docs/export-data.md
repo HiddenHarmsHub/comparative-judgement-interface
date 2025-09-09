@@ -3,10 +3,10 @@ id: export-data
 title: Exporting the Data
 ---
 
-By default the data stored by the system can be exported on the command line. if the admin interface is enabled then 
+By default the data stored by the system can be exported on the command line. If the admin interface is enabled then
 admin users can also download the data from the admin dashboard. There is also an option to configure the system to
 expose three specific tables from the database via an API. This can be useful for quick checks on the judgements
-or for running continuous analysis on the results.
+during a study or for running continuous analysis on the results.
 
 ## Command Line Export
 
@@ -17,7 +17,7 @@ flask --debug export
 ```
 
 This will export the database contents to a zip file containing one csv file per database table. The file will be saved
-at the location configured in the **exportPathLocation** key in the configuration file. 
+at the location configured in the **exportPathLocation** key in the configuration file.
 
 There is also an option to export the data to a zip file of tsv files rather than csv files.
 
@@ -25,48 +25,51 @@ There is also an option to export the data to a zip file of tsv files rather tha
 flask --debug export --format=tsv
 ```
 
-The database structure is shown in the diagram below. The key tables are user, item and comparison. The user table 
+The database structure is shown in the diagram below. The key tables are user, item and comparison. The user table
 stores information about the user, the item table contains information about the items (or images) being compared and
-the comparison table contains the information about the judgements. The other tables mostly serve to make connections 
+the comparison table contains the information about the judgements. The other tables mostly serve to make connections
 between these main tables. For example the item_group table contains information that shows which items belong in
-which group (the details of the group such as the name are in the group table) and the user_group table shows which 
+which group (the details of the group such as the name are in the group table) and the user_group table shows which
 users know which groups.
 
 ![Database structure diagram](images/cj-database-diagram.png)
 
-In addition to the tables from the database a **outcome** table is also generated from the data in the comparison
-table. For all non-skipped comparisons it adds a row with the two item ids and the outcome for the comparison.
+In addition to the tables from the database a **outcome** table is also generated in the export from the data in the
+comparison table. For all non-skipped comparisons it adds a row with the two item ids and the outcome for the comparison.
 
 The outcome data are:
 
-  + 0 if item 1 was selected
-  + 1 if item 3 was selected
-  + 2 if the comparison was tied
++ 0 if item 1 was selected
++ 1 if item 3 was selected
++ 2 if the comparison was tied
 
 This data is in a form that can be directly input into the
-[Bayesian Spatial Bradley--Terry model BSBT](https://github.com/rowlandseymour/BSBT) analysis. 
+[Bayesian Spatial Bradley--Terry model BSBT](https://github.com/rowlandseymour/BSBT) analysis.
 
 ## Admin Interface
 
-If the admin interface is enabled then the admin dashboard page allows a logged in admin user to generate the 
-csv download of the database. More information about the admin interface can be found on the [admin interface](admin.md) page.
+If the admin interface is enabled then the admin dashboard page allows a logged in admin user to generate the
+csv download of the database. More information about the admin interface can be found on the [admin interface](admin.md)
+page.
 
-## API 
+## API
 
-There is an option to expose the table containing the decisions made by users (no user details), the outcome table 
-generated from those decisions and the table containing the item details via a secured API. 
+There is an option to expose the table containing the decisions made by users (no user details), the outcome table
+generated from those decisions and the table containing the item details via a secured API.
 
 To enable the API:
 
 + add the `API_ACCESS` variable to the `.env` file and set it to `True`
-+ create a file at the top level of the repository which should contain the secret key which will be used to authenticate API calls
-+ add the `API_KEY_FILE` variable to the `.env` file and set it to name of the file containing the secret key (the default is `.apikey`)
++ create a file at the top level of the repository which should contain the secret key which will be used to
+authenticate API calls
++ add the `API_KEY_FILE` variable to the `.env` file and set it to name of the file containing the secret key
+(the default is `.apikey`)
 
 Once the API is enabled the three tables can be accessed at the following urls:
 
-+ http://localhost:5001/api/judgements
-+ http://localhost:5001/api/items
-+ http://localhost:5001/outcomes
++ <http://localhost:5001/api/judgements>
++ <http://localhost:5001/api/items>
++ <http://localhost:5001/outcomes>
 
 To access the data in the API requests must use the secret key to authenticate. All programming languages
 will have support for this. The following two examples show how to access the API from a command line using curl and

@@ -19,11 +19,15 @@ The images presented to the user are selected in different ways depending on the
 
 Example configuration files for each of these models are provided with the application along with a small set of images.[^1]
 
-An optional administration interface is also provided. This offers several features to logged in users, including being able to download the database and set up a new study without needing to use any of the command line tools, as well as showing some useful summary information from the currently active study to allow an easy way of tracking progress.
-
 An optional API is provided for quick access to some of the data generated during a study.
 
-This version of software expands over the initial application build by Bertrand Perrat that can be found [here](https://github.com/BPerrat/BSBT-Interface). The code in this version of the interface was written by Fabián Hernández with additional features and general updates by Catherine Smith in the Research Software Group, part of Advanced Research Computing, University of Birmingham.
+An optional administration interface is also provided. This offers several features to logged in users, including being
+able to download the database and set up a new study without needing to use any of the command line tools, as well as
+showing some useful summary information from the currently active study to allow an easy way of tracking progress.
+
+This version of software expands over the initial application build by Bertrand Perrat that can be found [here](https://github.com/BPerrat/BSBT-Interface).
+The code in this version of the interface was written by Fabián Hernández with additional features and general updates
+by Catherine Smith in the Research Software Group, part of Advanced Research Computing, University of Birmingham.
 
 ## Getting Started
 
@@ -35,14 +39,14 @@ examples can be run to test an installation or evaluate the different modes avai
 serve as good starting points for your own configurations. The example files themselves can be found in in the
 `comparison_interface/examples` directory.
 
-### Configuring the system
+### Configuring the studies
 
-There are a few different ways that the system can be configured depending on the behaviour you need. Instructions for 
-configuration can be found on the [configuration page](configuration.md) page.
+There are a few different ways that studies can be configured depending on the behaviour you need. Instructions for 
+configuring studies can be found on the [configuration page](configuration.md) page.
 
 ### The API
 
-There is an optional API which provides access to some key data from the study that is useful for performing real time
+There is an optional API which provides access to some key data from the study which is useful for performing real time
 analysis as data is collected. Details of how to setup the API are provided in the [Exporting section](export-data.md#api).
 
 ### The admin interface
@@ -51,8 +55,9 @@ The setup and configuration steps for the optional admin interface are described
 
 ### Testing
 
-A number of different tests are provided in the repository. They are all run in the CI workflow. If you also want to 
-run the tests locally you can find information on the dependencies and how to run the test on the [running the tests](testing.md) page.
+A number of different tests are provided in the repository, they can be found in the `tests` directory. All tests are
+all run in the CI workflow. If you also want to run the tests locally you can find information on the dependencies and
+how to run the test on the [running the tests](testing.md) page.
 
 ## Authors and acknowledgments
 
@@ -67,4 +72,6 @@ The development of this software was supported by a UKRI Future Leaders Fellowsh
 <!--- https://gist.github.com/lukas-h/2a5d00690736b4c3a7ba -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[^1]: The Boundary displays on the images are taken from the Office for National Statistics licensed under the Open Government Licence v.3.0 and Contains OS data © Crown copyright and database right 2024. The image tiles used for the maps are provided by ESRI's National Geographic World Map, full attribution is included in each image.
+[^1]: The Boundary displays on the images are taken from the Office for National Statistics licensed under the Open
+Government Licence v.3.0 and Contains OS data © Crown copyright and database right 2024. The image tiles used for the
+maps are provided by ESRI's National Geographic World Map, full attribution is included in each image.

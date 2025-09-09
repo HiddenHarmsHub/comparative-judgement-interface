@@ -5,7 +5,7 @@ sidebar_label: CLI Reference
 ---
 
 This page is a quick reference for all of the commands that are used to manage the application. They are split into
-commands needed to configure the studies themselves and those required for the admin interface. 
+commands needed to configure the studies themselves and those required for the admin interface.
 
 ## Study Commands
 
@@ -72,7 +72,6 @@ flask --debug export --format=tsv
 This section lists all of the commands you should need to setup the admin side of the system. Some of these commands
 are provided by external dependencies but are listed here for ease of reference.
 
-
 ### Setup_admin
 
 The `setup_admin` command creates the tables required for storing information about admin users. This command must be
@@ -100,7 +99,7 @@ the user).
 flask users activate email@example.com
 ```
 
-## Additional Commands Available.
+## Additional Commands Available
 
 To see the full range of commands provided by the various packages installed you can use the built in help system.
 
@@ -110,7 +109,7 @@ To get help with all the flask commands or groups of commands available:
 flask --help
 ```
 
-To find out more about the commands relating to a subgroup such as users: 
+To find out more about the commands relating to a subgroup such as users:
 
 ```bash
 flask users --help
