@@ -33,11 +33,11 @@ $(function () {
     }
 });
 
-$("img").on('click', function () {
+$("img, svg").on('click', function () {
     hintItem($(this));
 });
 
-$("img").on('keypress', function (e) {
+$("img, svg").on('keypress', function (e) {
     if (e.key === ' ') {
         hintItem($(this));
     }
