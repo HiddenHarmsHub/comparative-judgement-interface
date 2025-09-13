@@ -2,6 +2,13 @@
 
 // on load function to display current state if we are rejudging
 $(function () {
+
+    let item1TextHeight = $('#left-item-label').parent().height();
+    let item2TextHeight = $('#right-item-label').parent().height();
+    let minHeight = Math.max(item1TextHeight, item2TextHeight);
+    $('#left-item-label').parent().css('min-height', minHeight + 'px');
+    $('#right-item-label').parent().css('min-height', minHeight + 'px');
+
     if (document.getElementById('comparison_id') && document.getElementById('comparison_id').value !== '') {
         const initialSelectedItemId = document.getElementById('initial_selected_item_id').value;
         if (document.getElementById('initial_state').value === 'tied') {
