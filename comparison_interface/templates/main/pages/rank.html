@@ -29,7 +29,13 @@
           </div>
           <div class="text-center">
             <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
-            <img id="left-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
+            <svg id="left-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" class="left-item img-fluid img-constraint" alt="" xmlns="http://www.w3.org/2000/svg">   
+              <g>
+                <rect width="100%" height="300" x="0" y="0" style="fill:white;stroke-width:2;stroke:black"/>
+                <text text-anchor="middle" dominant-baseline="middle" font-size="35" x="50%" y="50%" fill="black">Select</text>
+              </g>
+            </svg> 
+            <!-- <img id="left-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt=""> -->
           </div>
         </div>
         <div class="col position-relative">
@@ -39,7 +45,13 @@
           </div>
           <div class="text-center">
             <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
-            <img id="right-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}" class="right-item img-fluid img-constraint" alt="">
+            <svg id="right-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="right-item-description" class="right-item img-fluid img-constraint" alt="" xmlns="http://www.w3.org/2000/svg">   
+              <g>
+                <rect width="100%" height="300" x="0" y="0" style="fill:white;stroke-width:2;stroke:black"/>
+                <text text-anchor="middle" dominant-baseline="middle" font-size="35" x="50%" y="50%" fill="black">Select</text>
+              </g>
+            </svg>
+            <!-- <img id="right-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}" class="right-item img-fluid img-constraint" alt=""> -->
           </div>
           </div>
       </div>
