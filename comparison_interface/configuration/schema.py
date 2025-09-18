@@ -189,6 +189,7 @@ class ComparisonConfiguration(Schema):
 class WebsiteTextConfiguration(Schema):
     """The schema for the website text configuration."""
 
+    skipToMainContent = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
     websiteTitle = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
     pageTitleLogout = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
     pageTitleUserRegistration = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])

@@ -52,6 +52,7 @@ class Request:
             'ethics_agreement_page_title': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._app),
             'policies_page_title': WS.get_text(WS.PAGE_TITLE_POLICIES, self._app),
             'participant_registration_page_title': WS.get_text(WS.PAGE_TITLE_USER_REGISTRATION, self._app),
+            'skip_to_main_content': WS.get_text(WS.SKIP_TO_MAIN_CONTENT, self._app),
             'logout_page_title': WS.get_text(WS.PAGE_TITLE_LOGOUT, self._app),
             'item_preference_page_title': WS.get_text(WS.PAGE_TITLE_ITEM_PREFERENCE, self._app),
             'rank_page_title': WS.get_text(WS.PAGE_TITLE_RANK, self._app),

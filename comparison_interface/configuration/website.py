@@ -61,6 +61,7 @@ class Settings:
     USER_FIELD_TYPE_RADIO = "radio"
     USER_FIELD_TYPE_EMAIL = "email"
     # Website labels
+    SKIP_TO_MAIN_CONTENT = "skipToMainContent"
     WEBSITE_TITLE = "websiteTitle"
     PAGE_TITLE_LOGOUT = "pageTitleLogout"
     PAGE_TITLE_USER_REGISTRATION = "pageTitleUserRegistration"
