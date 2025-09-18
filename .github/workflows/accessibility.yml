@@ -30,6 +30,7 @@ jobs:
           run: |
             source venv/bin/activate
             mv comparison_interface/static/example.images/ comparison_interface/static/images/
+            mv comparison_interface/example.pages_html/ comparison_interface/pages_html/
             mv  comparison_interface/configuration/example.flask.py comparison_interface/configuration/flask.py
             mv .env-example .env
             flask --debug setup ../tests/test_configurations/config-equal-item-weights-2.json
@@ -63,6 +64,7 @@ jobs:
           run: |
             source venv/bin/activate
             mv comparison_interface/static/example.images/ comparison_interface/static/images/
+            mv comparison_interface/example.pages_html/ comparison_interface/pages_html/
             mv  comparison_interface/configuration/example.flask.py comparison_interface/configuration/flask.py
             mv .env-example .env
             flask --debug setup ../tests/test_configurations/config-equal-item-weights.json
@@ -96,6 +98,7 @@ jobs:
           run: |
             source venv/bin/activate
             mv comparison_interface/static/example.images/ comparison_interface/static/images/
+            mv comparison_interface/example.pages_html/ comparison_interface/pages_html/
             mv tests/test_configurations/testing-admin.flask.py comparison_interface/configuration/flask.py
             mv .env-example .env
             flask --debug setup_admin
