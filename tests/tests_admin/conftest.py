@@ -61,5 +61,6 @@ def app():
     with app.app_context():
         db.session.remove()
         db.drop_all()
+        temp_dir.cleanup()
         os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
         os.unlink(os.path.join(os.path.join(app.instance_path), 'test_admin_database.db'))

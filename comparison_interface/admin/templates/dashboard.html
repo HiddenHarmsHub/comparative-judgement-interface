@@ -1,6 +1,7 @@
 {% extends "admin-layout.html" %}
 
     {% block content %}
+        <div style="display:none">{% include "security/_messages.html" %}</div>
         <div id="dashboard" class="container-fluid">
             <div class="row text-center">
                 <h1 class="fs-3">Admin Dashboard</h1>
@@ -80,7 +81,7 @@
                                     {{ form.deletion_confirmation.label }}
                                 </div>
                             </div>
-                            <input class="btn btn-secondary" type="submit" value="Start New Study"/>
+                            <input id="start-new-study" class="btn btn-secondary" type="submit" value="Start New Study"/>
                         </form>
                     </div>
                     

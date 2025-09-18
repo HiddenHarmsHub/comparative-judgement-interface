@@ -35,6 +35,7 @@ jobs:
             flask --debug setup ../tests/test_configurations/config-equal-item-weights-2.json
             flask --debug run --host=0.0.0.0 --port=5001 & sleep 5
             npx jest -- tests/tests_accessibility/accessibility.test.js
+
     accessibility_2:
         permissions:
           contents: read
@@ -67,3 +68,38 @@ jobs:
             flask --debug setup ../tests/test_configurations/config-equal-item-weights.json
             flask --debug run --host=0.0.0.0 --port=5001 & sleep 5
             npx jest -- tests/tests_accessibility/accessibility-item-select.test.js
+
+    accessibility_admin:
+        permissions:
+          contents: read
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v4
+        - name: Install Python 3.9
+          uses: actions/setup-python@v5
+          with: 
+            python-version: "3.9"
+        - name: Install node
+          uses: actions/setup-node@v4
+          with:
+            node-version: '22'
+        - name: Install python dependencies
+          run: |
+            python -m venv venv
+            source venv/bin/activate
+            pip install .[admin]
+        - name: Install node dependencies
+          run: |
+            npm install jest jest-environment-node puppeteer pa11y
+            npx puppeteer browsers install chrome
+        - name: Setup app and run tests
+          run: |
+            source venv/bin/activate
+            mv comparison_interface/static/example.images/ comparison_interface/static/images/
+            mv tests/test_configurations/testing-admin.flask.py comparison_interface/configuration/flask.py
+            mv .env-example .env
+            flask --debug setup_admin
+            flask --debug users create test@example.co.uk --password 'password' --active
+            flask --debug setup ../tests/test_configurations/config-equal-item-weights.json
+            flask --debug run --host=0.0.0.0 --port=5001 & sleep 5
+            npx jest -- tests/tests_accessibility/accessibility-admin.test.js
