@@ -47,6 +47,7 @@ def create_app(testing=False, test_config=None):
         language = app.config["LANGUAGE"]
     except KeyError:
         language = 'en'
+    app.language_code = language
 
     language_filepath = os.path.join(os.path.dirname(__file__), "languages", f"{language}.json")
     if not os.path.exists(language_filepath):

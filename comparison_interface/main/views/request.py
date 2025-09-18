@@ -46,6 +46,7 @@ class Request:
         render_site_cookies = WS.should_render(WS.BEHAVIOUR_RENDER_COOKIE_BANNER, self._app)
 
         return {
+            'language_code': self._app.language_code,
             'website_title': WS.get_text(WS.WEBSITE_TITLE, self._app),
             'introduction_page_title': WS.get_text(WS.PAGE_TITLE_INTRODUCTION, self._app),
             'ethics_agreement_page_title': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._app),
