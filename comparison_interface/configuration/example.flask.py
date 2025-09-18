@@ -29,10 +29,9 @@ class Settings(object):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'strict'
-    SECURITY_RECOVERABLE = True
     MAX_CONTENT_LENGTH = 4 * 1024 * 1024
     LANGUAGE = os.getenv('LANGUAGE', 'en')
-    API_ACCESS = os.getenv('API_ACCESS', False)
+    API_ACCESS = get_bool_value('API_ACCESS', False)
     API_KEY_FILE = os.getenv('API_KEY_FILE', '.apikey')
     ADMIN_ACCESS = get_bool_value('ADMIN_ACCESS', False)
     IMAGE_UPLOAD_DIR = 'static/images/'
@@ -49,6 +48,7 @@ class Settings(object):
     SECURITY_TWO_FACTOR_ENABLED_METHODS = ['email']
     SECURITY_TWO_FACTOR_VERIFY_CODE_TEMPLATE = '2fa-verify.html'
     SECURITY_TWO_FACTOR_SETUP_TEMPLATE = '2fa-setup.html'
+    SECURITY_RECOVERABLE = get_bool_value('SECURITY_RECOVERABLE', False)
     SECURITY_RESET_PASSWORD_TEMPLATE = 'reset-password.html'
     SECURITY_FORGOT_PASSWORD_TEMPLATE = 'forgot-password.html'
     SECURITY_TOTP_SECRETS = loads(os.getenv('SECURITY_TOTP_SECRETS', '{}'))
