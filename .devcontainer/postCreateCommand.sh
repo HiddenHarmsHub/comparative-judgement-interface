@@ -6,3 +6,4 @@ cp -TR $WORKING_DIR/comparison_interface/static/example.images/ $WORKING_DIR/com
 cp -TR $WORKING_DIR/comparison_interface/example.pages_html/ $WORKING_DIR/comparison_interface/pages_html/
 cp $WORKING_DIR/comparison_interface/configuration/example.flask.py $WORKING_DIR/comparison_interface/configuration/flask.py
 cp $WORKING_DIR/.env-example $WORKING_DIR/.env
+mkdir -p $WORKING_DIR/comparison_interface/project_configuration/
