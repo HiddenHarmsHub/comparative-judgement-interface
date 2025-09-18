@@ -34,8 +34,8 @@ The authentication is all dependant on the [flask-security](https://github.com/p
 More information about the settings above and other settings which may be relevant for your setup, such as additional two
 factor authentication options, can be found in the [flask-security documentation](https://flask-security-too.readthedocs.io/en/stable/).
 
-The image uploaded set a size limit of 4MB for each file. You may need to change your server setting sto support this limit.
-If you want to reduce the limit in the interface, then the `MAX_CONTENT_LENGTH` setting in the `configuration/flask.py`
+The image upload page sets a size limit of 4MB for each file. You may need to change your server settings to support this
+limit. If you want to reduce the limit in the interface, then the `MAX_CONTENT_LENGTH` setting in the `configuration/flask.py`
 file can be changed. If this size is changed then the `maxFileSize` setting in the `admin/static/js/image_uploader.js` should
 also be changed to match.
 
@@ -70,7 +70,7 @@ If the `SECURITY_RECOVERABLE` setting is `True` then users can reset their passw
 
 The admin dashboard can be accessed at <http://localhost:5001/admin>. If there is a study currently active the left
 hand column will show some key information from the current study such as how many participants have registered and how
-many comparisons have been recorded. If any data is available for the current study, a button will be present to
+many comparisons have been recorded. If any data are available for the current study, a button will be present to
 download a copy of the data.
 
 ### Additional page editing
@@ -93,17 +93,17 @@ guided through a two or three stage process to upload the required files and cre
 #### Step 1: Image upload
 
 The first step is to upload the images required for the study. Images can be uploaded via drag and drop or by using
-the browse links to select the files from your system. Multiple files can be added at one by selecting multiple files or
+the browse links to select the files from your system. Multiple files can be added at once by selecting multiple files or
 selecting a directory of images. Once the uploads have started you will see their progress on the screen. You must ensure
 all images have finished uploading before pressing the 'Confirm' button to move to the next stage. Any accidentally uploaded
 images can be removed by clicking on the cross on the right of the image entry.
 
-The maximum size limit per image is 4MB.
+The maximum size limit per image is 4MB (see the [configuration section](#configuration) for how to change this).
 
 #### Step 2: Configuration upload
 
 The second step is to upload a configuration file for the project. This should follow the format described in the
-[configuration section](configuration.md). The configuration file will be validated on upload and any errors found will
+[configuration page](configuration.md). The configuration file will be validated on upload and any errors found will
 be displayed on the screen.
 
 #### Step 3: CSV file upload (optional)

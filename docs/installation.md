@@ -11,7 +11,7 @@ configuration contains all of the dependencies required to run the software as w
 linters used in the CI.
 
 If you are not using the dev container you will need to install the dependencies in the pyproject.toml file. Using a
-python virtual environment is recommended but it is not necessary.
+python virtual environment is recommended, but not required.
 
 To set up the virtual environment and install the Python requirements use the following commands.
 
@@ -75,8 +75,8 @@ If you are not using the dev container provided then:
 + rename or copy the `.env-example file` to `.env` and change the various secrets and keys.
 
 Open a terminal and run these commands replacing `[configuration_file_name]` with the name of the configuration file
-you want to try. To try the csv file options replace with the the directory containing the JSON file and CSV file
-(`examples/csv_example`).
+you want to try. To try the csv file options replace the name of the configuration file with the directory containing
+the JSON file and CSV file (`examples/csv_example`).
 
 ```bash
 flask --debug setup examples/[configuration_file_name]
