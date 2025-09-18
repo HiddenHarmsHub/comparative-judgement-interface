@@ -75,6 +75,8 @@ download a copy of the data.
 
 ### Additional page editing
 
+The `example.pages_html` directory needs to be copied to `pages_html` for the page editing to work.
+
 If any of the page booleans described on the [configuration page](configuration.md#additional-pages) are set to true but
 the corresponding html key is not provided, then these pages can be written and edited through the admin interface. Each
 of the relevant pages will have a button available in the 'Edit Pages' section of the admin dashboard.
