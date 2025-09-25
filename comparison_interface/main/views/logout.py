@@ -10,4 +10,4 @@ class Logout(Request):
     def get(self, _):
         """Request get handler."""
         self._session.clear()
-        return self._redirect('.user_registration')
+        return self._redirect('.participant_registration')

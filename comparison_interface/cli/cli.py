@@ -5,14 +5,28 @@ import os
 import click
 from flask import current_app
 from flask.cli import with_appcontext
+from marshmallow import ValidationError
 from sqlalchemy.exc import OperationalError
 
 from comparison_interface.cli import blueprint
 from comparison_interface.configuration.validation import Validation as ConfigValidation
 from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.connection import db
 from comparison_interface.db.export import Exporter
 from comparison_interface.db.models import WebsiteControl
 from comparison_interface.db.setup import Setup as DBSetup
+
+
+@blueprint.cli.command("setup_admin")
+@with_appcontext
+def setup_admin():
+    """Set up the admin side of the system.
+
+    Admin user accounts will also need to be created on the command line using the flask-security commands.
+    """
+    app = current_app
+    with app.app_context():
+        db.create_all(None)
 
 
 @blueprint.cli.command("setup")
@@ -33,7 +47,11 @@ def setup(conf):
     ConfigValidation(app).check_config_path(conf)
     app.logger.info("Setting website configuration")
     WS.set_configuration_location(app, conf)
-    ConfigValidation(app).validate()
+    try:
+        ConfigValidation(app).validate()
+    except ValidationError as err:
+        app.logger.critical(err)
+        exit()
 
     # 2. Configure database
     with app.app_context():
@@ -74,7 +92,11 @@ def reset(conf):
         ConfigValidation(app).check_config_path(conf)
         app.logger.info("Setting website configuration")
         WS.set_configuration_location(app, conf)
-        ConfigValidation(app).validate()
+        try:
+            ConfigValidation(app).validate()
+        except ValidationError as err:
+            app.logger.critical(err)
+            exit()
 
         # 2. Configure database
         app.logger.info("Resetting website database")

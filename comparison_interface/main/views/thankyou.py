@@ -1,6 +1,6 @@
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import User
+from comparison_interface.db.models import Participant
 
 from .request import Request
 
@@ -23,9 +23,9 @@ class Thankyou(Request):
         return self._render_template('main/pages/thankyou.html', data)
 
     def _can_continue(self):
-        """Check if this user can complete another cycle."""
-        user = db.session.get(User, self._session['user_id'])
-        if user.completed_cycles is None or user.completed_cycles < WS.get_behaviour_conf(
+        """Check if this participant can complete another cycle."""
+        participant = db.session.get(Participant, self._session['participant_id'])
+        if participant.completed_cycles is None or participant.completed_cycles < WS.get_behaviour_conf(
             WS.BEHAVIOUR_MAX_CYCLES, self._app
         ):
             return True

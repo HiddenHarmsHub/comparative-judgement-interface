@@ -17,13 +17,16 @@ jobs:
           run: |
             python -m venv venv
             source venv/bin/activate
-            pip install ".[test]"
+            pip install ".[test,admin]"
+            playwright install
         - name: Run Pytest
           run: |
             source venv/bin/activate
             mv comparison_interface/static/example.images/ comparison_interface/static/images/
             mv  comparison_interface/configuration/example.flask.py comparison_interface/configuration/flask.py
-            pytest -v tests_python
+            mv .env-example .env
+            pytest -v tests/tests_python
+            pytest -v tests/tests_admin
 
     javascript_tests:
         permissions:
@@ -38,4 +41,4 @@ jobs:
         - name: Install dependencies
           run: npm i  jest@^29.7.0 jest-environment-jsdom@^29.7.0
         - name: Run tests
-          run: npx jest -- tests_javascript
+          run: npx jest -- tests/tests_javascript

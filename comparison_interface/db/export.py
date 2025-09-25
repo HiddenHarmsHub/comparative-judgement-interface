@@ -5,7 +5,7 @@ import shutil
 from sqlalchemy import MetaData, Table, text
 
 from .connection import db
-from .models import Comparison, CustomItemPair, Group, Item, ItemGroup, UserGroup, UserItem
+from .models import Comparison, CustomItemPair, Group, Item, ItemGroup, ParticipantGroup, ParticipantItem
 
 
 class Exporter:
@@ -14,7 +14,7 @@ class Exporter:
     def __init__(self, app) -> None:
         """Initialise the export with the flask app and the required models."""
         self.app = app
-        self.models = [Group, Item, ItemGroup, UserGroup, Comparison, CustomItemPair, UserItem]
+        self.models = [Group, Item, ItemGroup, ParticipantGroup, Comparison, CustomItemPair, ParticipantItem]
 
     def get_outcome_data(self):
         """Get the data for the outcome table in the form of a list of dictionaries.
@@ -41,23 +41,17 @@ class Exporter:
                 data_list.append(entry)
         return data_list
 
-    def save(self, location, file_type):
-        """Export the database tables to a zip file of either csv or tsv files."""
+    def create_data_directory(self, location, file_type='csv'):
+        """Add the database export to the directory path supplied as location."""
         output_directory = os.path.join(location, 'database_tables')
-        zip_path = os.path.join(location, 'database_export')
+        # make a temp directory in the location
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
         if file_type == 'tsv':
             delimiter = '\t'
         else:
             delimiter = ','
-
-        # make a temp directory in the location which we will later zip
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
-
-        # delete the zip file if it exists
-        if os.path.exists(f'{zip_path}.zip'):
-            os.remove(f'{zip_path}.zip')
-
         # export the models
         for m in self.models:
             data = m.query.all()
@@ -71,16 +65,16 @@ class Exporter:
                     csv_writer.writeheader()
                     csv_writer.writerows(data_list)
 
-        # The user model needs to be accessed manually due the dynamic fields
-        db_engine = db.engines[None]
+        # The participant model needs to be accessed manually due the dynamic fields
+        db_engine = db.engines['study_db']
         db_meta = MetaData()
         db_meta.reflect(bind=db_engine)
-        table = Table('user', db_meta)
+        table = Table('participant', db_meta)
         columns = table.columns.keys()
-        sql = text("select {} from user;".format(', '.join(columns)))
-        with db.engine.begin() as connection:
+        sql = text("select {} from participant;".format(', '.join(columns)))
+        with db_engine.begin() as connection:
             results = connection.execute(sql)
-        with open(os.path.join(output_directory, f'user.{file_type}'), mode='w', encoding='utf-8') as csv_out:
+        with open(os.path.join(output_directory, f'participant.{file_type}'), mode='w', encoding='utf-8') as csv_out:
             writer = csv.writer(csv_out, delimiter=delimiter)
             writer.writerow(columns)
             for record in results:
@@ -95,9 +89,20 @@ class Exporter:
                 csv_writer = csv.DictWriter(csv_out, keys, delimiter=delimiter)
                 csv_writer.writeheader()
                 csv_writer.writerows(data_list)
+        return output_directory
+
+    def save(self, location, file_type='csv'):
+        """Export the database tables to a zip file of either csv or tsv files."""
+        zip_path = os.path.join(location, 'database_export')
+
+        # delete the zip file if it exists
+        if os.path.exists(f'{zip_path}.zip'):
+            os.remove(f'{zip_path}.zip')
+
+        output_directory = self.create_data_directory(location, file_type)
 
         # zip the folder
-        shutil.make_archive(zip_path, 'zip', location)
+        shutil.make_archive(zip_path, 'zip', output_directory)
 
         # remove the temp directory
         shutil.rmtree(os.path.join(location, 'database_tables'))

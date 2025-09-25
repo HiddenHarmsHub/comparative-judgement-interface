@@ -1,0 +1,16 @@
+{% extends "admin-layout.html" %}
+
+{% block content %}
+    <div class="container-fluid">
+        <h1 class="fs-3">Create Study</h1>
+
+        <form method="POST" action="/admin/setup-study">
+            <input type="hidden" name="uploads_complete" value="true"/>
+
+            <div>
+                <input class="btn btn-secondary" type="submit" value="Create New Study"/>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}

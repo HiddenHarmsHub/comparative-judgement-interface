@@ -31,6 +31,7 @@ class Group(db.Model, BaseModel):
     """
 
     __tablename__ = 'group'
+    __bind_key__ = "study_db"
 
     group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
@@ -48,6 +49,7 @@ class Item(db.Model, BaseModel):
     """
 
     __tablename__ = 'item'
+    __bind_key__ = "study_db"
 
     item_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -69,6 +71,7 @@ class ItemGroup(db.Model, BaseModel):
     """
 
     __tablename__ = 'item_group'
+    __bind_key__ = "study_db"
 
     item_group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     item_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
@@ -78,36 +81,38 @@ class ItemGroup(db.Model, BaseModel):
     __table_args__ = (UniqueConstraint('item_id', 'group_id', name='_item_group_uidx'),)
 
 
-class User(db.Model, BaseModel):
+class Participant(db.Model, BaseModel):
     """Represents the user making the comparison.
 
     Args:
         db (SQLAlchemy): SQLAlchemy connection object
     """
 
-    __tablename__ = 'user'
+    __tablename__ = 'participant'
+    __bind_key__ = "study_db"
 
-    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    participant_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     # Other user files are added automatically by using the Website configuration file
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
     completed_cycles = db.Column(db.Integer, server_default='0')
 
 
-class UserGroup(db.Model, BaseModel):
+class ParticipantGroup(db.Model, BaseModel):
     """Holds the group preferences of the user.
 
     Args:
         db (SQLAlchemy): SQLAlchemy connection object
     """
 
-    __tablename__ = 'user_group'
+    __tablename__ = 'participant_group'
+    __bind_key__ = "study_db"
 
-    user_group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    participant_group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group.group_id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
-    __table_args__ = (UniqueConstraint('group_id', 'user_id', name='_user_group_uidx'),)
+    __table_args__ = (UniqueConstraint('group_id', 'participant_id', name='_participant_group_uidx'),)
 
 
 class Comparison(db.Model, BaseModel):
@@ -118,13 +123,15 @@ class Comparison(db.Model, BaseModel):
     """
 
     __tablename__ = 'comparison'
+    __bind_key__ = "study_db"
+
     # Available comparison states
     SELECTED = 'selected'
     SKIPPED = 'skipped'
     TIED = 'tied'
 
     comparison_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     item_1_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
     item_2_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
     selected_item_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=True)
@@ -144,6 +151,8 @@ class CustomItemPair(db.Model, BaseModel):
     """
 
     __tablename__ = 'custom_item_pair'
+    __bind_key__ = "study_db"
+
     custom_item_pair_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group.group_id'), nullable=False)
     item_1_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
@@ -154,22 +163,23 @@ class CustomItemPair(db.Model, BaseModel):
     __table_args__ = (UniqueConstraint('group_id', 'item_1_id', 'item_2_id', name='_custom_item_pair_uidx'),)
 
 
-class UserItem(db.Model, BaseModel):
+class ParticipantItem(db.Model, BaseModel):
     """Items that are recognizable by the user. The comparison will be made using only the items selected.
 
     Args:
         db (SQLAlchemy): SQLAlchemy connection object
     """
 
-    __tablename__ = 'user_item'
+    __tablename__ = 'participant_item'
+    __bind_key__ = "study_db"
 
-    user_item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    participant_item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
-    known = db.Column(db.Boolean, nullable=False)  # 0 for unknow. 1 for know.
+    known = db.Column(db.Boolean, nullable=False)  # 0 for unknown. 1 for know.
     date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
-    __table_args__ = (UniqueConstraint('user_id', 'item_id', name='_user_item_uidx'),)
+    __table_args__ = (UniqueConstraint('participant_id', 'item_id', name='_participant_item_uidx'),)
 
 
 class WebsiteControl(db.Model, BaseModel):
@@ -180,6 +190,7 @@ class WebsiteControl(db.Model, BaseModel):
     """
 
     __tablename__ = 'website_control'
+    __bind_key__ = "study_db"
 
     # Available weight configuration
     EQUAL_WEIGHT = 'equal'  # All items weights during the comparison are the same.
