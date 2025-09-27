@@ -46,11 +46,13 @@ class Request:
         render_site_cookies = WS.should_render(WS.BEHAVIOUR_RENDER_COOKIE_BANNER, self._app)
 
         return {
+            'language_code': self._app.language_code,
             'website_title': WS.get_text(WS.WEBSITE_TITLE, self._app),
             'introduction_page_title': WS.get_text(WS.PAGE_TITLE_INTRODUCTION, self._app),
             'ethics_agreement_page_title': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._app),
             'policies_page_title': WS.get_text(WS.PAGE_TITLE_POLICIES, self._app),
             'participant_registration_page_title': WS.get_text(WS.PAGE_TITLE_USER_REGISTRATION, self._app),
+            'skip_to_main_content': WS.get_text(WS.SKIP_TO_MAIN_CONTENT, self._app),
             'logout_page_title': WS.get_text(WS.PAGE_TITLE_LOGOUT, self._app),
             'item_preference_page_title': WS.get_text(WS.PAGE_TITLE_ITEM_PREFERENCE, self._app),
             'rank_page_title': WS.get_text(WS.PAGE_TITLE_RANK, self._app),

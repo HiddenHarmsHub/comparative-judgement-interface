@@ -18,6 +18,9 @@ covers how to configure a study to enable the additional pages to be edited via 
 
 To enable the admin interface the `ADMIN_ACCESS` setting in the `.env` file needs to be set to `True`.
 
+A `project_configuration` directory must be created in the `comparison_interface` directory. If the `CONFIG_UPLOAD_DIR`
+value has been changed in the `flask.py` file then the directory created must match the value of that variable.
+
 If you have a way of sending emails from the server, then password reset and two factor authentication by email can
 be enabled and, if desired, required. These are the relevant additional settings that need to be set in the `.env` file.
 
@@ -74,6 +77,8 @@ many comparisons have been recorded. If any data are available for the current s
 download a copy of the data.
 
 ### Additional page editing
+
+The `example.pages_html` directory needs to be copied to `pages_html` for the page editing to work.
 
 If any of the page booleans described on the [configuration page](configuration.md#additional-pages) are set to true but
 the corresponding html key is not provided, then these pages can be written and edited through the admin interface. Each
