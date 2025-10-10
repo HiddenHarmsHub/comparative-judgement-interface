@@ -28,6 +28,7 @@ be enabled and, if desired, required. These are the relevant additional settings
 SECURITY_RECOVERABLE = True
 SECURITY_TWO_FACTOR = True
 SECURITY_TWO_FACTOR_REQUIRED = True
+MAIL_BACKED = 'smtp'
 MAIL_SERVER = 'smtp.example.com'
 MAIL_PORT = 25
 MAIL_DEFAULT_SENDER = 'no-reply@flask_app'
