@@ -40,6 +40,7 @@ class Settings(object):
     MAIL_BACKEND = os.getenv('MAIL_BACKEND', 'console')
     MAIL_SERVER = os.getenv('MAIL_SERVER')
     MAIL_PORT = os.getenv('MAIL_PORT')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', None)
     SECURITY_PASSWORD_SALT = os.getenv('SECURITY_PASSWORD_SALT')
     SECURITY_URL_PREFIX = '/admin'
     SECURITY_LOGIN_USER_TEMPLATE = 'user-login.html'
