@@ -1,0 +1,13 @@
+Group Display Name,Group Name,Item Display Name,Item Name,Image,Item Description
+England,england,North East,north_east,item_1.png,Description of the North East
+England,england,North West,north_west,item_2.png,Description of the North West
+England,england,Yorkshire & Humberside,yorkshire_and_humberside,item_3.png,Description of Yorkshire and Humberside
+England,england,East Midlands,east_midlands,item_4.png,Description of the East Midlands
+England,england,West Midlands,west_midlands,item_5.png,Description of the West Midlands
+England,england,Eastern,eastern,item_6.png,Description of the East of England
+England,england,London,london,item_7.png,Description of London
+England,england,South East,south_east,item_8.png,Description of the South East
+England,england,South West,south_west,item_9.png,Description of the South West
+"Wales, Scotland, Northern Ireland",wales_scotland_northern_ireland,Wales,wales,item_10.png,None
+"Wales, Scotland, Northern Ireland",wales_scotland_northern_ireland,Scotland,scotland,item_11.png,None
+"Wales, Scotland, Northern Ireland",wales_scotland_northern_ireland,Northern Ireland,northern_ireland,item_12.png,None

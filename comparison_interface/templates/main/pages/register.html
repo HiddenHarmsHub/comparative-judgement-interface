@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block title %}: {{participant_registration_page_title}}{% endblock %}
+{% block content %}
+<div style="margin: 0 auto; max-width:500px;">
+    <div class="text-center"><h1>{{title}}</h1></div>
+    <form method="POST" onsubmit="return handleData();" aria-label="Registration Form">
+      <fieldset>
+        <legend class="visually-hidden">Registration details</legend>
+        <div class="form-group p-3">
+        {% for component in components %}
+          {{component|safe}}
+        {% endfor %}
+        </div>
+        <button id="submit-button" type="submit" class="btn btn-primary text-center submit col-12">{{button}}</button>
+      </fieldset>
+    </form>
+</div>
+{% endblock %}

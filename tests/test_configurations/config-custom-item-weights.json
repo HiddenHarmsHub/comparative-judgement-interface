@@ -1,0 +1,165 @@
+{
+    "behaviourConfiguration": {
+        "exportPathLocation": "../exports",
+        "renderUserItemPreferencePage": "false",
+        "renderUserInstructionPage":  true,
+        "renderEthicsAgreementPage":  true,
+        "renderSitePoliciesPage":  true,
+        "renderCookieBanner":  true,
+        "offerEscapeRouteBetweenCycles": true,
+        "cycleLength": 3,
+        "maximumCyclesPerUser": 3,
+        "allowTies": true,
+        "allowSkip": true,
+        "allowBack": true,
+        "userInstructionHtml": "examples/html/instructions.html",
+        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
+        "sitePoliciesHtml": "examples/html/site-policies.html"
+    },
+    "comparisonConfiguration" : {
+        "weightConfiguration": "manual",
+        "groups": [
+            {
+                "name": "wales_scotland_northern_ireland",
+                "displayName": "Wales, Scotland, Northern Ireland",
+                "items":[
+                    {
+                        "name": "wales",
+                        "displayName": "Wales",
+                        "imageName": "item_10.png"
+                    },
+                    {
+                        "name": "scotland",
+                        "displayName": "Scotland",
+                        "imageName": "item_11.png"
+                    },
+                    {
+                        "name": "northern_ireland",
+                        "displayName": "Northern Ireland",
+                        "imageName": "item_12.png"
+                    }
+                ],
+                "weight":[
+                    {
+                        "item_1": "wales",
+                        "item_2": "scotland",
+                        "weight":0.2
+                    },
+                    {
+                        "item_1": "northern_ireland",
+                        "item_2": "wales",
+                        "weight":0.3
+                    },
+                    {
+                        "item_1": "scotland",
+                        "item_2": "northern_ireland",
+                        "weight":0.5
+                    }
+                ]
+            },
+            {
+                "name": "england_east",
+                "displayName": "East of England",
+                "items":[
+                    {
+                        "name": "wales",
+                        "displayName": "Wales",
+                        "imageName": "item_10.png"
+                    },
+                    {
+                        "name": "yorkshire",
+                        "displayName": "Yorkshire & Humberside",
+                        "imageName": "item_3.png"
+                    },
+                    {
+                        "name": "east_midlands",
+                        "displayName": "East Midlands",
+                        "imageName": "item_4.png"
+                    },
+                    {
+                        "name": "eastern",
+                        "displayName": "Eastern",
+                        "imageName": "item_6.png"
+                    }
+                ],
+                "weight":[
+                    {
+                        "item_1": "wales",
+                        "item_2": "yorkshire",
+                        "weight":0.1
+                    },
+                    {
+                        "item_1": "wales",
+                        "item_2": "east_midlands",
+                        "weight":0.2
+                    },
+                    {
+                        "item_1": "wales",
+                        "item_2": "eastern",
+                        "weight":0.2
+                    },
+                    {
+                        "item_1": "yorkshire",
+                        "item_2": "east_midlands",
+                        "weight":0.3
+                    },
+                    {
+                        "item_1": "yorkshire",
+                        "item_2": "eastern",
+                        "weight":0.1
+                    },
+                    {
+                        "item_1": "east_midlands",
+                        "item_2": "eastern",
+                        "weight":0.1
+                    }
+                ]
+            }
+        ]
+    },
+    "websiteTextConfiguration":  {
+        "userRegistrationGroupQuestionLabel": "Which of these boroughs are you familiar with?",
+        "userRegistrationGroupSelectionErr": "Please select at least one area.",
+        "userRegistrationEthicsAgreementLabel": "I confirm that I have read the privacy notice and consent to taking part in this survey.",
+        "itemSelectionQuestionLabel": "Do you know the region",
+        "rankItemInstructionLabel": "Click the region that has the higher rate of deprivation, then click on the blue confirm button."
+    },
+    "userFieldsConfiguration": [
+        {
+            "name": "name",
+            "displayName": "First Name",
+            "type": "text",
+            "maxLimit": 250,
+            "required": true
+        },
+        {
+            "name": "country",
+            "displayName": "In which country do you live?",
+            "type": "radio",
+            "option": ["England", "Northern Ireland", "Scotland", "Wales", "Outside the UK"],
+            "required": true
+        },
+        {
+            "name": "allergies",
+            "displayName": "Allergies",
+            "type": "dropdown",
+            "option": ["Yes", "No"],
+            "required": true
+        },
+        {
+            "name": "age",
+            "displayName": "Age in years",
+            "type": "int",
+            "maxLimit": 250,
+            "minLimit": 10,
+            "required": true
+        },
+        {
+            "name": "email",
+            "displayName": "Email",
+            "type": "email",
+            "maxLimit": 250,
+            "required": true
+        }
+    ]
+}

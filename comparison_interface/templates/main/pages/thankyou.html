@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}: {{thank_you_page_title}}{% endblock %}
+{% block content %}
+<div class="container-narrow text-center p-4">
+  <div class="text-center">
+    <h1>{{title}}</h1>
+  </div>
+  <div class="form-group p-3">
+    <p>{{opening_text}}</p>
+
+    {% if continue == True %}
+      <p>{{continue_text}}</p>
+      <div class="text-center">
+        <a role="button" id="continue_button" class="btn btn-primary" href="/rank">{{ button }}</a>
+      </div>
+    {% else %}
+      <p>{{stop_text}}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

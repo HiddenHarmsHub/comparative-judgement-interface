@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}: {{policies_page_title}}{% endblock %}
+
+{% block content %}
+<div>
+    {% if fragment %}
+        <div class="inner-page">
+            {{ html_string|safe }}
+        </div>
+    {% else %}
+        <div class="full-height-iframe">
+            <iframe title="Site policies" style="height:100%;width:100%;" scrolling="yes" class="embed-responsive" srcdoc="{{ html_string }}"></iframe>
+        </div>
+    {% endif %}
+
+    <div class="text-center">
+        <a role="button" class="btn btn-primary" href="{{ url_for('.participant_registration') }}">{{ site_policies_back_button }}</a>
+    </div>
+
+</div>
+{% endblock %}

@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     for (let i = 0; i < iframes.length; i++) {
         var url = iframes[i].getAttribute("src");
-        if (url.startsWith("https://docs.google.com/document/d/")) {
+        if (url && url.startsWith("https://docs.google.com/document/d/")) {
             // create div and replace iframe
             let d = document.createElement('div');
             d.classList.add("embedded-doc"); // optional

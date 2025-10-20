@@ -23,6 +23,18 @@ Full documentation can be found at [https://hiddenharmshub.github.io/comparison-
 1. The website interface will render adequately on mobile devices as well as on larger screens.
 1. The website meets WCAG 2.2 AA accessibility guidelines.
 
+## Contributing
+
+We welcome feedback and contributions to the comparison-interface.
+
+You can open a GitHub issue for any of the following:
+
+* You find a bug that needs fixing
+* You have a suggestion for a new feature
+* You need help using the software
+
+We are also happy to accept Pull Requests to the repository. Before submitting a Pull Request please ensure that the code passes all of the tests and conforms to the linting standards in the CI pipeline. The documentation should also be updated if necessary. Installation instructions and instructions for running the tests locally can be found in our [documentation](https://hiddenharmshub.github.io/comparison-interface/).
+
 ## Sample images
 
 A small set of sample images are included for the purposes of evaluating the software.
@@ -33,7 +45,7 @@ The Boundary displays on the images are taken from the Office for National Stati
 
 | Provider | Cookie | Purpose | Expiry |
 | -------- | ------ | ------- | ------ |
-| This website | session | Used to maintain your session when you are logged into your account on the website | 4 hours |
+| This website | session | Used to maintain your session when you are logged into the website | 4 hours |
 | This website | cookieMessageApprove | Used to acknowledge acceptance of our cookies policy | 2040 |
 
 ## Authors and acknowledgment

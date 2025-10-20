@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ language_code }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -22,7 +22,7 @@
       <section id="cookie-message"></section>
     {% endif %}
     <nav class="navbar navbar-expand-md p-2 mb-2 fs-5" style="background-color: lightgray">
-      <a class="visually-hidden-focusable rounded-2 p-1 bg-white" href="#main">Skip to main content</a>
+      <a class="visually-hidden-focusable rounded-2 p-1 bg-white" href="#main">{{ skip_to_main_content }}</a>
      {{ website_title }}
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navigation" aria-controls="main-navigation" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -32,21 +32,21 @@
         <ul class="navbar-nav ms-md-auto">
           {% if render_user_instructions %}
             <li class="nav-item">
-              <a class="nav-link focus-ring mx-2" href="{{ url_for('views.introduction') }}">{{introduction_page_title}}</a>
+              <a class="nav-link focus-ring mx-2" href="{{ url_for('main.introduction') }}">{{introduction_page_title}}</a>
             </li>
           {% endif %}
           {% if render_user_ethics_agreement %}
             <li class="nav-item">
-              <a class="nav-link focus-ring mx-2" href="{{ url_for('views.ethics_agreement') }}">{{ethics_agreement_page_title}}</a>
+              <a class="nav-link focus-ring mx-2" href="{{ url_for('main.ethics_agreement') }}">{{ethics_agreement_page_title}}</a>
             </li>
           {% endif %}
           {% if render_site_policies %}
             <li class="nav-item">
-              <a class="nav-link focus-ring mx-2" href="{{ url_for('views.policies') }}">{{policies_page_title}}</a>
+              <a class="nav-link focus-ring mx-2" href="{{ url_for('main.policies') }}">{{policies_page_title}}</a>
             </li>
           {% endif %}
           <li class="nav-item">
-            <a class="nav-link focus-ring ml-2" href="{{ url_for('views.logout') }}">{{logout_page_title}}</a>
+            <a class="nav-link focus-ring ml-2" href="{{ url_for('main.logout') }}">{{logout_page_title}}</a>
           </li>
         </ul>
       </div>
@@ -60,11 +60,10 @@
     </footer>
 
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="{{ url_for('static', filename='js/jquery-3.7.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/src/iframe-change.js') }}"></script>
     <script src="{{ url_for('static', filename='js/src/user-registry-validation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/src/rank-control.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/src/prevent-double-click.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/src/comparison-interface.js') }}"></script>
     {% if render_cookie_banner %}
       <script>
         function getCookie(name) {

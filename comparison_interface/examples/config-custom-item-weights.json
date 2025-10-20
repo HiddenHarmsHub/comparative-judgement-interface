@@ -9,11 +9,11 @@
         "allowSkip": true,
         "allowBack": true,
         "renderUserInstructionPage":  true,
-        "userInstructionLink": "https://docs.google.com/document/d/e/2PACX-1vT2yGXStletU0XGL6DaA45tSr3skJLIi2u-m5T9t3gNEjjXdN__c4yJhhN0CyzuDsFltKUFfBDt2qEJ/pub?embedded=true",
+        "userInstructionHtml": "examples/html/instructions.html",
         "renderEthicsAgreementPage":  true,
-        "userEthicsAgreementLink": "https://docs.google.com/document/d/e/2PACX-1vT2yGXStletU0XGL6DaA45tSr3skJLIi2u-m5T9t3gNEjjXdN__c4yJhhN0CyzuDsFltKUFfBDt2qEJ/pub?embedded=true",
+        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
         "renderSitePoliciesPage":  true,
-        "sitePoliciesLink": "https://docs.google.com/document/d/e/2PACX-1vT2yGXStletU0XGL6DaA45tSr3skJLIi2u-m5T9t3gNEjjXdN__c4yJhhN0CyzuDsFltKUFfBDt2qEJ/pub?embedded=true",
+        "sitePoliciesHtml": "examples/html/site-policies.html",
         "renderCookieBanner":  true
     },
     "userFieldsConfiguration": [

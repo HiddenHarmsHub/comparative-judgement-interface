@@ -37,8 +37,10 @@ $("img").on('click', function () {
     hintItem($(this));
 });
 
-$("img").on('keypress', function () {
-    hintItem($(this));
+$("img").on('keypress', function (e) {
+    if (e.key === ' ') {
+        hintItem($(this));
+    }
 });
 
 // called from rank template on form submission

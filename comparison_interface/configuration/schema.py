@@ -5,16 +5,19 @@ import re
 from marshmallow import Schema, ValidationError, fields, post_load, validate, validates
 from PIL import Image
 
-from ..db.models import WebsiteControl
+from comparison_interface.db.models import WebsiteControl
+
 from .website import Settings as WS
 
 
 class Item(Schema):
     """The schema for an item (image plus metadata)."""
 
+    id = fields.Int(required=False)
     name = fields.Str(required=True, validate=[validate.Length(min=1, max=200)])
     displayName = fields.Str(required=True, validate=[validate.Length(min=1, max=200)])
     imageName = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
+    imageDescription = fields.Str(required=False, allow_none=True)
 
     # Allowed Items Image size
     MIN_WIDTH = 300
@@ -35,7 +38,7 @@ class Item(Schema):
     def _validate_image_path(self, image_name, data_key):
         path = os.path.abspath(os.path.dirname(__file__)) + "/../static/images/" + image_name
         if not os.path.exists(path):
-            raise ValidationError(f"Image {image_name} not found on static/images/ folder.")
+            raise ValidationError(f"Image {image_name} not found in static/images/ folder.")
 
         try:
             im = Image.open(path)
@@ -84,6 +87,16 @@ class Group(Schema):
                 )
             else:
                 names.append(f['name'])
+
+    @validates('items')
+    def _validate_consistent_ids(self, items, data_key):
+        if "id" not in items[0]:
+            ids_specified = False
+        else:
+            ids_specified = True
+        for f in items:
+            if ("id" not in f and ids_specified) or ("id" in f and not ids_specified):
+                raise ValidationError("If any ids are specified for items then all items must have an id.")
 
     @validates('weight')
     def _validate_weight_sum(self, weights, data_key):
@@ -176,6 +189,7 @@ class ComparisonConfiguration(Schema):
 class WebsiteTextConfiguration(Schema):
     """The schema for the website text configuration."""
 
+    skipToMainContent = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
     websiteTitle = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
     pageTitleLogout = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
     pageTitleUserRegistration = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
@@ -258,7 +272,7 @@ class UserField(Schema):
         match = re.match(r'^[a-z0-9_-]+$', name)
         if not match:
             raise ValidationError(
-                "Name can be only alpha numeric lower case values with underscores or dashes. i.e. this_is_a_valid_name"
+                "Name can be only alpha numeric lower case values with underscores or dashes.i.e. this_is_a_valid_name"
             )
 
     @post_load
@@ -311,37 +325,12 @@ class BehaviourConfiguration(Schema):
     allowTies = fields.Boolean(required=True)
     allowSkip = fields.Boolean(required=True)
     allowBack = fields.Boolean(required=True)
-    userInstructionLink = fields.URL(required=False, validate=[validate.Length(min=1)])
     userInstructionHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
-    userEthicsAgreementLink = fields.URL(required=False, validate=[validate.Length(min=1)])
     userEthicsAgreementHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
-    sitePoliciesLink = fields.URL(required=False, validate=[validate.Length(min=1)])
     sitePoliciesHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
 
     @post_load
     def _post_load_validation(self, data, **kwargs):
-        if data['renderEthicsAgreementPage'] and (
-            'userEthicsAgreementLink' not in data and 'userEthicsAgreementHtml' not in data
-        ):
-            raise ValidationError(
-                "Either the userEthicsAgreementLink or the userEthicsAgreementHtml field is required if "
-                "renderEthicsAgreementPage is true"
-            )
-
-        if data['renderUserInstructionPage'] and (
-            'userInstructionLink' not in data and 'userInstructionHtml' not in data
-        ):
-            raise ValidationError(
-                "Either the userInstructionLink or the userInstructionHtml field is required if "
-                "renderUserInstructionPage is true"
-            )
-
-        if data['renderSitePoliciesPage'] and ('sitePoliciesLink' not in data and 'sitePoliciesHtml' not in data):
-            raise ValidationError(
-                "Either the sitePoliciesLink or the sitePoliciesHtml field is required if renderSitePoliciesPage "
-                "is true"
-            )
-
         if data['offerEscapeRouteBetweenCycles'] and ('cycleLength' not in data or 'maximumCyclesPerUser' not in data):
             raise ValidationError(
                 "The fields cycleLength and maximumCyclesPerUser are both required if offerEscapeRouteBetweenCycles "

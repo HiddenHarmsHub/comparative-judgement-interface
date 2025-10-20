@@ -30,11 +30,8 @@ class Settings:
     BEHAVIOUR_ALLOW_TIES = "allowTies"
     BEHAVIOUR_ALLOW_SKIP = "allowSkip"
     BEHAVIOUR_ALLOW_BACK = "allowBack"
-    BEHAVIOUR_USER_INSTRUCTION_LINK = "userInstructionLink"
     BEHAVIOUR_USER_INSTRUCTION_HTML = "userInstructionHtml"
-    BEHAVIOUR_ETHICS_AGREEMENT_LINK = "userEthicsAgreementLink"
     BEHAVIOUR_ETHICS_AGREEMENT_HTML = "userEthicsAgreementHtml"
-    BEHAVIOUR_SITE_POLICIES_LINK = "sitePoliciesLink"
     BEHAVIOUR_SITE_POLICIES_HTML = "sitePoliciesHtml"
     # Group related configuration keys
     GROUPS = "groups"
@@ -44,9 +41,11 @@ class Settings:
     GROUP_ITEMS = "items"
     GROUP_ITEMS_WEIGHT = "weight"
     # Items related configuration keys
+    ITEM_ID = "id"
     ITEM_NAME = "name"
     ITEM_GROUP_ID = "group_id"
     ITEM_DISPLAY_NAME = "displayName"
+    ITEM_IMAGE_DESCRIPTION = "imageDescription"
     ITEM_IMAGE_NAME = "imageName"
     # User fields configuration fields
     USER_FIELD_NAME = "name"
@@ -62,6 +61,7 @@ class Settings:
     USER_FIELD_TYPE_RADIO = "radio"
     USER_FIELD_TYPE_EMAIL = "email"
     # Website labels
+    SKIP_TO_MAIN_CONTENT = "skipToMainContent"
     WEBSITE_TITLE = "websiteTitle"
     PAGE_TITLE_LOGOUT = "pageTitleLogout"
     PAGE_TITLE_USER_REGISTRATION = "pageTitleUserRegistration"

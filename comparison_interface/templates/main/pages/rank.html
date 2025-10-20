@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}: {{rank_page_title}}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <form method="POST" aria-labelledby="instructions" onsubmit="return checkSelection(event);">
+    <input type="hidden" id="selected_item_indicator" name="selected_item_indicator" value="{{selected_item_label}}">
+    <input type="hidden" id="tied_items_indicator" name="tied_items_indicator" value="{{tied_selection_label}}">
+    <input type="hidden" id="skipped_items_indicator" name="skipped_items_indicator" value="{{skipped_selection_label}}">
+    <input type="hidden" id="skip_button_error" name="skip_button_error" value="{{skip_button_error_message}}">
+    <input type="hidden" id="confirm_button_error" name="confirm_button_error" value="{{confirm_button_error_message}}">
+    <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
+    <input type="hidden" id="comparison_id" name="comparison_id" value="{% if comparison_id %}{{comparison_id}}{% else %}{% endif %}">
+    <input type="hidden" id="initial_selected_item_id" name="initial_selected_item_id" value="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}">
+    <input type="hidden" id="initial_state" name="initial_state" value="{% if initial_state %}{{initial_state}}{% else %}{% endif %}">
+    <input type="hidden" id="allow-ties" name="allow-ties" value="{{ allow_ties }}">
+    <div class="form-group">
+      <div class="text-center">
+        <p id="instructions" class="judgement-instructions fs-4">{{comparison_instruction_label}}</p>
+        <p class="progress-counter fs-5">{{comparison_number_label}}:&nbsp;{{comparison_number}}{% if allow_skip %};&nbsp;{{skipped_number_label}}:&nbsp;{{skipped_number}}{% endif %}</p>
+      </div>
+      <div class="row pl-2 pr-2"  {% if allow_ties == 'false' %}role="radiogroup" {% else %}role="group"{% endif %} aria-label="{{ item_group_selection_label }}">
+        {% if allow_ties == 'false' %}<p id="additional-instructions" class="visually-hidden">{{ additional_screen_reader_instructions }}</p>{% endif %}
+        <div class="col position-relative">
+          <div class="text-center">
+            <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">{{ item_1.display_name }}</span>
+            <span class="visually-hidden" id="left-item-description">{% if item_1.image_description != None %}{{item_1.display_name}}: {{item_1.image_description}}{% else %}{{item_1.display_name}}{% endif %}</span>
+          </div>
+          <div class="text-center">
+            <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
+            <img id="left-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
+          </div>
+        </div>
+        <div class="col position-relative">
+          <div class="text-center">
+            <span aria-hidden="true" id="right-item-label" class="fs-3 fw-bold">{{ item_2.display_name }}</span>
+            <span class="visually-hidden" id="right-item-description">{% if item_2.image_description != None %}{{item_2.display_name}}: {{item_2.image_description}}{% else %}{{item_2.display_name}}{% endif %}</span>
+          </div>
+          <div class="text-center">
+            <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
+            <img id="right-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}" class="right-item img-fluid img-constraint" alt="">
+          </div>
+          </div>
+      </div>
+    </div>
+    <div class="row pl-2 pr-2 mt-1">
+      <div class="p-2 text-center col-4">
+        {% if can_rejudge and allow_back %}
+          <button id="previous-button" type="submit" name='state' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
+        {% endif %}
+        </div>
+      <div class="p-2 text-center col-4">
+        <button id="confirm-button-d" type="submit" name='state' value='{{confirmed_value}}' class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
+      </div>
+      <div class="p-2 text-center col-4">
+        {% if allow_skip %}
+          <button id="skip-button" type="submit" name='state' value='{{skipped_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{skipped_label}}</button>
+        {% endif %}
+        </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block js %}
+  <script src="{{ url_for('static', filename='js/src/rank-control.js') }}"></script>
+{% endblock %}

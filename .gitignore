@@ -19,8 +19,10 @@ venv
 node_modules
 .ruff_cache
 .apikey
+.env
 exports/
 comparison_interface/project_configuration
 comparison_interface/project_html
 comparison_interface/static/images
 comparison_interface/configuration/flask.py
+comparison_interface/pages_html

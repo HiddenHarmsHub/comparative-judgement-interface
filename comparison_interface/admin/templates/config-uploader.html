@@ -1,0 +1,40 @@
+{% extends "admin-layout.html" %}
+
+{% block content %}
+
+    <div id="config-upload" class="container-fluid">
+        <h1 class="fs-3 pt-2 pb-2">Step 2: Upload config file</h1>
+        <form method="POST" action="/admin/upload-config" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            {{ form.config_file }}
+            <div class="pt-3">
+                <input class="btn btn-secondary" type="submit" value="Upload" accept=".json"/>
+            </div>
+            {% if form.config_file.errors %}
+                <ul class="errors">
+                    {% for error in form.config_file.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if errors %}
+                <h2 class="fs-4 pt-4">Configuration errors</h2>
+                <ul class="errors">
+                    {% for error in errors %}
+                        <li><b>{{ error }}</b>: {{ errors[error] }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if missing_images|length > 0 %}
+                <h2 class="fs-4 pt-4">Missing images</h2>
+                <ul class="errors">
+                    {% for image in missing_images %}
+                        <li>{{ image }}</li>
+                    {% endfor %}
+                </ul>
+                <a href="/admin/upload-images">Change uploaded images</a>
+            {% endif %}
+        </form>
+    </div>
+
+{% endblock %}

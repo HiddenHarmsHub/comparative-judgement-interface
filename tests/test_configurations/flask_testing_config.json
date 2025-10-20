@@ -1,0 +1,29 @@
+{
+    "TESTING": true,
+    "SECRET_KEY": "ydf7ash*sdFdy",
+    "SQLALCHEMY_DATABASE_URI": "sqlite:///test_admin_database.db",
+    "SQLALCHEMY_BINDS": {
+        "study_db": "sqlite:///test_database.db"
+    },
+    "SQLALCHEMY_TRACK_MODIFICATIONS": false,
+    "SESSION_MINUTES_VALIDITY": 30,
+    "SESSION_COOKIE_SECURE": false,
+    "SESSION_COOKIE_HTTPONLY": false,
+    "SESSION_COOKIE_SAMESITE": "strict",
+    "MAX_CONTENT_LENGTH": 4000000,
+    "LANGUAGE": "en",
+    "API_ACCESS": false,
+    "ADMIN_ACCESS": false,
+    "IMAGE_UPLOAD_DIR": "static/images/",
+    "HTML_PAGES_DIR": "pages_html",
+    "CONFIG_UPLOAD_DIR": "project_configuration",
+    "WTF_CSRF_ENABLED": false,
+    "SECURITY_PASSWORD_SALT": "hdys^d54$djf8fkas*",
+    "SECURITY_PASSWORD_HASH": "plaintext",
+    "SECURITY_URL_PREFIX": "/admin",
+    "SECURITY_LOGIN_USER_TEMPLATE": "user-login.html",
+    "SECURITY_TWO_FACTOR": false,
+    "SECURITY_TWO_FACTOR_REQUIRED": false,
+    "SECURITY_POST_LOGIN_VIEW": "/admin/dashboard",
+    "SECURITY_POST_LOGOUT_VIEW": "/admin/logged-out"
+}

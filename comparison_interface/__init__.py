@@ -4,21 +4,20 @@ import json
 import os
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, current_app, render_template, session
+from flask import Flask, current_app, render_template, request, session
 from numpy.random import default_rng
 from whitenoise import WhiteNoise
 
-import comparison_interface.routes as routes
+from comparison_interface.cli import blueprint as commands_bp
 from comparison_interface.configuration.flask import Settings as FlaskSettings
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import WebsiteControl
-from comparison_interface.views.request import Request
+from comparison_interface.main import blueprint as main_bp
+from comparison_interface.main.views.request import Request
 
-from . import cli as commands
 
-
-def create_app(test_config=None):
+def create_app(testing=False, test_config=None):
     """Start Flask website application.
 
     Args:
@@ -26,39 +25,73 @@ def create_app(test_config=None):
     """
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True, static_folder="static")
-    app.config.from_object(FlaskSettings)
+
+    # if we are testing then start with the base test config otherwise the main ones
+    if testing:
+        test_conf_filepath = os.path.join(
+            os.path.dirname(__file__), "..", "tests", "test_configurations", "flask_testing_config.json"
+        )
+        with open(test_conf_filepath, mode='r', encoding='utf-8') as config_file:
+            base_test_config = json.load(config_file)
+        app.config.from_mapping(base_test_config)
+    else:
+        app.config.from_object(FlaskSettings)
+    # override the base settings with some extras passed in
     if test_config is not None:
         app.config.from_mapping(test_config)
+
+    # make sure the language setting is consistent
     try:
+        language = app.config["LANGUAGE"].split(':')[1]
+    except IndexError:
         language = app.config["LANGUAGE"]
     except KeyError:
         language = 'en'
+    app.language_code = language
 
     language_filepath = os.path.join(os.path.dirname(__file__), "languages", f"{language}.json")
     if not os.path.exists(language_filepath):
         raise RuntimeError("The required file for the language requested in the flask configuration is not available.")
 
-    with open(
-        language_filepath,
-        mode='r',
-        encoding='utf-8',
-    ) as config_file:
+    with open(language_filepath, mode='r', encoding='utf-8') as config_file:
         app.language_config = json.load(config_file)
 
     # Register the database
     db.init_app(app)
 
     # Register the custom Flask commands
-    app.register_blueprint(commands.blueprint)
+    app.register_blueprint(commands_bp)
 
     # Register the application views
-    app.register_blueprint(routes.blueprint)
+    app.register_blueprint(main_bp)
 
     # if we have asked for the api blueprint then register this here
     if "API_ACCESS" in app.config and app.config["API_ACCESS"] is True:
-        import comparison_interface.api as api
+        from comparison_interface.api import blueprint as api_bp
 
-        app.register_blueprint(api.blueprint)
+        app.register_blueprint(api_bp)
+
+    if "ADMIN_ACCESS" in app.config and app.config["ADMIN_ACCESS"] is True:
+        from flask_mailman import Mail
+        from flask_security import Security, SQLAlchemyUserDatastore
+
+        from comparison_interface.admin import blueprint as admin_bp
+        from comparison_interface.admin import models
+
+        # Register the admin blueprint (might be made optional eventually)
+        app.register_blueprint(admin_bp, url_prefix="/admin")
+
+        # Setup Flask-Security
+        user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
+        app.security = Security(app, user_datastore)
+        mail = Mail(app)  # NoQA
+
+        @app.security.context_processor
+        def security_context_processor():
+            if WS.CONFIGURATION_LOCATION in app.config:
+                return {"website_title": WS.get_text(WS.WEBSITE_TITLE, app)}
+            else:
+                return {"website_title": "No active study"}
 
     # Register function executed before any request
     app.before_request(_before_request)
@@ -93,8 +126,14 @@ def create_app(test_config=None):
 
 
 def _before_request():
-    """Run functions before every request."""
-    _validate_app_integrity()
+    """Run functions before every request except the admin routes and the static files."""
+    if (
+        request.endpoint is not None
+        and not request.endpoint.startswith('admin.')
+        and not request.endpoint.startswith('security.')
+        and request.endpoint not in ['static']
+    ):
+        _validate_app_integrity()
     _configure_user_session()
 
 
@@ -143,11 +182,20 @@ def _validate_app_integrity():
 
 def _page_not_found(e):
     """Return 404 page."""
-    data = {
-        'error_404_title': WS.get_text(WS.ERROR_404_TITLE, current_app),
-        'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, current_app),
-        'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, current_app),
-    }
+    # this is a backup system for when system is not configured yet (or sometimes the admin isn't set up)
+    if WS.CONFIGURATION_LOCATION not in current_app.config:
+        data = {
+            'error_404_title': '404',
+            'error_404_message': 'Page not found',
+            'error_404_home_link': 'Go to home page',
+        }
+        return render_template('404.html', **data)
+    else:
+        data = {
+            'error_404_title': WS.get_text(WS.ERROR_404_TITLE, current_app),
+            'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, current_app),
+            'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, current_app),
+        }
     return render_template('404.html', **{**data, **Request(current_app, session).get_layout_text()}), 404
 
 

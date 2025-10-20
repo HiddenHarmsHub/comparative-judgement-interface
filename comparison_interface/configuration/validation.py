@@ -31,27 +31,26 @@ class Validation:
         schema = ConfigSchema()
         try:
             schema.load(conf)
-        except ValidationError as err:
-            self.__app.logger.critical(err)
-            exit()
-        # now we have validated, reload the config so that we just have the project
-        conf = WS.get_configuration(self.__app, True)
-        # now if we reference a csv file validate that
-        if "csvFile" in conf["comparisonConfiguration"]:
-            config_location = WS.get_configuration_location(self.__app)
-            # check the csv file structure is good enough.
-            self.validate_csv_structure(os.path.join(config_location, conf["comparisonConfiguration"]["csvFile"]))
-            self.__app.logger.info("structure of csv file is good")
-            # structure is fine so read the contents and send it to the comparisonConfiguration schema validator
-            config = CsvProcessor().create_config_from_csv(
-                os.path.join(config_location, conf["comparisonConfiguration"]["csvFile"])
-            )
-            schema = CompSchema()
-            try:
-                schema.load(config)
-            except ValidationError as err:
-                self.__app.logger.critical(err)
-                exit()
+        except ValidationError:
+            raise
+        else:
+            # now we have validated, reload the config so that we just have the project
+            conf = WS.get_configuration(self.__app, True)
+            # now if we reference a csv file validate that
+            if "csvFile" in conf["comparisonConfiguration"]:
+                config_location = WS.get_configuration_location(self.__app)
+                # check the csv file structure is good enough.
+                self.validate_csv_structure(os.path.join(config_location, conf["comparisonConfiguration"]["csvFile"]))
+                self.__app.logger.info("structure of csv file is good")
+                # structure is fine so read the contents and send it to the comparisonConfiguration schema validator
+                config = CsvProcessor().create_config_from_csv(
+                    os.path.join(config_location, conf["comparisonConfiguration"]["csvFile"])
+                )
+                schema = CompSchema()
+                try:
+                    schema.load(config)
+                except ValidationError:
+                    raise
 
     def check_config_path(self, path):
         """Check that the path provided meets the requirements.
@@ -87,7 +86,7 @@ class Validation:
             image_data.fieldnames = [x.lower() for x in image_data.fieldnames]
             # required - case doesn't matter
             required_keys = ["item display name", "image"]
-            # optional_keys are 'item name', 'group name', 'group display name'
+            # optional_keys are 'item name', 'group name', 'group display name', 'item description'
             for key in required_keys:
                 if key not in image_data.fieldnames:
                     raise ValidationError(
