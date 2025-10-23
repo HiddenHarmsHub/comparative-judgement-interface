@@ -25,7 +25,7 @@ Full documentation can be found at [https://hiddenharmshub.github.io/comparative
 
 ## Contributing
 
-We welcome feedback and contributions to the comparison-interface.
+We welcome feedback and contributions to the comparative-judgement-interface.
 
 You can open a GitHub issue for any of the following:
 
@@ -33,7 +33,7 @@ You can open a GitHub issue for any of the following:
 * You have a suggestion for a new feature
 * You need help using the software
 
-We are also happy to accept Pull Requests to the repository. Before submitting a Pull Request please ensure that the code passes all of the tests and conforms to the linting standards in the CI pipeline. The documentation should also be updated if necessary. Installation instructions and instructions for running the tests locally can be found in our [documentation](https://hiddenharmshub.github.io/comparison-interface/).
+We are also happy to accept Pull Requests to the repository. Before submitting a Pull Request please ensure that the code passes all of the tests and conforms to the linting standards in the CI pipeline. The documentation should also be updated if necessary. Installation instructions and instructions for running the tests locally can be found in our [documentation](https://hiddenharmshub.github.io/comparative-judgement-interface/).
 
 ## Sample images
 
