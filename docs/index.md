@@ -3,8 +3,8 @@ id: index
 title: Introduction
 ---
 
-The comparison interface is a web interface to facilitate the collection of comparative judgement data. It offers a
-highly configurable interface which requires at minimum a JSON configuration file and a set of image files as input.
+The comparative judgement interface is a web interface to facilitate the collection of comparative judgement data. It
+offers a highly configurable interface which requires at minimum a JSON configuration file and a set of image files as input.
 There is also the option to configure part of the system using a csv file.
 The data is stored in an SQLite database which is part of the standard Python library so no additional database is required.
 There is no restriction regarding the nature of the items that can be compared in the software but it has been used 

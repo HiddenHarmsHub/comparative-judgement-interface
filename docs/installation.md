@@ -44,6 +44,9 @@ The JavaScript and accessibility test requirements are covered in the [testing s
 
 Flask provides a development webserver which is good enough to evaluate the software and for local testing/development.
 For use in production follow the advice provided in the [Flask documentation](https://flask.palletsprojects.com/en/3.0.x/deploying/).
+Please note that if you are running the dev server locally on a mac then the safari browser will probably not work with
+the default settings due to Safari's security configuration. To test the system on Safari you will need to set the
+`SESSION_COOKIE_SECURE` variable in the `comparison_interface/configuration/flask.py` file to `False`.
 
 If you are deploying in a multi-threaded uwsgi environment you will also need the requirements in the `server` section
 of the pyproject.toml. This ensures the random number generators are not the same in each thread. Depending on the
