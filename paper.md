@@ -15,6 +15,9 @@ authors:
     affiliation: 2
   - name: Bertrand Perrat
     affiliation: 3
+  - name: Adrian Dante Garcia
+    orcid: 0009-0007-4450-324X
+    affiliation: 1
   - name: Rowland G. Seymour
     orcid: 0000-0002-8739-3921
     affiliation: 1
