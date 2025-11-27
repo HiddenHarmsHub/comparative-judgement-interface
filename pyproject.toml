@@ -15,6 +15,7 @@ dependencies = [
     "numpy",
     "cachetools",
     "dotenv",
+    "werkzeug",
 ]
 
 
