@@ -1,5 +1,6 @@
-from comparison_interface import create_app
 from werkzeug.middleware.proxy_fix import ProxyFix
+
+from comparison_interface import create_app
 
 app = create_app()
 
