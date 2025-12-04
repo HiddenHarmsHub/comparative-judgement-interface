@@ -1,3 +1,11 @@
+#registration-form {
+    max-width: 500px;
+}
+
+#registration-form-group-columns {
+    max-width: max(60%, 500px);
+}
+
 .full-height-iframe {
     height: 85vh;
     overflow: auto;
