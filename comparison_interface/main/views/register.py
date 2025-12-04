@@ -118,12 +118,11 @@ class Register(Request):
         else:
             label_text = ''
             error_text = ''
-        if len(groups) > 6 and (len(groups) - 6) > 3:
-            group_length = int(len(groups) / 2) + 1
+        if len(groups) >= 10:
+            group_length = (len(groups) + 1) // 2
             groups = [groups[:group_length], groups[group_length:]]
             group_columns = True
         else:
-            groups = groups
             group_columns = False
         user_components.append(
             render_template(
