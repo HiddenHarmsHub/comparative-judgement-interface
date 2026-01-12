@@ -12,6 +12,4 @@ subdomain = os.getenv("SUBDOMAIN", "")
 if subdomain == "":
     app = create_app()
 else:
-    app = DispatcherMiddleware(None, {
-        subdomain: create_app()
-    })
+    app = DispatcherMiddleware(None, {subdomain: create_app()})
