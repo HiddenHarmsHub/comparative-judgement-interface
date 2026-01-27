@@ -344,6 +344,13 @@ def upload_config():
             except ValidationError as err:
                 data["errors"], data["missing_images"] = process_errors(err.messages)
                 WS.set_configuration_location(current_app, None)
+                # we need to delete the file or we risk ending up with multiple ones
+                for filename in os.listdir(
+                    os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"])
+                ):
+                    print(f'deleting {filename}')
+                    filepath = os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"], filename)
+                    os.unlink(filepath)
                 return render_template("config-uploader.html", **data)
             return redirect(url_for("admin.setup_study"))
     return render_template("config-uploader.html", **data)
