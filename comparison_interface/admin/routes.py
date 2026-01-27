@@ -348,7 +348,6 @@ def upload_config():
                 for filename in os.listdir(
                     os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"])
                 ):
-                    print(f'deleting {filename}')
                     filepath = os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"], filename)
                     os.unlink(filepath)
                 return render_template("config-uploader.html", **data)
