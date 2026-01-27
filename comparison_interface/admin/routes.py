@@ -250,7 +250,6 @@ def process_image_errors(errors):
     missing_images = []
     for field in errors:
         for group_pos in errors[field]:
-            print(group_pos)
             group_number = group_pos + 1
             for item_pos in errors[field][group_pos]["items"]:
                 item_number = item_pos + 1
@@ -267,6 +266,8 @@ def process_errors(errors):
     """Organise the errors for displaying on the screen."""
     processed_errors = {}
     all_missing_images = []
+    image_errors = {}
+    missing_images = []
     for typ in errors:
         if typ == "groups":
             image_errors, missing_images = process_image_errors(errors)

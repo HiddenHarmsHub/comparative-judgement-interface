@@ -5,7 +5,7 @@
     <div class="container-fluid p-4">
         <h1 class="fs-3">Edit {{ page_name }} Page</h1>
     
-        <form id="edit-page-form" method="POST" action="/admin/edit-page">
+        <form id="edit-page-form" method="POST" action="edit-page">
             {{ form.csrf_token }}
             {{ form.current_text }}
             {{ form.page_type }}
