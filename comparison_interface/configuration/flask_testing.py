@@ -26,5 +26,5 @@ class TestSettings(object):
     SECURITY_LOGIN_USER_TEMPLATE = 'user_login.html'
     SECURITY_TWO_FACTOR = False
     SECURITY_TWO_FACTOR_REQUIRED = False
-    SECURITY_POST_LOGIN_VIEW = '/admin/dashboard'
-    SECURITY_POST_LOGOUT_VIEW = '/admin/logged-out'
+    SECURITY_POST_LOGIN_VIEW = 'dashboard'
+    SECURITY_POST_LOGOUT_VIEW = 'logged-out'
