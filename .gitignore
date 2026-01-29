@@ -26,3 +26,5 @@ comparison_interface/project_html
 comparison_interface/static/images
 comparison_interface/configuration/flask.py
 comparison_interface/pages_html
+*.log
+*.log.*

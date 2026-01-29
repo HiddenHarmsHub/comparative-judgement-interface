@@ -4,7 +4,7 @@
 
     <div id="csv-upload" class="container-fluid">
         <h1 class="fs-3 pt-2 pb-2">Step 3: Upload csv file</h1>
-        <form method="POST" action="/admin/upload-csv" enctype="multipart/form-data">
+        <form method="POST" action="upload-csv" enctype="multipart/form-data">
             {{ form.csrf_token }}
             {{ form.csv_file }}
             <div class="pt-3">
@@ -32,7 +32,7 @@
                         <li>{{ image }}</li>
                     {% endfor %}
                 </ul>
-                <a href="/admin/upload-images">Change uploaded images</a>
+                <a href="upload-images">Change uploaded images</a>
             {% endif %}
         </form>
     </div>

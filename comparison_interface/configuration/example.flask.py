@@ -54,5 +54,5 @@ class Settings(object):
     SECURITY_FORGOT_PASSWORD_TEMPLATE = 'forgot-password.html'
     SECURITY_TOTP_SECRETS = loads(os.getenv('SECURITY_TOTP_SECRETS', '{}'))
     SECURITY_TOTP_ISSUER = 'flask admin'
-    SECURITY_POST_LOGIN_VIEW = '/admin/dashboard'
-    SECURITY_POST_LOGOUT_VIEW = '/admin/logged-out'
+    SECURITY_POST_LOGIN_VIEW = 'dashboard'
+    SECURITY_POST_LOGOUT_VIEW = 'logged-out'

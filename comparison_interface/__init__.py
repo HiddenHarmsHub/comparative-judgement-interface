@@ -1,8 +1,10 @@
 """Initialize the website application."""
 
 import json
+import logging
 import os
 from datetime import datetime, timedelta, timezone
+from logging.handlers import RotatingFileHandler
 
 from flask import Flask, current_app, render_template, request, session
 from numpy.random import default_rng
@@ -25,6 +27,10 @@ def create_app(testing=False, test_config=None):
     """
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True, static_folder="static")
+
+    handler = RotatingFileHandler('flask.log', maxBytes=10000, backupCount=5)
+    handler.setLevel(logging.DEBUG)
+    app.logger.addHandler(handler)
 
     # if we are testing then start with the base test config otherwise the main ones
     if testing:
