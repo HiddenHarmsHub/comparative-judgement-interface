@@ -97,6 +97,10 @@ def dashboard():
 @blueprint.route("/logged-out", methods=["GET"])
 def logged_out():
     """Display a post log out page."""
+    current_app.logger.critical("********")
+    current_app.logger.critical(WS.CONFIGURATION_LOCATION)
+    current_app.logger.critical(current_app.config[WS.CONFIGURATION_LOCATION])
+    current_app.logger.critical("********")
     subdomain = current_app.config["SUBDOMAIN"]
     if subdomain == "":
         subdomain = "/"
