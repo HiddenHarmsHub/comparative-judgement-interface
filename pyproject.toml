@@ -20,7 +20,8 @@ dependencies = [
 
 [project.optional-dependencies]
 admin = [
-    "flask-security[fsqla,common,mfa]<5.7",
+    "Flask-Mailman",
+    "flask-security[fsqla,common,mfa]",
     "markdown",
 ]
 
