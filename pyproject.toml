@@ -3,13 +3,13 @@ name = "Comparison-Interface"
 version = "2.1.0"
 description = "A web interface to facilitate the collection of comparative judgement data."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 dependencies = [
     "Flask>=3.1,<3.2",
     "SQLAlchemy>=2.0,<2.1",
     "Flask-SQLAlchemy>=3.1,<3.2",
-    "marshmallow>=4.0,<4.1",
+    "marshmallow>=4.0,<5.0",
     "whitenoise",
     "pillow",
     "numpy",
