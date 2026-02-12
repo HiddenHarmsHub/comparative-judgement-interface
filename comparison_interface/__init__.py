@@ -188,12 +188,16 @@ def _validate_app_integrity():
 
 def _page_not_found(e):
     """Return 404 page."""
+    subdomain = current_app.config["SUBDOMAIN"]
+    if subdomain == "":
+        subdomain = "/"
     # this is a backup system for when system is not configured yet (or sometimes the admin isn't set up)
     if WS.CONFIGURATION_LOCATION not in current_app.config:
         data = {
             'error_404_title': '404',
             'error_404_message': 'Page not found',
             'error_404_home_link': 'Go to home page',
+            'error_404_home_location': subdomain,
         }
         return render_template('404.html', **data)
     else:
@@ -201,6 +205,7 @@ def _page_not_found(e):
             'error_404_title': WS.get_text(WS.ERROR_404_TITLE, current_app),
             'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, current_app),
             'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, current_app),
+            'error_404_home_location': subdomain,
         }
     return render_template('404.html', **{**data, **Request(current_app, session).get_layout_text()}), 404
 

@@ -29,6 +29,7 @@ class Settings(object):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'strict'
+    SUBDOMAIN = os.getenv("SUBDOMAIN", "")
     MAX_CONTENT_LENGTH = 4 * 1024 * 1024
     LANGUAGE = os.getenv('LANGUAGE', 'en')
     API_ACCESS = get_bool_value('API_ACCESS', False)
