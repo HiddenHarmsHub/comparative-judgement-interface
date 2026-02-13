@@ -6,6 +6,10 @@
     max-width: max(60%, 500px);
 }
 
+#registration-form p.additional-text {
+    overflow-wrap: break-word;
+}
+
 .full-height-iframe {
     height: 85vh;
     overflow: auto;

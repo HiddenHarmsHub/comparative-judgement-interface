@@ -151,7 +151,7 @@ class Register(Request):
             if len(additional_list) > 0:
                 user_components.append('<hr/>')
                 for item in additional_list:
-                    user_components.append(f'<p>{item}</p>')
+                    user_components.append(render_template('main/components/additional_text.html', **{'text': item}))
 
     def _load_ethics_component(self, user_components: list):
         """Load the ethics agreement component.
