@@ -10,6 +10,10 @@
     overflow-wrap: break-word;
 }
 
+div.col {
+    padding-left: 0;
+}
+
 .full-height-iframe {
     height: 85vh;
     overflow: auto;
