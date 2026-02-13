@@ -166,7 +166,7 @@ class Register(Request):
                     'main/components/ethics.html',
                     **{
                         'ethics_agreement_label': WS.get_text(WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._app),
-                        'ethics_link_text': WS.get_text(WS.USER_REGISTRATION_ETHICS_AGREEMENT_LINK_TEXT, self._app),
+                        'ethics_link_text': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._app),
                     },
                 )
             )

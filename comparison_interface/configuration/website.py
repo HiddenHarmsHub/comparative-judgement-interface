@@ -76,7 +76,6 @@ class Settings:
     USER_REGISTRATION_SUMMIT_BUTTON_LABEL = "userRegistrationSummitButtonLabel"
     USER_REGISTRATION_GROUP_SELECTION_ERROR = "userRegistrationGroupSelectionErr"
     USER_REGISTRATION_ETHICS_AGREEMENT_LABEL = "userRegistrationEthicsAgreementLabel"
-    USER_REGISTRATION_ETHICS_AGREEMENT_LINK_TEXT = "userRegistrationEthicsAgreementLinkText"
     ITEM_SELECTION_QUESTION_LABEL = "itemSelectionQuestionLabel"
     ITEM_SELECTION_YES_BUTTON_LABEL = "itemSelectionYesButtonLabel"
     ITEM_SELECTION_NO_BUTTON_LABEL = "itemSelectionNoButtonLabel"
