@@ -65,9 +65,9 @@ probabilities to be specified for each pair, allowing some pairs to be featured 
 that we allow for comparisons to be tied. This can be useful in studies where there are several items that are difficult
 to distinguish between.
 
-We required an app that was flexible in terms of the items that could be compared and the wording for the research question.
-Our comparative-judgement-interface aims to make comparative judgement studies simpler, more efficient and more attractive
-to run across a wide range of disciplines.
+Our comparative judgement interface is flexible in terms of the items that could be compared and the wording for the research
+question. It aims to make comparative judgement studies simpler, more efficient and more attractive to run across a wide
+range of disciplines.
 
 # State of the field
 
