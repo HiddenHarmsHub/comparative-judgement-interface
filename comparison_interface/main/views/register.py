@@ -22,7 +22,7 @@ class Register(Request):
         # Load components
         user_components = []
         self._load_user_component(user_components)
-        self._load_group_component(user_components)
+        group_columns = self._load_group_component(user_components)
         self._load_additional_text(user_components)
         self._load_ethics_component(user_components)
 
@@ -33,6 +33,7 @@ class Register(Request):
                 'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._app),
                 'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._app),
                 'components': user_components,
+                'group_columns': group_columns,
             },
         )
 
@@ -117,6 +118,12 @@ class Register(Request):
         else:
             label_text = ''
             error_text = ''
+        if len(groups) >= 10:
+            group_length = (len(groups) + 1) // 2
+            groups = [groups[:group_length], groups[group_length:]]
+            group_columns = True
+        else:
+            group_columns = False
         user_components.append(
             render_template(
                 'main/components/group.html',
@@ -125,9 +132,11 @@ class Register(Request):
                     'label': label_text,
                     'multiple_selection': multiple_selection,
                     'group_selection_error': error_text,
+                    'group_columns': group_columns,
                 },
             )
         )
+        return group_columns
 
     def _load_additional_text(self, user_components: list):
         """Load any additional text for the registration page.
@@ -142,7 +151,7 @@ class Register(Request):
             if len(additional_list) > 0:
                 user_components.append('<hr/>')
                 for item in additional_list:
-                    user_components.append(f'<p>{item}</p>')
+                    user_components.append(render_template('main/components/additional_text.html', **{'text': item}))
 
     def _load_ethics_component(self, user_components: list):
         """Load the ethics agreement component.
@@ -157,7 +166,7 @@ class Register(Request):
                     'main/components/ethics.html',
                     **{
                         'ethics_agreement_label': WS.get_text(WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._app),
-                        'ethics_link_text': WS.get_text(WS.USER_REGISTRATION_ETHICS_AGREEMENT_LINK_TEXT, self._app),
+                        'ethics_link_text': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._app),
                     },
                 )
             )

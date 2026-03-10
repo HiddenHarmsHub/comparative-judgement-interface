@@ -204,7 +204,6 @@ class WebsiteTextConfiguration(Schema):
     userRegistrationSummitButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
     userRegistrationGroupSelectionErr = fields.Str(required=False, validate=[validate.Length(min=1, max=500)])
     userRegistrationEthicsAgreementLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
-    userRegistrationEthicsAgreementLinkText = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
     itemSelectionQuestionLabel = fields.Str(required=False, validate=[validate.Length(min=1, max=500)])
     itemSelectionYesButtonLabel = fields.Str(required=False, validate=[validate.Length(min=1, max=50)])
     itemSelectionNoButtonLabel = fields.Str(required=False, validate=[validate.Length(min=1, max=50)])

@@ -16,6 +16,7 @@ class Settings(object):
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = False
     SESSION_COOKIE_SAMESITE = 'strict'
+    SUBDOMAIN = ''
     MAX_CONTENT_LENGTH = 4 * 1024 * 1024
     LANGUAGE = 'en'
     API_ACCESS = False

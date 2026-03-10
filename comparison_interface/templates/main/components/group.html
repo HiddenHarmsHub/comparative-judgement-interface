@@ -1,17 +1,31 @@
 {% if groups|length < 2 %}
     <input type="hidden" id="group_ids" name="group_ids" value="{{groups[0].group_id}}">
 {% else %}
+    <hr/>
     <div class="form-group row" role="group" aria-labelledby="group-ids-label">
-        <div id="group-ids-label" for="group_ids" class="col-4 col-form-label">{{label}}</div>
-        <div class="col-8">
+        <div id="group-ids-label" for="group_ids" class="col-md-4 col-sm-4 {% if group_columns %}col-lg-2{% else %}col-lg-4{% endif %} col-form-label">{{label}}</div>
+        <div class="col-md-8 col-sm-8 {% if group_columns %}col-lg-10{% else %}col-lg-8{% endif %}">
             {% if multiple_selection %}
-                <div id="group_ids" class="checkbox-group required">
-                {% for group in groups %}
-                    <div>
-                        <input class="focus-ring" type="checkbox" id="group-{{group.group_id}}" name="group_ids" value="{{group.group_id}}"/>
-                        <label style="display: inline;" for="group-{{group.group_id}}">{{group.display_name}}</label>
-                    </div>
-                {% endfor %}
+                <div id="group_ids" class="checkbox-group required row">
+                    {% if group_columns %}
+                        {% for column in groups %}
+                            <div class="col-sm-8 col-md-8 col-lg-5">
+                                {% for group in column %}
+                                    <div>
+                                        <input class="focus-ring" type="checkbox" id="group-{{group.group_id}}" name="group_ids" value="{{group.group_id}}"/>
+                                        <label style="display: inline;" for="group-{{group.group_id}}">{{group.display_name}}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for group in groups %}
+                            <div>
+                                <input class="focus-ring" type="checkbox" id="group-{{group.group_id}}" name="group_ids" value="{{group.group_id}}"/>
+                                <label style="display: inline;" for="group-{{group.group_id}}">{{group.display_name}}</label>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
                 <div style="visibility:hidden; color: #B10100; " id="group-selection-error">{{group_selection_error}}</div>
             {% else %}

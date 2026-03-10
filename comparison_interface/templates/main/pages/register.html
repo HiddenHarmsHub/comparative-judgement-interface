@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}: {{participant_registration_page_title}}{% endblock %}
 {% block content %}
-<div style="margin: 0 auto; max-width:500px;">
+<div id="{% if group_columns %}registration-form-group-columns{% else %}registration-form{% endif %}" style="margin: 0 auto;">
     <div class="text-center"><h1>{{title}}</h1></div>
     <form method="POST" onsubmit="return handleData();" aria-label="Registration Form">
       <fieldset>
@@ -11,7 +11,13 @@
           {{component|safe}}
         {% endfor %}
         </div>
-        <button id="submit-button" type="submit" class="btn btn-primary text-center submit col-12">{{button}}</button>
+        <button 
+          id="submit-button"
+          type="submit"
+          class="btn btn-primary text-center submit col-sm-12 col-md-4 offset-md-4 col-lg-2 offset-lg-5"
+        >
+          {{button}}
+        </button>
       </fieldset>
     </form>
 </div>
