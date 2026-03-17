@@ -108,7 +108,9 @@ user logged into the website.
 
 # Research impact statement
 
-Rowland to add.
+The comparative judgement interface has been used to collect data for a range of published research studies and applied policy projects. It was first used to map deprivation across wards in Dar es Salaam, Tanzania, where comparative judgements from local residents were combined with Bayesian statistical models to produce fine-grained deprivation rankings without relying on traditional survey instruments [@Seymour2022]. This demonstrated the feasibility of comparative judgement as a scalable data collection method in low-resource settings.
+
+The interface has since been adopted by a number of public sector partners in the United Kingdom. In collaboration with Nottinghamshire County Council, it was used to collect expert judgements on the relative prevalence of forced marriage across local authority areas in England [@Seymour2024]. The results in this study informed the development of a safeguarding training course for professionals working with communities affected by forced marriage [@UoB2025]. South Yorkshire Police have used the interface to map the perceived prevalence of female genital mutilation (FGM) across police force areas, with Members of the UK Parliament raising questions in the House of Commons using the results, and Wokingham Borough Council deployed it to collect judgements on domestic abuse, the results of which fed directly into the council's 2025-2028 domestic abuse strategy [@Wokingham2025]. In total, the software has now been deployed in partnership with seven councils and local authorities across England.
 
 # Configuration Summary
 
