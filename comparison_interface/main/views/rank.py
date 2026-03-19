@@ -13,6 +13,7 @@ from comparison_interface.db.models import (
     Participant,
     ParticipantGroup,
     ParticipantItem,
+    TotalItemPair,
     WebsiteControl,
 )
 
@@ -46,7 +47,13 @@ class Rank(Request):
         if 'comparison_id' in args:
             comparison_id = args['comparison_id']
 
-        item_1, item_2 = self._get_items_to_compare(comparison_id)
+        pair_id = None
+        item_data = self._get_items_to_compare(comparison_id)
+
+        if len(item_data) == 2:
+            item_1, item_2 = item_data
+        else:
+            item_1, item_2, pair_id = item_data
         # Show a "no content error" in case of not enough selected known items.
         if item_1 is None or item_2 is None:
             return self._render_template(
@@ -96,6 +103,7 @@ class Rank(Request):
             {
                 'item_1': item_1,
                 'item_2': item_2,
+                'weighted_pair_id': pair_id,
                 'selected_item_label': WS.get_text(WS.RANK_ITEM_SELECTED_INDICATOR_LABEL, self._app),
                 'tied_selection_label': WS.get_text(WS.RANK_ITEM_TIED_SELECTION_INDICATOR_LABEL, self._app),
                 'skipped_selection_label': WS.get_text(WS.RANK_ITEM_SKIPPED_SELECTION_INDICATOR_LABEL, self._app),
@@ -148,6 +156,9 @@ class Rank(Request):
                 )
                 try:
                     db.session.add(c)
+                    if state != self.SKIPPED and response['weighted_pair_id'] is not None:
+                        pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
+                        pair.judged = True
                     db.session.commit()
                     # Save the comparison for future possible rejudging
                     self._session['previous_comparison_id'] = c.comparison_id
@@ -293,6 +304,10 @@ class Rank(Request):
         if self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT and not render_item_prefer:
             return self._get_random_items()
 
+        # Case 5: Get a random pair from the item pair totals table
+        if self._session['weight_conf'] == WebsiteControl.WEIGHTED_TOTAL:
+            return self._get_random_pair()
+
         # All no implemented cases
         return None, None
 
@@ -334,6 +349,42 @@ class Rank(Request):
         if items[0].item_id == comparison.item_1_id:
             return items[0], items[1]
         return items[1], items[0]
+
+    def _get_random_pair(self):
+        """Select a pair at random from the un-judged items in the item_pair_totals table.
+
+        Returns:
+            Item: Model Item | None
+            Item: Model Item | None
+        """
+        # 1. Get the the custom pairs. This query assumes that just one group
+        # can be selected by the participant when defining custom weights.
+        query = (
+            db.select(ParticipantGroup, TotalItemPair)
+            .join(TotalItemPair, TotalItemPair.group_id == ParticipantGroup.group_id, isouter=True)
+            .where(
+                ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.group_id.in_(self._session['group_ids']),
+                TotalItemPair.judged == False,   # NoQA
+            )
+        )
+        result = db.session.execute(query).all()
+        pair_ids = []
+        pairs = {}
+        for _, p in result:
+            pairs[p.custom_item_pair_id] = p
+            pair_ids.append(p.custom_item_pair_id)
+        if len(pair_ids) == 0:
+            return None, None
+
+        selected_pair_id = self._app.rng.choice(pair_ids, 1, replace=False)
+        item_1_id = pairs[selected_pair_id[0]].item_1_id
+        item_2_id = pairs[selected_pair_id[0]].item_2_id
+
+        query = db.select(Item).where(Item.item_id.in_([item_1_id, item_2_id]))
+        items = db.session.scalars(query).all()
+
+        return items[0], items[1], selected_pair_id[0]
 
     def _get_custom_items(self):
         """Get a random pair of items respecting the weights provided in config file.

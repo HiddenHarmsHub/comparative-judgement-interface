@@ -143,7 +143,6 @@ class Comparison(db.Model, BaseModel):
 class CustomItemPair(db.Model, BaseModel):
     """Holds a pair of items with custom weight configurations.
 
-    If this table is empty, a random item selection will be made using the user's group preferences.
     This table is only populated when the items group weight configuration is set to custom.
 
     Args:
@@ -161,6 +160,26 @@ class CustomItemPair(db.Model, BaseModel):
     created = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
     __table_args__ = (UniqueConstraint('group_id', 'item_1_id', 'item_2_id', name='_custom_item_pair_uidx'),)
+
+
+class TotalItemPair(db.Model, BaseModel):
+    """Holds pairs of items duplicated based on the weight configuration and the total judgements required overall.
+
+    This table is only populated when the items group weight configuration is set to weighted-total.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'item_pair_totals'
+    __bind_key__ = "study_db"
+
+    custom_item_pair_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group.group_id'), nullable=False)
+    item_1_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
+    item_2_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
+    judged = db.Column(db.Boolean, nullable=False)
+    created = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
 
 class ParticipantItem(db.Model, BaseModel):
@@ -195,6 +214,7 @@ class WebsiteControl(db.Model, BaseModel):
     # Available weight configuration
     EQUAL_WEIGHT = 'equal'  # All items weights during the comparison are the same.
     CUSTOM_WEIGHT = 'manual'  # The weights of the items were manually assigned by the researcher.
+    WEIGHTED_TOTAL = 'weighted-total'  # The weights of the items are calculated by weight and total target judgements.
 
     website_control_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     weight_configuration = db.Column(db.String(20), nullable=False)

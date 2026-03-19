@@ -40,6 +40,7 @@ class Settings:
     GROUP_DISPLAY_NAME = "displayName"
     GROUP_ITEMS = "items"
     GROUP_ITEMS_WEIGHT = "weight"
+    TARGET_COMPARISONS = "targetComparisons"
     # Items related configuration keys
     ITEM_ID = "id"
     ITEM_NAME = "name"
