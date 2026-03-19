@@ -365,7 +365,7 @@ class Rank(Request):
             .where(
                 ParticipantGroup.participant_id == self._session['participant_id'],
                 ParticipantGroup.group_id.in_(self._session['group_ids']),
-                TotalItemPair.judged == False,   # NoQA
+                TotalItemPair.judged == False,  # NoQA
             )
         )
         result = db.session.execute(query).all()
