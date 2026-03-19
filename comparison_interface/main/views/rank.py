@@ -156,7 +156,7 @@ class Rank(Request):
                 )
                 try:
                     db.session.add(c)
-                    if state != self.SKIPPED and response['weighted_pair_id'] is not None:
+                    if self._session['weight_conf'] == WebsiteControl.WEIGHTED_TOTAL and state != self.SKIPPED:
                         pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
                         pair.judged = True
                     db.session.commit()
