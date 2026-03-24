@@ -65,7 +65,7 @@ probabilities to be specified for each pair, allowing some pairs to be featured 
 that we allow for comparisons to be tied. This can be useful in studies where there are several items that are difficult
 to distinguish between.
 
-Our comparative judgement interface is flexible in terms of the items that could be compared and the wording for the research
+Our comparative judgement interface is flexible in terms of the items that can be compared and the wording for the research
 question. It aims to make comparative judgement studies simpler, more efficient and more attractive to run across a wide
 range of disciplines.
 
@@ -129,7 +129,7 @@ authorities across England.
 The full list configuration options are explained in our documentation. The app includes the option to configure all of
 the text that the judge sees on the webpage which means that the system can be configured to work with any language, defaults
 are provided in English for all text strings. Some of the behaviour of the website can also be tailored to the requirements
-and experimental design of the study. This includes the ethics and legal information shown the the judges, as well as the
+and experimental design of the study. This includes the ethics and legal information shown to the judges, as well as the
 experimental design features outlined in the Statement of Need. There is an optional admin interface which allows logged
 in users to setup and monitor studies via a web interface. An optional API also provides access to selected tables from
 the database for live analysis.
