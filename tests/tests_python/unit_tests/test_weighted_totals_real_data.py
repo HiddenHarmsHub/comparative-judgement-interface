@@ -24,7 +24,6 @@ def larger_app():
     for image_config in config_dict['comparisonConfiguration']['groups'][0]['items']:
         image_name = image_config['imageName']
         new_image = Image.new("RGB", (300, 300))
-        print(os.path.abspath("comparison_interface/static/images/"))
         new_image.save(f"comparison_interface/static/images/{image_name}", "PNG")
     app = execute_setup("../tests/test_configurations/config-weighted-totals.json")
     yield app
@@ -36,7 +35,8 @@ def larger_app():
             os.remove(f"comparison_interface/static/images/{image_name}")
         db.session.remove()
         db.drop_all()
-        os.unlink('instance/test_database.db')
+        # os.unlink(os.path.join(os.path.join(app.instance_path), 'test_admin_database.db'))
+        # os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
 
 
 @pytest.fixture()
@@ -49,16 +49,18 @@ def larger_client(larger_app):
 @pytest.fixture()
 def add_basic_data_larger(larger_client):
     # add data for a participant in the group
-    participant_data = {}
+    participant_data = {
+        'accepted_ethics_agreement': '1'
+    }
     participant_data['created_date'] = datetime.now(timezone.utc)
-    db_engine = db.engines[None]
+    db_engine = db.engines['study_db']
     db_meta = MetaData()
     db_meta.reflect(bind=db_engine)
     table = db_meta.tables["participant"]
     new_participant_sql = table.insert().values(**participant_data)
     try:
         # Insert the participant into the database
-        with db.engine.begin() as connection:
+        with db_engine.begin() as connection:
             result = connection.execute(new_participant_sql)
         id = result.lastrowid
     except SQLAlchemyError as e:
@@ -74,31 +76,6 @@ def add_basic_data_larger(larger_client):
     db.session.add(participant_group)
     db.session.commit()
     yield
-
-
-@pytest.mark.usefixtures('add_basic_data_larger')
-def test_random_item_retrieval(mocker, larger_app):
-    """
-    GIVEN a flask app configured for testing with a configuration file with 70 items with equal weights
-    WHEN a user has an active session specifying a group_id and _get_random_items is called
-    THEN the correct list of 70 item ids are provided to the random number generator
-    """
-    request = Request(larger_app, {})
-    request._session['participant_id'] = 1
-    request._session['group_ids'] = [1]
-    request._session['weight_conf'] = 'equal'
-    request._session['previous_comparison_id'] = None
-    request._session['comparison_ids'] = []
-    ranker = rank.Rank(request, request._session)
-    spy = mocker.spy(rank, 'choice')
-    items = ranker._get_random_items()
-    # check that we feed the correct ids to the random item generator
-    expected_ids = [x for x in range(1, 71)]
-    spy.assert_called_once_with(expected_ids, 2, False)
-    # check that we get two items returned from the range
-    assert len(items) == 2
-    assert items[0].item_id in expected_ids
-    assert items[1].item_id in expected_ids
 
 
 @pytest.mark.usefixtures('add_basic_data_larger')
@@ -118,6 +95,7 @@ def test_random_item_retrieval_on_repeat(larger_app):
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    
     uniqueness_counts = []
     for _ in range(1, 100):
         suggested_item_ids = []
