@@ -57,7 +57,9 @@ jobs:
       - name: Install dependencies
         run: |
           npm i eslint
+          npm i @eslint/js
           npm i globals
+          npm i @stylistic/eslint-plugin
           node_modules/eslint/bin/eslint.js comparison_interface/static/js/src/*.js tests/tests_javascript/*.js tests/tests_accessibility/*.js
 
     stylelint:
