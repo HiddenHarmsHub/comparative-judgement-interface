@@ -6,7 +6,7 @@
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "jest-environment-node": "^30.3.0",
-    "jquery": "^4.0.0",
+    "jquery": "^3.0.0",
     "pa11y": "^9.1.1",
     "puppeteer": "^24.40.0",
     "stylelint": "^17.6.0",
