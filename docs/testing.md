@@ -51,7 +51,7 @@ To setup the system for the main test file (in all code snippets below the setup
 `reset` command if you already have a database in use):
 
 ```bash
-flask --debug setup ../test_configurations/config-equal-item-weights-2.json
+flask --debug setup ../tests/test_configurations/config-equal-item-weights-2.json
 flask --debug run ---port=5001
 ```
 
@@ -64,7 +64,7 @@ npx jest -- tests_accessibility/accessibility.test.js
 To run the additional study configuration test file:
 
 ```bash
-flask --debug setup ../test_configurations/config-equal-item-weights.json
+flask --debug setup ../tests/test_configurations/config-equal-item-weights.json
 flask --debug run ---port=5001
 ```
 
