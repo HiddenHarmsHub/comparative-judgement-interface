@@ -5,7 +5,8 @@ title: Running the Tests
 
 Three different kinds of tests are provided, Python tests, JavaScript tests and accessibility tests.
 
-All of the dependencies needed to run the full suite of tests are included in the dev container.
+All of the dependencies needed to run the full suite of tests are included in the dev container. However, the browser automation
+tests using playwright which are used to test the admin interface will not run in the dev container.
 
 If you are not using the dev container, to run the Python tests you will need to install the dependencies in the `test`
 section of the pyproject.toml.
@@ -25,6 +26,13 @@ The Python tests are written in pytest and can be found in the `tests/tests_pyth
 
 ```bash
 pytest
+```
+
+If you are using the dev container then the admin tests will fail if you use the command above because the dev container cannot
+run tests that use playwright. To run all of the other tests and not the admin tests you can run:
+
+```bash
+pytest tests/python_tests
 ```
 
 **Note:** The configuration files used for testing are not the same as the example configuration files provided with the
