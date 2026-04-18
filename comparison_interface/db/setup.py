@@ -1,6 +1,7 @@
 """Setup the website database."""
 
 import os
+from math import ceil
 
 from sqlalchemy import create_engine, text
 
@@ -79,7 +80,7 @@ class Setup:
         pairs = g[WS.GROUP_ITEMS_WEIGHT]
         for pair in pairs:
             weight = pair["weight"]
-            pair_total = round(weight * total_judgements_required)
+            pair_total = ceil(weight * total_judgements_required)
 
             items_dict = {}
             for i in items:

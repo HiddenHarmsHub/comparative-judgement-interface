@@ -93,6 +93,59 @@ def test_setup_items_custom_weights(custom_weight_app):
         assert len(participants) == 0
 
 
+def test_setup_items_weighted_totals(custom_totals_app):
+    """
+    GIVEN a flask app configured for testing and weighted totals
+    WHEN the database is initialised
+    THEN the correct groups, items and custom item pairs are added to the database
+    """
+    engine = create_engine(custom_totals_app.config["SQLALCHEMY_BINDS"]["study_db"])
+    with engine.connect() as conn:
+        item_sql = 'SELECT * FROM "item"'
+        items = conn.execute(text(item_sql)).all()
+        assert len(items) == 4
+
+        group_sql = 'SELECT * FROM "group"'
+        groups = conn.execute(text(group_sql)).all()
+        assert len(groups) == 1
+
+        pair_sql = 'SELECT * FROM "item_pair_totals"'
+        pairs = conn.execute(text(pair_sql)).all()
+        assert len(pairs) == 101  # higher because of rounding up
+
+        pair_sql = 'SELECT * FROM "item_pair_totals" WHERE "item_1_id"=1 AND "item_2_id"=2'
+        pairs = conn.execute(text(pair_sql)).all()
+        assert len(pairs) == 12
+
+        pair_sql = 'SELECT * FROM "item_pair_totals" WHERE "item_1_id"=1 AND "item_2_id"=3'
+        pairs = conn.execute(text(pair_sql)).all()
+        assert len(pairs) == 20
+
+        pair_sql = 'SELECT * FROM "item_pair_totals" WHERE "item_1_id"=1 AND "item_2_id"=4'
+        pairs = conn.execute(text(pair_sql)).all()
+        assert len(pairs) == 20
+
+        pair_sql = 'SELECT * FROM "item_pair_totals" WHERE "item_1_id"=2 AND "item_2_id"=3'
+        pairs = conn.execute(text(pair_sql)).all()
+        assert len(pairs) == 30
+
+        pair_sql = 'SELECT * FROM "item_pair_totals" WHERE "item_1_id"=2 AND "item_2_id"=4'
+        pairs = conn.execute(text(pair_sql)).all()
+        assert len(pairs) == 10
+
+        pair_sql = 'SELECT * FROM "item_pair_totals" WHERE "item_1_id"=3 AND "item_2_id"=4'
+        pairs = conn.execute(text(pair_sql)).all()
+        assert len(pairs) == 9
+
+        website_control_sql = 'SELECT * FROM "website_control"'
+        website_control = conn.execute(text(website_control_sql)).all()
+        assert len(website_control) == 1
+
+        participant_sql = 'SELECT * FROM "participant"'
+        participants = conn.execute(text(participant_sql)).all()
+        assert len(participants) == 0
+
+
 def test_setup_items_with_ids():
     """
     GIVEN a flask app configured for testing and equal weights with ids provided
