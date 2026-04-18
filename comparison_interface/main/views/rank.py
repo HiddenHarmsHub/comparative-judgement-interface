@@ -359,6 +359,7 @@ class Rank(Request):
         """
         # 1. Get the the custom pairs. This query assumes that just one group
         # can be selected by the participant when defining custom weights.
+        print(self._session)
         query = (
             db.select(ParticipantGroup, TotalItemPair)
             .join(TotalItemPair, TotalItemPair.group_id == ParticipantGroup.group_id, isouter=True)
@@ -368,15 +369,18 @@ class Rank(Request):
                 TotalItemPair.judged == False,  # NoQA
             )
         )
+        print(query)
         result = db.session.execute(query).all()
+        print(result)
         pair_ids = []
         pairs = {}
         for _, p in result:
             pairs[p.custom_item_pair_id] = p
             pair_ids.append(p.custom_item_pair_id)
+        print(pair_ids)
         if len(pair_ids) == 0:
             return None, None
-
+        
         selected_pair_id = self._app.rng.choice(pair_ids, 1, replace=False)
         item_1_id = pairs[selected_pair_id[0]].item_1_id
         item_2_id = pairs[selected_pair_id[0]].item_2_id
