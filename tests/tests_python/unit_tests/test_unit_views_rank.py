@@ -2,11 +2,11 @@ from datetime import datetime, timezone
 
 import pytest
 from numpy import random
-from sqlalchemy import MetaData, create_engine, text
+from sqlalchemy import MetaData, create_engine, text, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison, Group, Item, ItemGroup, ParticipantGroup
+from comparison_interface.db.models import Comparison, Group, Item, ItemGroup, ParticipantGroup, TotalItemPair
 from comparison_interface.main.views import rank
 from comparison_interface.main.views.register import Request
 
@@ -513,7 +513,7 @@ def test_custom_item_retrieval(mocker, custom_weight_app):
     mock_rng.choice.assert_called_once_with([4, 5, 6, 7, 8, 9], 1, p=[0.1, 0.2, 0.2, 0.3, 0.1, 0.1], replace=False)
 
 
-@pytest.mark.usefixtures('add_basic_data_custom')
+@pytest.mark.usefixtures('add_basic_data_totals')
 def test_weighted_totals_item_retrieval(mocker, custom_totals_app):
     """
     GIVEN a flask app configured for testing and custom totals and with basic data added for user and group preference
@@ -530,10 +530,38 @@ def test_weighted_totals_item_retrieval(mocker, custom_totals_app):
     mock_rng = mocker.Mock(spec=random.Generator)
     custom_totals_app.rng = mock_rng
     ranker._app = custom_totals_app
-    mock_rng.choice.return_value = 4
+    mock_rng.choice.return_value = [4]
     ranker._get_random_pair()
     # check that we feed the correct data to the random item generator
     mock_rng.choice.assert_called_once_with([x for x in range(1, 102)], 1, replace=False)
+
+
+@pytest.mark.usefixtures('add_basic_data_totals')
+def test_weighted_totals_item_retrieval_some_judgements(mocker, custom_totals_app):
+    """
+    GIVEN a flask app configured for testing and custom totals and with basic data added for user and group preference
+    WHEN a user has an active session specifying a group_id, no items have been judged and _get_custom_items is called
+    THEN then all possible pair ids are given to the random number generator
+    """
+    judged_pairs = [4, 54, 78, 100]
+    for id in judged_pairs:
+        stmt = update(TotalItemPair).where(TotalItemPair.custom_item_pair_id == id).values(judged=True)
+        db.session.execute(stmt)
+    db.session.commit()
+    request = Request(custom_totals_app, {})
+    request._session['participant_id'] = 1
+    request._session['group_ids'] = [1]
+    request._session['weight_conf'] = 'weighted-total'
+    request._session['previous_comparison_id'] = None
+    request._session['comparison_ids'] = []
+    ranker = rank.Rank(request, request._session)
+    mock_rng = mocker.Mock(spec=random.Generator)
+    custom_totals_app.rng = mock_rng
+    ranker._app = custom_totals_app
+    mock_rng.choice.return_value = [6]
+    ranker._get_random_pair()
+    # check that we feed the correct data to the random item generator
+    mock_rng.choice.assert_called_once_with([x for x in range(1, 102) if x not in judged_pairs], 1, replace=False)
 
 
 @pytest.mark.usefixtures('add_basic_data_equal')
