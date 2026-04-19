@@ -540,8 +540,8 @@ def test_weighted_totals_item_retrieval(mocker, custom_totals_app):
 def test_weighted_totals_item_retrieval_some_judgements(mocker, custom_totals_app):
     """
     GIVEN a flask app configured for testing and custom totals and with basic data added for user and group preference
-    WHEN a user has an active session specifying a group_id, no items have been judged and _get_custom_items is called
-    THEN then all possible pair ids are given to the random number generator
+    WHEN a user has an active session specifying a group_id, some items have been judged and _get_custom_items is called
+    THEN then the judged pair ids are not given to the random number generator
     """
     judged_pairs = [4, 54, 78, 100]
     for id in judged_pairs:
