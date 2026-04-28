@@ -24,8 +24,6 @@ test('Test the rank page', async () => {
     'click element #group-2',
     'click element #accept-ethics-agreement',
     'click element #submit-button',
-    'wait for element #cookie-message-popup-accept to be visible',
-    'click element #cookie-message-popup-accept',
     'wait for element #confirm-button-d to be visible',
     ] 
     await expect(url).toBeAccessible(actions);
@@ -43,8 +41,6 @@ test('Test the thank you page', async () => {
     'click element #group-2',
     'click element #accept-ethics-agreement',
     'click element #submit-button',
-    'wait for element #cookie-message-popup-accept to be visible',
-    'click element #cookie-message-popup-accept',
     'wait for element #confirm-button-d to be visible',
     'navigate to http://127.0.0.1:5001/thankyou',
     ] 

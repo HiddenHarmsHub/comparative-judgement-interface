@@ -13,8 +13,6 @@ test('Test the item selection page', async () => {
         'click element #group-2',
         'click element #accept-ethics-agreement',
         'click element #submit-button',
-        'wait for element #cookie-message-popup-accept to be visible',
-        'click element #cookie-message-popup-accept',
         'wait for path to be /selection/items',
         ] 
     await expect(url).toBeAccessible(actions);
