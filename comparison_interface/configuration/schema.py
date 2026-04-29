@@ -15,7 +15,7 @@ class Item(Schema):
 
     id = fields.Int(required=False)
     name = fields.Str(required=True, validate=[validate.Length(min=1, max=200)])
-    displayName = fields.Str(required=True, validate=[validate.Length(min=1, max=200)])
+    displayName = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
     imageName = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
     imageDescription = fields.Str(required=False, allow_none=True)
 
