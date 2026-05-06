@@ -136,7 +136,6 @@ class Group(Schema):
 
     @validates('name')
     def _validate_group_name(self, name, data_key):
-        print(name)
         match = re.match(r'^[a-z0-9_-]+$', name)
         if not match:
             raise ValidationError(
