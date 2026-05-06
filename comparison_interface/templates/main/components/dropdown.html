@@ -2,7 +2,7 @@
     <label for="{{name}}-select" class="col-4 col-form-label {% if required == true %}required-field-label{% else %}{% endif %}">{{displayName}}</label>
     <div class="col-8">
         <select class="form-control" name="{{name}}" id="{{name}}-select" {% if required == true %}required{% else %}{% endif %}>
-            <option disabled selected value aria-hidden="true"></option>
+            <option {% if required == true %}disabled{% else %}{% endif %} selected value aria-hidden="true"></option>
             {% for value in option %}
                 <option value="{{value}}">{{value}}</option>
             {% endfor %}
