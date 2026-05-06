@@ -1,3 +1,6 @@
+from flask import current_app
+from jinja2.exceptions import TemplateNotFound
+
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import Participant
@@ -17,9 +20,15 @@ class Thankyou(Request):
             'continue_text': WS.get_text(WS.THANK_YOU_CONTINUE_TEXT, self._app),
             'stop_text': WS.get_text(WS.THANK_YOU_STOP_TEXT, self._app),
             'button': WS.get_text(WS.THANK_YOU_CONTINUE_BUTTON_LABEL, self._app),
+            'participant_id': self._session['participant_id'],
         }
         if self._can_continue():
             data['continue'] = True
+        if 'CUSTOM_TEMPLATES' in current_app.config and current_app.config['CUSTOM_TEMPLATES'] is True:
+            try:
+                return self._render_template('custom_templates/thankyou.html', data)
+            except TemplateNotFound:
+                pass
         return self._render_template('main/pages/thankyou.html', data)
 
     def _can_continue(self):
