@@ -257,6 +257,7 @@ class UserField(Schema):
                     WS.USER_FIELD_TYPE_DROPDOWN,
                     WS.USER_FIELD_TYPE_RADIO,
                     WS.USER_FIELD_TYPE_EMAIL,
+                    WS.USER_FIELD_TYPE_HIDDEN,
                 ]
             )
         ],
@@ -293,7 +294,13 @@ class UserField(Schema):
 
         # Validate not max limit for not email, text or int fields
         if (
-            data['type'] not in [WS.USER_FIELD_TYPE_TEXT, WS.USER_FIELD_TYPE_INT, WS.USER_FIELD_TYPE_EMAIL]
+            data['type']
+            not in [
+                WS.USER_FIELD_TYPE_TEXT,
+                WS.USER_FIELD_TYPE_INT,
+                WS.USER_FIELD_TYPE_EMAIL,
+                WS.USER_FIELD_TYPE_HIDDEN,
+            ]
             and 'maxLimit' in data
         ):
             raise ValidationError(f"MaxLimit field cannot be defined for {data['type']} fields.")
