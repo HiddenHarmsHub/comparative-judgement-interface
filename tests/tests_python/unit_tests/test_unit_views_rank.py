@@ -533,7 +533,7 @@ def test_weighted_totals_item_retrieval(mocker, custom_totals_app):
     mock_rng.choice.return_value = [4]
     ranker._get_random_pair()
     # check that we feed the correct data to the random item generator
-    mock_rng.choice.assert_called_once_with([x for x in range(1, 101)], 1, replace=False)
+    mock_rng.choice.assert_called_once_with([x for x in range(1, 102)], 1, replace=False)
 
 
 @pytest.mark.usefixtures('add_basic_data_totals')
@@ -561,7 +561,7 @@ def test_weighted_totals_item_retrieval_some_judgements(mocker, custom_totals_ap
     mock_rng.choice.return_value = [6]
     ranker._get_random_pair()
     # check that we feed the correct data to the random item generator
-    mock_rng.choice.assert_called_once_with([x for x in range(1, 101) if x not in judged_pairs], 1, replace=False)
+    mock_rng.choice.assert_called_once_with([x for x in range(1, 102) if x not in judged_pairs], 1, replace=False)
 
 
 @pytest.mark.usefixtures('add_basic_data_totals')
@@ -573,7 +573,7 @@ def test_weighted_totals_item_retrieval_last_pair(mocker, custom_totals_app):
     THEN then the single item is given to the random number generator and the judged values in the table are all reset
         to false (to start another cycle)
     """
-    judged_pairs = [x for x in range(2, 101)]
+    judged_pairs = [x for x in range(2, 102)]
     for id in judged_pairs:
         stmt = update(TotalItemPair).where(TotalItemPair.custom_item_pair_id == id).values(judged=True)
         db.session.execute(stmt)
@@ -591,7 +591,7 @@ def test_weighted_totals_item_retrieval_last_pair(mocker, custom_totals_app):
     mock_rng.choice.return_value = [1]
     ranker._get_random_pair()
     # check that we feed the correct data to the random item generator
-    mock_rng.choice.assert_called_once_with([x for x in range(1, 101) if x not in judged_pairs], 1, replace=False)
+    mock_rng.choice.assert_called_once_with([x for x in range(1, 102) if x not in judged_pairs], 1, replace=False)
     # check that we reset the judged values
     stmt = select(TotalItemPair.custom_item_pair_id).where(TotalItemPair.judged == False)  # NoQA
     result = db.session.execute(stmt).all()
