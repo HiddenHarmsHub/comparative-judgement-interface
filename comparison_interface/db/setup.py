@@ -65,6 +65,34 @@ class Setup:
                 total_judgements_required = WS.get_comparison_conf(WS.TARGET_COMPARISONS, self.app)
                 self._setup_weighted_total_pairs(db, items, group, g, total_judgements_required)
 
+    def _setup_custom_item_pair(self, db, items, group, g):
+        """Save the custom item's weight configuration when defined manually using the Website configuration file.
+
+        If the web configuration type was "equal", this section will be ignored.
+
+        Args:
+            db (SQLAlchemy): Database connection
+            items (array(Item)): Group items store in the database.
+            group (Group): Group store in the database.
+            g (json): Group configuration being saved.
+        """
+        # Save the custom weights configuration
+        weights = g[WS.GROUP_ITEMS_WEIGHT]
+
+        items_dict = {}
+        for i in items:
+            items_dict[i.name] = int(i.item_id)
+
+        for w in weights:
+            c = CustomItemPair()
+            c.item_1_id = items_dict[w["item_1"]]
+            c.item_2_id = items_dict[w["item_2"]]
+            c.group_id = group.group_id
+            c.weight = w["weight"]
+            db.session.add(c)
+
+        return
+
     def _setup_weighted_total_pairs(self, db, items, group, g, total_judgements_required):
         """Save each pair of items the number of times that pair needs to be judged.
 
@@ -93,34 +121,6 @@ class Setup:
                 c.group_id = group.group_id
                 c.judged = False
                 db.session.add(c)
-
-        return
-
-    def _setup_custom_item_pair(self, db, items, group, g):
-        """Save the custom item's weight configuration when defined manually using the Website configuration file.
-
-        If the web configuration type was "equal", this section will be ignored.
-
-        Args:
-            db (SQLAlchemy): Database connection
-            items (array(Item)): Group items store in the database.
-            group (Group): Group store in the database.
-            g (json): Group configuration being saved.
-        """
-        # Save the custom weights configuration
-        weights = g[WS.GROUP_ITEMS_WEIGHT]
-
-        items_dict = {}
-        for i in items:
-            items_dict[i.name] = int(i.item_id)
-
-        for w in weights:
-            c = CustomItemPair()
-            c.item_1_id = items_dict[w["item_1"]]
-            c.item_2_id = items_dict[w["item_2"]]
-            c.group_id = group.group_id
-            c.weight = w["weight"]
-            db.session.add(c)
 
         return
 
