@@ -139,7 +139,7 @@ def test_register_selected_rank_comparison_weighted_totals(custom_totals_client,
         with custom_totals_app.app_context():
             query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
             pair = db.session.scalars(query).all()
-            assert pair[0].custom_item_pair_id  == data['weighted_pair_id']
+            assert pair[0].custom_item_pair_id == data['weighted_pair_id']
             assert pair[0].judged is False
 
         response = custom_totals_client.post("/rank", data=data)
@@ -160,7 +160,7 @@ def test_register_selected_rank_comparison_weighted_totals(custom_totals_client,
             # now check we set it to true
             query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
             pair = db.session.scalars(query).all()
-            assert pair[0].custom_item_pair_id  == data['weighted_pair_id']
+            assert pair[0].custom_item_pair_id == data['weighted_pair_id']
             assert pair[0].judged is True
 
 
@@ -185,7 +185,7 @@ def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, c
         with custom_totals_app.app_context():
             query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
             pair = db.session.scalars(query).all()
-            assert pair[0].custom_item_pair_id  == data['weighted_pair_id']
+            assert pair[0].custom_item_pair_id == data['weighted_pair_id']
             assert pair[0].judged is False
 
         response = custom_totals_client.post("/rank", data=data)
@@ -206,7 +206,7 @@ def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, c
             # now check it is still to false
             query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
             pair = db.session.scalars(query).all()
-            assert pair[0].custom_item_pair_id  == data['weighted_pair_id']
+            assert pair[0].custom_item_pair_id == data['weighted_pair_id']
             assert pair[0].judged is False
 
 
@@ -562,4 +562,3 @@ def test_no_previous_button_if_setting_false(participant_data):
     assert response.status_code == 200
     assert b'Comparison Software: Items Rank' in response.data
     assert b'<button id="previous-button"' not in response.data
-
