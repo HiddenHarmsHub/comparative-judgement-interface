@@ -573,7 +573,7 @@ def test_weighted_totals_item_retrieval_last_pair(mocker, custom_totals_app):
     THEN then the single item is given to the random number generator and the judged values in the table are all reset
         to false (to start another cycle)
     """
-    judged_pairs = [x for x in range(2, 102)]
+    judged_pairs = [x for x in range(1, 102)]
     for id in judged_pairs:
         stmt = update(TotalItemPair).where(TotalItemPair.custom_item_pair_id == id).values(judged=True)
         db.session.execute(stmt)
@@ -590,9 +590,10 @@ def test_weighted_totals_item_retrieval_last_pair(mocker, custom_totals_app):
     ranker._app = custom_totals_app
     mock_rng.choice.return_value = [1]
     ranker._get_random_pair()
-    # check that we feed the correct data to the random item generator
-    mock_rng.choice.assert_called_once_with([x for x in range(1, 102) if x not in judged_pairs], 1, replace=False)
-    # check that we reset the judged values
+    # check that we feed the correct data to the random item generator, because we started with 0 unjudged they should
+    # all have been reset so we should be calling it on all 101
+    mock_rng.choice.assert_called_once_with([x for x in range(1, 102)], 1, replace=False)
+    # additional check that we reset the judged values
     stmt = select(TotalItemPair.custom_item_pair_id).where(TotalItemPair.judged == False)  # NoQA
     result = db.session.execute(stmt).all()
     assert len(result) == 101

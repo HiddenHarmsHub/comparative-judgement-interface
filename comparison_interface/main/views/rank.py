@@ -369,16 +369,17 @@ class Rank(Request):
             )
         )
         result = db.session.execute(query).all()
+
+        if len(result) == 0:  # then we need to reset the table and select again
+            update_statement = db.update(TotalItemPair).values(judged=False)
+            db.session.execute(update_statement)
+            result = db.session.execute(query).all()
+
         pair_ids = []
         pairs = {}
-
         for _, p in result:
             pairs[p.custom_item_pair_id] = p
             pair_ids.append(p.custom_item_pair_id)
-
-        if len(result) == 1:  # then this is our last pair and we need to reset the table before returning the data
-            query = db.update(TotalItemPair).values(judged=False)
-            db.session.execute(query)
 
         if len(pair_ids) == 0:
             return None, None
