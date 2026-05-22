@@ -3,7 +3,7 @@ from flask import session
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison, Participant
+from comparison_interface.db.models import Comparison, Participant, TotalItemPair
 from comparison_interface.main.views import rank
 from tests.tests_python.conftest import execute_setup
 
@@ -23,7 +23,7 @@ def test_redirect_if_not_logged_in(equal_weight_client):
 def test_render_rank_comparison_item_choice(equal_weight_client):
     """
     GIVEN a flask app configured for testing, with equal weights and basic data loaded
-    WHEN a logged in participant with no item preferences is specifed accesses the rank page
+    WHEN a logged in participant with no item preferences is specified accesses the rank page
     THEN an error message is shown because no selections have been made
     """
     with equal_weight_client.session_transaction() as session:
@@ -116,6 +116,98 @@ def test_register_skipped_rank_comparison(equal_weight_client, equal_weight_app,
             assert comp.state == 'skipped'
             assert comp.item_1_id == 1
             assert comp.item_2_id == 2
+
+
+@pytest.mark.usefixtures('add_basic_data_totals')
+def test_register_selected_rank_comparison_weighted_totals(custom_totals_client, custom_totals_app, participant_data):
+    """
+    GIVEN a flask app configured for testing and custom totals
+    WHEN a 'selected' ranking decision is posted to the rank url
+    THEN the data is stored in the database, the pair is marked as judged and the participant redirected to another
+      rank page
+    """
+    with custom_totals_client:
+        custom_totals_client.post("/register", data=participant_data)
+        data = {
+            'state': 'confirmed',
+            'item_1_id': '1',
+            'item_2_id': '2',
+            'selected_item_id': '1',
+            'weighted_pair_id': 1,
+        }
+        # check the pair is set to false
+        with custom_totals_app.app_context():
+            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
+            pair = db.session.scalars(query).all()
+            assert pair[0].custom_item_pair_id  == data['weighted_pair_id']
+            assert pair[0].judged is False
+
+        response = custom_totals_client.post("/rank", data=data)
+        assert response.status_code == 302
+        assert b'href="/rank"' in response.data
+
+        with custom_totals_app.app_context():
+            query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
+            comparisons = db.session.scalars(query).all()
+            assert len(comparisons) == 1
+            comp = comparisons[0]
+            assert comp.comparison_id == session['previous_comparison_id']
+            assert comp.participant_id == session['participant_id']
+            assert comp.selected_item_id == 1
+            assert comp.state == 'selected'
+            assert comp.item_1_id == 1
+            assert comp.item_2_id == 2
+            # now check we set it to true
+            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
+            pair = db.session.scalars(query).all()
+            assert pair[0].custom_item_pair_id  == data['weighted_pair_id']
+            assert pair[0].judged is True
+
+
+@pytest.mark.usefixtures('add_basic_data_totals')
+def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, custom_totals_app, participant_data):
+    """
+    GIVEN a flask app configured for testing and custom totals
+    WHEN a 'skipped' ranking decision is posted to the rank url
+    THEN the data is stored in the database and the participant redirected to another rank page but the pair is marked
+        as judged
+    """
+    with custom_totals_client:
+        custom_totals_client.post("/register", data=participant_data)
+        data = {
+            'state': 'skipped',
+            'item_1_id': '1',
+            'item_2_id': '2',
+            'weighted_pair_id': 1,
+        }
+
+        # check the pair is set to false
+        with custom_totals_app.app_context():
+            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
+            pair = db.session.scalars(query).all()
+            assert pair[0].custom_item_pair_id  == data['weighted_pair_id']
+            assert pair[0].judged is False
+
+        response = custom_totals_client.post("/rank", data=data)
+        assert response.status_code == 302
+        assert b'href="/rank"' in response.data
+
+        with custom_totals_app.app_context():
+            query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
+            comparisons = db.session.scalars(query).all()
+            assert len(comparisons) == 1
+            comp = comparisons[0]
+            assert comp.comparison_id == session['previous_comparison_id']
+            assert comp.participant_id == session['participant_id']
+            assert comp.selected_item_id is None
+            assert comp.state == 'skipped'
+            assert comp.item_1_id == 1
+            assert comp.item_2_id == 2
+            # now check it is still to false
+            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
+            pair = db.session.scalars(query).all()
+            assert pair[0].custom_item_pair_id  == data['weighted_pair_id']
+            assert pair[0].judged is False
 
 
 def test_rejudging_a_comparison(equal_weight_client, equal_weight_app, participant_data):
@@ -470,3 +562,4 @@ def test_no_previous_button_if_setting_false(participant_data):
     assert response.status_code == 200
     assert b'Comparison Software: Items Rank' in response.data
     assert b'<button id="previous-button"' not in response.data
+
