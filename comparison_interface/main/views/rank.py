@@ -376,7 +376,7 @@ class Rank(Request):
             pairs[p.custom_item_pair_id] = p
             pair_ids.append(p.custom_item_pair_id)
 
-        if len(result) == 1: # then this is our last pair and we need to reset the table before returning the data
+        if len(result) == 1:  # then this is our last pair and we need to reset the table before returning the data
             query = db.update(TotalItemPair).values(judged=False)
             db.session.execute(query)
 
