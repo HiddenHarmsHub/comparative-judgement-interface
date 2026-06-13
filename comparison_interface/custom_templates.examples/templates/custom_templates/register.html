@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block title %}: {{participant_registration_page_title}}{% endblock %}
+{% block content %}
+<div id="{% if group_columns %}registration-form-group-columns{% else %}registration-form{% endif %}" style="margin: 0 auto;">
+    <div class="text-center"><h1>{{title}}</h1></div>
+    <div id="redirect" style="display:none">
+      <p>The first study must be completed before this one.</p>
+      <a href="localhost:5001/register">Complete first study.</a>
+    </div>
+    <form method="POST" onsubmit="return handleData();" aria-label="Registration Form">
+        <div class="form-group p-3">
+        {% for component in components %}
+          {{component|safe}}
+        {% endfor %}
+        </div>
+        <button 
+          id="submit-button"
+          type="submit"
+          class="btn btn-primary text-center submit col-sm-12 col-md-4 offset-md-4 col-lg-2 offset-lg-5"
+        >
+          {{button}}
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block js %}
+  <script src="{{ url_for('custom_templates.static', filename='js/register.js') }}"></script>
+{% endblock %}

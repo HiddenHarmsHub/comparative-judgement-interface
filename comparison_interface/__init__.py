@@ -71,6 +71,12 @@ def create_app(testing=False, test_config=None):
     # Register the application views
     app.register_blueprint(main_bp)
 
+    # if we have asked for the custom templates blueprint then register this here
+    if "CUSTOM_TEMPLATES" in app.config and app.config["CUSTOM_TEMPLATES"] is True:
+        from comparison_interface.custom_templates import blueprint as custom_templates_bp
+
+        app.register_blueprint(custom_templates_bp)
+
     # if we have asked for the api blueprint then register this here
     if "API_ACCESS" in app.config and app.config["API_ACCESS"] is True:
         from comparison_interface.api import blueprint as api_bp

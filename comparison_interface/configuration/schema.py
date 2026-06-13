@@ -257,6 +257,7 @@ class UserField(Schema):
                     WS.USER_FIELD_TYPE_DROPDOWN,
                     WS.USER_FIELD_TYPE_RADIO,
                     WS.USER_FIELD_TYPE_EMAIL,
+                    WS.USER_FIELD_TYPE_HIDDEN,
                 ]
             )
         ],
@@ -264,7 +265,7 @@ class UserField(Schema):
     maxLimit = fields.Int()
     minLimit = fields.Int()
     required = fields.Boolean(required=True)
-    option = fields.List(fields.Str(), validate=[validate.Length(min=1, max=20)])
+    option = fields.List(fields.Str(), validate=[validate.Length(min=1, max=50)])
 
     @validates('name')
     def _validate_name(self, name, data_key):
@@ -293,7 +294,13 @@ class UserField(Schema):
 
         # Validate not max limit for not email, text or int fields
         if (
-            data['type'] not in [WS.USER_FIELD_TYPE_TEXT, WS.USER_FIELD_TYPE_INT, WS.USER_FIELD_TYPE_EMAIL]
+            data['type']
+            not in [
+                WS.USER_FIELD_TYPE_TEXT,
+                WS.USER_FIELD_TYPE_INT,
+                WS.USER_FIELD_TYPE_EMAIL,
+                WS.USER_FIELD_TYPE_HIDDEN,
+            ]
             and 'maxLimit' in data
         ):
             raise ValidationError(f"MaxLimit field cannot be defined for {data['type']} fields.")
