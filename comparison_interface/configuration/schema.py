@@ -265,7 +265,7 @@ class UserField(Schema):
     maxLimit = fields.Int()
     minLimit = fields.Int()
     required = fields.Boolean(required=True)
-    option = fields.List(fields.Str(), validate=[validate.Length(min=1, max=20)])
+    option = fields.List(fields.Str(), validate=[validate.Length(min=1, max=50)])
 
     @validates('name')
     def _validate_name(self, name, data_key):
