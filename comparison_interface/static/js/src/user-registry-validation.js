@@ -7,7 +7,9 @@ function handleData() {  // eslint-disable-line no-unused-vars
         return false;
     }
 
-    document.querySelector(".submit").disabled = true
-    document.getElementById("group-selection-error").style.visibility = "hidden";
+    document.querySelector(".submit").disabled = true;
+    if (document.getElementById("group-selection-error")) {
+        document.getElementById("group-selection-error").style.visibility = "hidden";
+    }
     return true;
 }
