@@ -45,11 +45,11 @@ languages. All of the keys in the JSON should be present for any additional lang
 the language used to name the file for example `en.json` or `de.json`. Using the correct ISO code is important as it
 will be used to set the language of the webpage enabling screen readers to select the correct voice settings for the language.
 
-To tell the system which file to use, change the setting in the `flask.py` file in the `configuration` directory. The
+To tell the system which file to use, change the environment variable `INTERFACE_LANGUAGE` in the .env file. The
 configuration for English is as follows:
 
-```python
-    LANGUAGE = 'en'
+```bash
+    INTERFACE_LANGUAGE = 'en'
 ```
 
 This will look for the display strings in `languages/en.json`.
