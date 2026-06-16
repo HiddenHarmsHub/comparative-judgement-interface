@@ -3,7 +3,7 @@ from jinja2.exceptions import TemplateNotFound
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Participant
+from comparison_interface.db.models import Group, Participant, ParticipantGroup
 
 from .request import Request
 
@@ -21,6 +21,7 @@ class Thankyou(Request):
             'stop_text': WS.get_text(WS.THANK_YOU_STOP_TEXT, self._app),
             'button': WS.get_text(WS.THANK_YOU_CONTINUE_BUTTON_LABEL, self._app),
             'participant_id': self._session['participant_id'],
+            'siem_reap': self._in_target_group(),
         }
         if self._can_continue():
             data['continue'] = True
@@ -38,4 +39,20 @@ class Thankyou(Request):
             WS.BEHAVIOUR_MAX_CYCLES, self._app
         ):
             return True
+        return False
+
+    def _in_target_group(self):
+        """Check if the participant selected our target group."""
+        query = (
+            db.select(ParticipantGroup, Group.name)
+            .join(Group, Group.group_id == ParticipantGroup.group_id, isouter=True)
+            .where(
+                ParticipantGroup.participant_id == self._session['participant_id'],
+            )
+        )
+        result = db.session.execute(query).all()
+        target = 'siemreab'
+        for item in result:
+            if item[1] == target:
+                return True
         return False
