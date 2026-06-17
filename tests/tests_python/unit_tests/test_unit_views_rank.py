@@ -2,11 +2,11 @@ from datetime import datetime, timezone
 
 import pytest
 from numpy import random
-from sqlalchemy import MetaData, create_engine, text
+from sqlalchemy import MetaData, create_engine, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison, Group, Item, ItemGroup, ParticipantGroup
+from comparison_interface.db.models import Comparison, Group, Item, ItemGroup, ParticipantGroup, TotalItemPair
 from comparison_interface.main.views import rank
 from comparison_interface.main.views.register import Request
 
@@ -513,6 +513,92 @@ def test_custom_item_retrieval(mocker, custom_weight_app):
     mock_rng.choice.assert_called_once_with([4, 5, 6, 7, 8, 9], 1, p=[0.1, 0.2, 0.2, 0.3, 0.1, 0.1], replace=False)
 
 
+@pytest.mark.usefixtures('add_basic_data_totals')
+def test_weighted_totals_item_retrieval(mocker, custom_totals_app):
+    """
+    GIVEN a flask app configured for testing and custom totals and with basic data added for user and group preference
+    WHEN a user has an active session specifying a group_id, no items have been judged and _get_custom_items is called
+    THEN then all possible pair ids are given to the random number generator
+    """
+    request = Request(custom_totals_app, {})
+    request._session['participant_id'] = 1
+    request._session['group_ids'] = [1]
+    request._session['weight_conf'] = 'weighted-total'
+    request._session['previous_comparison_id'] = None
+    request._session['comparison_ids'] = []
+    ranker = rank.Rank(request, request._session)
+    mock_rng = mocker.Mock(spec=random.Generator)
+    custom_totals_app.rng = mock_rng
+    ranker._app = custom_totals_app
+    mock_rng.choice.return_value = [4]
+    ranker._get_random_pair()
+    # check that we feed the correct data to the random item generator
+    mock_rng.choice.assert_called_once_with([x for x in range(1, 102)], 1, replace=False)
+
+
+@pytest.mark.usefixtures('add_basic_data_totals')
+def test_weighted_totals_item_retrieval_some_judgements(mocker, custom_totals_app):
+    """
+    GIVEN a flask app configured for testing and custom totals and with basic data added for user and group preference
+    WHEN a user has an active session specifying a group_id, some items have been judged and _get_custom_items is called
+    THEN then the judged pair ids are not given to the random number generator
+    """
+    judged_pairs = [4, 54, 78, 100]
+    for id in judged_pairs:
+        stmt = update(TotalItemPair).where(TotalItemPair.custom_item_pair_id == id).values(judged=True)
+        db.session.execute(stmt)
+    db.session.commit()
+    request = Request(custom_totals_app, {})
+    request._session['participant_id'] = 1
+    request._session['group_ids'] = [1]
+    request._session['weight_conf'] = 'weighted-total'
+    request._session['previous_comparison_id'] = None
+    request._session['comparison_ids'] = []
+    ranker = rank.Rank(request, request._session)
+    mock_rng = mocker.Mock(spec=random.Generator)
+    custom_totals_app.rng = mock_rng
+    ranker._app = custom_totals_app
+    mock_rng.choice.return_value = [6]
+    ranker._get_random_pair()
+    # check that we feed the correct data to the random item generator
+    mock_rng.choice.assert_called_once_with([x for x in range(1, 102) if x not in judged_pairs], 1, replace=False)
+
+
+@pytest.mark.usefixtures('add_basic_data_totals')
+def test_weighted_totals_item_retrieval_last_pair(mocker, custom_totals_app):
+    """
+    GIVEN a flask app configured for testing and custom totals and with basic data added for user and group preference
+    WHEN a user has an active session specifying a group_id, all but one of the items have been judged and
+        _get_custom_items is called
+    THEN then the single item is given to the random number generator and the judged values in the table are all reset
+        to false (to start another cycle)
+    """
+    judged_pairs = [x for x in range(1, 102)]
+    for id in judged_pairs:
+        stmt = update(TotalItemPair).where(TotalItemPair.custom_item_pair_id == id).values(judged=True)
+        db.session.execute(stmt)
+    db.session.commit()
+    request = Request(custom_totals_app, {})
+    request._session['participant_id'] = 1
+    request._session['group_ids'] = [1]
+    request._session['weight_conf'] = 'weighted-total'
+    request._session['previous_comparison_id'] = None
+    request._session['comparison_ids'] = []
+    ranker = rank.Rank(request, request._session)
+    mock_rng = mocker.Mock(spec=random.Generator)
+    custom_totals_app.rng = mock_rng
+    ranker._app = custom_totals_app
+    mock_rng.choice.return_value = [1]
+    ranker._get_random_pair()
+    # check that we feed the correct data to the random item generator, because we started with 0 unjudged they should
+    # all have been reset so we should be calling it on all 101
+    mock_rng.choice.assert_called_once_with([x for x in range(1, 102)], 1, replace=False)
+    # additional check that we reset the judged values
+    stmt = select(TotalItemPair.custom_item_pair_id).where(TotalItemPair.judged == False)  # NoQA
+    result = db.session.execute(stmt).all()
+    assert len(result) == 101
+
+
 @pytest.mark.usefixtures('add_basic_data_equal')
 def test_preferred_item_retrieval(mocker, equal_weight_app):
     """
@@ -588,7 +674,7 @@ def test_random_item_retrieval_only_one_item(equal_weight_app):
     """
     GIVEN a flask app configured for testing and equal weights and with basic data and an additional project with only
         one item
-    WHEN a user has an active session specfiying the group_id that only has one item
+    WHEN a user has an active session specifying the group_id that only has one item
     THEN instead of items two None's are returned
     """
     # First add an extra set of data for the project that only has one item

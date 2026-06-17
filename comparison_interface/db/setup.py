@@ -1,13 +1,14 @@
 """Setup the website database."""
 
 import os
+from math import ceil
 
 from sqlalchemy import create_engine, text
 
 from comparison_interface.configuration.website import Settings as WS
 
 from .connection import db, persist
-from .models import CustomItemPair, Group, Item, ItemGroup, WebsiteControl
+from .models import CustomItemPair, Group, Item, ItemGroup, TotalItemPair, WebsiteControl
 
 
 class Setup:
@@ -57,7 +58,12 @@ class Setup:
             group = persist(db, group)
             # Setup the items and their weights
             items = self._setup_item(db, group, g)
-            self._setup_custom_item_pair(db, items, group, g)
+            weight_conf = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
+            if weight_conf == WebsiteControl.CUSTOM_WEIGHT:
+                self._setup_custom_item_pair(db, items, group, g)
+            if weight_conf == WebsiteControl.WEIGHTED_TOTAL:
+                total_judgements_required = WS.get_comparison_conf(WS.TARGET_COMPARISONS, self.app)
+                self._setup_weighted_total_pairs(db, items, group, g, total_judgements_required)
 
     def _setup_custom_item_pair(self, db, items, group, g):
         """Save the custom item's weight configuration when defined manually using the Website configuration file.
@@ -70,25 +76,50 @@ class Setup:
             group (Group): Group store in the database.
             g (json): Group configuration being saved.
         """
-        weight_conf = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
-        # Ignore this section when defining equally weighted items
-        if weight_conf == WebsiteControl.EQUAL_WEIGHT:
-            return
-
         # Save the custom weights configuration
-        if weight_conf == WebsiteControl.CUSTOM_WEIGHT:
-            weights = g[WS.GROUP_ITEMS_WEIGHT]
+        weights = g[WS.GROUP_ITEMS_WEIGHT]
+
+        items_dict = {}
+        for i in items:
+            items_dict[i.name] = int(i.item_id)
+
+        for w in weights:
+            c = CustomItemPair()
+            c.item_1_id = items_dict[w["item_1"]]
+            c.item_2_id = items_dict[w["item_2"]]
+            c.group_id = group.group_id
+            c.weight = w["weight"]
+            db.session.add(c)
+
+        return
+
+    def _setup_weighted_total_pairs(self, db, items, group, g, total_judgements_required):
+        """Save each pair of items the number of times that pair needs to be judged.
+
+        The total number of each pair is based on the weight and overall total number of judgements required.
+
+        Args:
+            db (SQLAlchemy): Database connection
+            items (array(Item)): Group items store in the database.
+            group (Group): Group store in the database.
+            g (json): Group configuration being saved.
+            total_judgements_required (int): The total judgements required.
+        """
+        pairs = g[WS.GROUP_ITEMS_WEIGHT]
+        for pair in pairs:
+            weight = pair["weight"]
+            pair_total = ceil(weight * total_judgements_required)
 
             items_dict = {}
             for i in items:
                 items_dict[i.name] = int(i.item_id)
 
-            for w in weights:
-                c = CustomItemPair()
-                c.item_1_id = items_dict[w["item_1"]]
-                c.item_2_id = items_dict[w["item_2"]]
+            for i in range(0, pair_total):
+                c = TotalItemPair()
+                c.item_1_id = items_dict[pair["item_1"]]
+                c.item_2_id = items_dict[pair["item_2"]]
                 c.group_id = group.group_id
-                c.weight = w["weight"]
+                c.judged = False
                 db.session.add(c)
 
         return

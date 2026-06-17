@@ -151,6 +151,7 @@ class ComparisonConfiguration(Schema):
 
     csvFile = fields.Str(required=False)
     weightConfiguration = fields.Str(required=False)
+    targetComparisons = fields.Int(required=False)
     groups = fields.List(fields.Nested(Group()), required=False, validate=[validate.Length(min=1, max=100)])
 
     @post_load

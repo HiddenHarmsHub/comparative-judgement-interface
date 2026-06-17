@@ -68,6 +68,26 @@ def custom_weight_client(custom_weight_app):
         yield custom_weight_app.test_client()
 
 
+@pytest.fixture()
+def custom_totals_app():
+    """Set up the project for testing with custom weighted totals for each pair."""
+    app = execute_setup("../tests/test_configurations/config-weighted-pair-totals.json")
+    yield app
+
+    with app.app_context():
+        db.session.remove()
+        db.drop_all()
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_admin_database.db'))
+        os.unlink(os.path.join(os.path.join(app.instance_path), 'test_database.db'))
+
+
+@pytest.fixture()
+def custom_totals_client(custom_totals_app):
+    """Return the test client for the custom totals app."""
+    with custom_totals_app.app_context():
+        yield custom_totals_app.test_client()
+
+
 @pytest.fixture(scope='session')
 def participant_data():
     """Return some test participant data."""
@@ -112,6 +132,44 @@ def add_basic_data_custom(custom_weight_client):
     participant_group_data = {
         'participant_id': id,
         'group_id': 2,
+        'created_date': datetime.now(timezone.utc),
+    }
+    participant_group = ParticipantGroup(**participant_group_data)
+    db.session.add(participant_group)
+    db.session.commit()
+
+    yield
+
+
+@pytest.fixture()
+def add_basic_data_totals(custom_totals_client):
+    # add a participant
+    participant_data = {
+        'name': 'Tester One',
+        'country': 'England',
+        'allergies': 'Yes',
+        'age': '30',
+        'email': 'dummy@test',
+        'accepted_ethics_agreement': '1',
+    }
+    participant_data['created_date'] = datetime.now(timezone.utc)
+    db_engine = db.engines['study_db']
+    db_meta = MetaData()
+    db_meta.reflect(bind=db_engine)
+    table = db_meta.tables["participant"]
+    new_participant_sql = table.insert().values(**participant_data)
+    try:
+        # Insert the participant into the database
+        with db_engine.begin() as connection:
+            result = connection.execute(new_participant_sql)
+        id = result.lastrowid
+    except SQLAlchemyError as e:
+        raise RuntimeError(str(e))
+    db.session.commit
+    # insert the group preferences for the only group
+    participant_group_data = {
+        'participant_id': id,
+        'group_id': 1,
         'created_date': datetime.now(timezone.utc),
     }
     participant_group = ParticipantGroup(**participant_group_data)

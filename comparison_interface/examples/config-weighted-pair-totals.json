@@ -1,0 +1,127 @@
+{
+    "behaviourConfiguration": {
+        "exportPathLocation": "../exports",
+        "renderUserItemPreferencePage": false,
+        "offerEscapeRouteBetweenCycles": true,
+        "cycleLength": 10,
+        "maximumCyclesPerUser": 3,
+        "allowTies": true,
+        "allowSkip": true,
+        "allowBack": true,
+        "renderUserInstructionPage":  true,
+        "userInstructionHtml": "examples/html/instructions.html",
+        "renderEthicsAgreementPage":  true,
+        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
+        "renderSitePoliciesPage":  true,
+        "sitePoliciesHtml": "examples/html/site-policies.html",
+        "renderCookieBanner":  true
+    },
+    "userFieldsConfiguration": [
+        {
+            "name": "name",
+            "displayName": "First Name",
+            "type": "text",
+            "maxLimit": 250,
+            "required": true
+        },
+        {
+            "name": "country",
+            "displayName": "In which country do you live?",
+            "type": "radio",
+            "option": ["England", "Northern Ireland", "Scotland", "Wales", "Outside the UK"],
+            "required": true
+        },
+        {
+            "name": "allergies",
+            "displayName": "Allergies",
+            "type": "dropdown",
+            "option": ["Yes", "No"],
+            "required": true
+        },
+        {
+            "name": "age",
+            "displayName": "Age in years",
+            "type": "int",
+            "maxLimit": 250,
+            "minLimit": 10,
+            "required": true
+        },
+        {
+            "name": "email",
+            "displayName": "Email",
+            "type": "email",
+            "maxLimit": 250,
+            "required": true
+        }
+    ],
+    "websiteTextConfiguration":  {
+        "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
+        "userRegistrationGroupSelectionErr": "Please select at least one area.",
+        "rankItemInstructionLabel": "Click the region that has the higher rate of deprivation, then click on the blue confirm button.",
+        "additionalRegistrationPageText": ["The boundary outlines used in the images on this website are taken from the Office for National Statistics licensed under the Open Government Licence v.3.0 and Contains OS data © Crown copyright and database right 2024"]
+    },
+    "comparisonConfiguration" : {
+        "weightConfiguration": "weighted-total",
+        "targetComparisons": 100,
+        "groups": [
+            {
+                "name": "england_east",
+                "displayName": "East of England",
+                "items":[
+                    {
+                        "name": "north_east",
+                        "displayName": "North East",
+                        "imageName": "item_1.png"
+                    },
+                    {
+                        "name": "yorkshire",
+                        "displayName": "Yorkshire & Humberside",
+                        "imageName": "item_3.png"
+                    },
+                    {
+                        "name": "east_midlands",
+                        "displayName": "East Midlands",
+                        "imageName": "item_4.png"
+                    },
+                    {
+                        "name": "eastern",
+                        "displayName": "Eastern",
+                        "imageName": "item_6.png"
+                    }
+                ],
+                "weight":[
+                    {
+                        "item_1": "north_east",
+                        "item_2": "yorkshire",
+                        "weight":0.1
+                    },
+                    {
+                        "item_1": "north_east",
+                        "item_2": "east_midlands",
+                        "weight":0.2
+                    },
+                    {
+                        "item_1": "north_east",
+                        "item_2": "eastern",
+                        "weight":0.2
+                    },
+                    {
+                        "item_1": "yorkshire",
+                        "item_2": "east_midlands",
+                        "weight":0.3
+                    },
+                    {
+                        "item_1": "yorkshire",
+                        "item_2": "eastern",
+                        "weight":0.1
+                    },
+                    {
+                        "item_1": "east_midlands",
+                        "item_2": "eastern",
+                        "weight":0.1
+                    }
+                ]
+            }
+        ]
+    }
+}
