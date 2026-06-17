@@ -21,9 +21,10 @@ class Thankyou(Request):
             'continue_text': WS.get_text(WS.THANK_YOU_CONTINUE_TEXT, self._app),
             'stop_text': WS.get_text(WS.THANK_YOU_STOP_TEXT, self._app),
             'button': WS.get_text(WS.THANK_YOU_CONTINUE_BUTTON_LABEL, self._app),
-            'participant_id': self._session['participant_id'],
             'siem_reap': self._get_siem_reap(),
         }
+        if data['siem_reap']:
+            data['first_participant_id'] = self._get_study_1_id()
         if self._can_continue():
             data['continue'] = True
         if 'CUSTOM_TEMPLATES' in current_app.config and current_app.config['CUSTOM_TEMPLATES'] is True:
@@ -42,11 +43,21 @@ class Thankyou(Request):
             return True
         return False
 
+    def _get_study_1_id(self):
+        """Get the id of the participant from study 1."""
+        db_engine = db.engines['study_db']
+        db_meta = MetaData()
+        db_meta.reflect(bind=db_engine)
+        sql = text("select {} from participant where participant_id={};".format(
+            'first_study_id', self._session['participant_id'])
+        )
+        with db_engine.begin() as connection:
+            results = connection.execute(sql)
+        for record in results:
+            return record[0]
+
     def _get_siem_reap(self):
         """Check if the participant selected siem reap in study 1."""
-        participant = db.session.get(Participant, self._session['participant_id'])
-        print(participant)
-        print(dir(participant))
         db_engine = db.engines['study_db']
         db_meta = MetaData()
         db_meta.reflect(bind=db_engine)
