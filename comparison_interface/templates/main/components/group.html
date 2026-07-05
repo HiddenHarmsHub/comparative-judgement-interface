@@ -3,8 +3,8 @@
 {% else %}
     <hr/>
     <div class="form-group row" role="group" aria-labelledby="group-ids-label">
-        <div id="group-ids-label" for="group_ids" class="col-md-4 col-sm-4 {% if group_columns %}col-lg-2{% else %}col-lg-4{% endif %} col-form-label">{{label}}</div>
-        <div class="col-md-8 col-sm-8 {% if group_columns %}col-lg-10{% else %}col-lg-8{% endif %}">
+        <div id="group-ids-label" for="group_ids" class="col-md-4 col-sm-4 {% if group_columns %}col-lg-4{% else %}col-lg-4{% endif %} col-form-label">{{label}}</div>
+        <div class="col-md-8 col-sm-8 {% if group_columns %}col-lg-8{% else %}col-lg-8{% endif %}">
             {% if multiple_selection %}
                 <div id="group_ids" class="checkbox-group required row">
                     {% if group_columns %}
