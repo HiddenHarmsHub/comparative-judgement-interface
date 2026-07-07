@@ -24,8 +24,8 @@
         {% if allow_ties == 'false' %}<p id="additional-instructions" class="visually-hidden">{{ additional_screen_reader_instructions }}</p>{% endif %}
         <div class="col position-relative">
           <div class="text-center">
-            <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">{{ item_1.display_name }}</span>
-            <span class="visually-hidden" id="left-item-description">{% if item_1.image_description != None %}{{item_1.display_name}}: {{item_1.image_description}}{% else %}{{item_1.display_name}}{% endif %}</span>
+            <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">{{ item_1.display_name }}</span><br>
+            <span id="left-item-description">{{item_1.image_description}}</span>
           </div>
           <div class="text-center">
             <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
@@ -40,8 +40,8 @@
         </div>
         <div class="col position-relative">
           <div class="text-center">
-            <span aria-hidden="true" id="right-item-label" class="fs-3 fw-bold">{{ item_2.display_name }}</span>
-            <span class="visually-hidden" id="right-item-description">{% if item_2.image_description != None %}{{item_2.display_name}}: {{item_2.image_description}}{% else %}{{item_2.display_name}}{% endif %}</span>
+            <span aria-hidden="true" id="right-item-label" class="fs-3 fw-bold">{{ item_2.display_name }}</span><br>
+            <span id="right-item-description">{{item_2.image_description}}</span>
           </div>
           <div class="text-center">
             <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
