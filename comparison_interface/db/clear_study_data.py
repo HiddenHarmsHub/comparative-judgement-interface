@@ -13,6 +13,4 @@ def clear_study_data():
         for table in tables_to_clear:
             connection.execute(delete(table))
 
-        connection.execute(
-            update(TotalItemPair).values(judged=False)
-        )
+        connection.execute(update(TotalItemPair).values(judged=False))
