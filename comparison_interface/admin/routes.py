@@ -376,12 +376,6 @@ def download_data():
 
     return send_file(f"{zip_path}.zip", download_name="downloaded_data.zip", as_attachment=True)
 
-@blueprint.route("/clear", methods=["POST"])
-@auth_required("session", within=5)
-def clear_data():
-    """Clear the participant data and all existing judgements from the database."""
-    clear_study_data()
-    return redirect(url_for("admin.dashboard"))
 
 @blueprint.route("/clear", methods=["POST"])
 @auth_required("session", within=5)
