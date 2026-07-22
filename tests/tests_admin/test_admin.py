@@ -212,6 +212,7 @@ def test_new_study_route_json_and_csv(live_server, page):
     expect(page).to_have_url(url_for("admin.setup_study", _external=True))
     expect(page.get_by_role("button", name="Create New Study")).to_be_visible()
 
+
 def test_clear_study_data_confirmed(live_server, page):
     """
     GIVEN a flask app configured for testing the weighted-total method and with ADMIN_ACCESS set to True
@@ -250,6 +251,7 @@ def test_clear_study_data_confirmed(live_server, page):
     with db_engine.begin() as connection:
         pairs = connection.execute(select(TotalItemPair))
         assert all(not pair.judged for pair in pairs)
+
 
 def test_clear_study_data_dismissed(live_server, page):
     """
