@@ -8,10 +8,8 @@
         "allowTies": true,
         "allowSkip": true,
         "allowBack": true,
-        "renderUserInstructionPage":  true,
-        "userInstructionHtml": "examples/html/instructions.html",
+        "renderUserInstructionPage":  true,     
         "renderEthicsAgreementPage":  true,
-        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
         "renderSitePoliciesPage":  true,
         "sitePoliciesHtml": "examples/html/site-policies.html",
         "renderCookieBanner":  true
