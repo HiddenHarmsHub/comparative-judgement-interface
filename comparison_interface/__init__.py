@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, current_app, render_template, request, session
+from flask_babel import Babel
 from numpy.random import default_rng
 from whitenoise import WhiteNoise
 
@@ -27,6 +28,7 @@ def create_app(testing=False, test_config=None):
     """
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True, static_folder="static")
+    babel = Babel(app)
 
     handler = RotatingFileHandler('flask.log', maxBytes=10000, backupCount=5)
     handler.setLevel(logging.DEBUG)
