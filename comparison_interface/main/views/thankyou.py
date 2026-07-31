@@ -3,7 +3,7 @@ from jinja2.exceptions import TemplateNotFound
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Participant
+from comparison_interface.db.models import Participant, ParticipantGroup
 
 from .request import Request
 
@@ -25,6 +25,16 @@ class Thankyou(Request):
         if self._can_continue():
             data['continue'] = True
         if 'CUSTOM_TEMPLATES' in current_app.config and current_app.config['CUSTOM_TEMPLATES'] is True:
+            data['groups'] = None
+            group_ids = []
+            query = (
+                db.select(ParticipantGroup).where(ParticipantGroup.participant_id == self._session['participant_id'])
+            )
+            groups = db.session.execute(query).all()
+            for group in groups:
+                group_ids.append(str(group[0].group_id))
+            if len(group_ids) > 0:
+                data['groups'] = '|'.join(group_ids)
             try:
                 return self._render_template('custom_templates/thankyou.html', data)
             except TemplateNotFound:
