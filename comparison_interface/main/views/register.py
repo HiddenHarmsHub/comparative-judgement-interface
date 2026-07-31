@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
-from flask import render_template
+from flask import current_app, render_template
+from jinja2.exceptions import TemplateNotFound
 from sqlalchemy import MetaData
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -26,16 +27,18 @@ class Register(Request):
         self._load_additional_text(user_components)
         self._load_ethics_component(user_components)
 
-        # Render components
-        return self._render_template(
-            'main/pages/register.html',
-            {
-                'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._app),
-                'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._app),
-                'components': user_components,
-                'group_columns': group_columns,
-            },
-        )
+        data = {
+            'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._app),
+            'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._app),
+            'components': user_components,
+            'group_columns': group_columns,
+        }
+        if 'CUSTOM_TEMPLATES' in current_app.config and current_app.config['CUSTOM_TEMPLATES'] is True:
+            try:
+                return self._render_template('custom_templates/register.html', data)
+            except TemplateNotFound:
+                pass
+        return self._render_template('main/pages/register.html', data)
 
     def post(self, request):
         """Request post handler."""

@@ -221,6 +221,10 @@ class Setup:
                 elif type == WS.USER_FIELD_TYPE_INT:
                     col_type = 'INT'
                     default_value = 0
+                elif type == WS.USER_FIELD_TYPE_HIDDEN:
+                    max_size = f[WS.USER_FIELD_MAX_LIMIT]
+                    col_type = col_type = f'VARCHAR({max_size})'
+                    # default_value = ""
                 if required is True:
                     nullable = 'NOT NULL'
                 else:

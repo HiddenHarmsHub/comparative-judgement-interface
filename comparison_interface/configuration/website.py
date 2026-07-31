@@ -61,6 +61,7 @@ class Settings:
     USER_FIELD_TYPE_DROPDOWN = "dropdown"
     USER_FIELD_TYPE_RADIO = "radio"
     USER_FIELD_TYPE_EMAIL = "email"
+    USER_FIELD_TYPE_HIDDEN = "hidden"
     # Website labels
     SKIP_TO_MAIN_CONTENT = "skipToMainContent"
     WEBSITE_TITLE = "websiteTitle"
