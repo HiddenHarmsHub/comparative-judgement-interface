@@ -28,7 +28,7 @@
         "skipButtonErrorMessage": "No puede omitir una comparación si hay elementos seleccionados. Deseleccione los elementos para omitir la comparación o use el botón Confirmar para confirmar la selección actual.",
         "additionalRadioButtonInstructions": "Los dos elementos del grupo de opciones funcionan como botones de opción; sin embargo, si se hace clic en un botón de opción ya seleccionado, se deseleccionará y el grupo volverá al estado sin selección.",
         "itemSelectionGroupLabel": "Los elementos para seleccionar.",
-        "introductionContinueButtonLabel": "Continuar",
+        "introductionContinueButtonLabel": "Continuar a la encuesta",
         "thankYouContinueButtonLabel": "Continuar",
         "thankYouTitle": "Gracias",
         "thankYouOpeningText": "Gracias por contribuir a esta investigación.",
