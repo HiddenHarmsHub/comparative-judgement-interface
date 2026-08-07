@@ -33,7 +33,7 @@ class Thankyou(Request):
             groups = db.session.execute(query).all()
             for group in groups:
                 group_ids.append(str(group[0].group_id))
-            if len(group_ids) > 0:
+            if len(group_ids) > 1:
                 data['groups'] = '|'.join(group_ids)
             try:
                 return self._render_template('custom_templates/thankyou.html', data)
