@@ -22,7 +22,7 @@
       <section id="cookie-message"></section>
     {% endif %}
     <nav class="navbar navbar-expand-md p-2 mb-2 fs-5" style="background-color: lightgray">
-      <a class="visually-hidden-focusable rounded-2 p-1 bg-white" href="#main">{{ skip_to_main_content }}</a>
+      <a class="visually-hidden-focusable rounded-2 p-1 bg-white" href="#main">{{ _("Skip to main content") }}</a>
      {{ website_title }}
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navigation" aria-controls="main-navigation" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -46,7 +46,7 @@
             </li>
           {% endif %}
           <li class="nav-item">
-            <a class="nav-link focus-ring ml-2" href="{{ url_for('main.logout') }}">{{logout_page_title}}</a>
+            <a class="nav-link focus-ring ml-2" href="{{ url_for('main.logout') }}">{{ _("Log Out") }}</a>
           </li>
         </ul>
       </div>
