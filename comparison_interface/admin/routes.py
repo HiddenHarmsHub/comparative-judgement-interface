@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 from comparison_interface.admin import blueprint, forms
 from comparison_interface.configuration.validation import Validation as ConfigValidation
 from comparison_interface.configuration.website import Settings as WS
+from comparison_interface.db.clear_study_data import clear_study_data
 from comparison_interface.db.connection import db
 from comparison_interface.db.export import Exporter
 from comparison_interface.db.models import Comparison, Participant, WebsiteControl
@@ -374,6 +375,14 @@ def download_data():
     shutil.make_archive(zip_path, "zip", dir)
 
     return send_file(f"{zip_path}.zip", download_name="downloaded_data.zip", as_attachment=True)
+
+
+@blueprint.route("/clear", methods=["POST"])
+@auth_required("session", within=5)
+def clear_data():
+    """Clear the participant data and all existing judgements from the database."""
+    clear_study_data()
+    return redirect(url_for("admin.dashboard"))
 
 
 @blueprint.route("/edit-page", methods=["GET", "POST"])
