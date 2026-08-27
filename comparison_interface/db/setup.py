@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, text
 from comparison_interface.configuration.website import Settings as WS
 
 from .connection import db, persist
-from .models import CustomItemPair, Group, Item, ItemGroup, TotalItemPair, WebsiteControl
+from .models import CustomItemPair, Group, Item, ItemGroup, StudyControl, TotalItemPair, WebsiteControl
 
 
 class Setup:
@@ -39,7 +39,8 @@ class Setup:
 
             # The session needs be committed after the creation of the groups.
             self._setup_group(db)
-            self._setup_website_control_history(db)
+            self._setup_website_control(db)
+            #self._setup_website_control_history(db)
             db.session.commit()
 
             # The setup of the participant configuration doesn't use SQLAlchemy ORM. The transaction
@@ -59,9 +60,9 @@ class Setup:
             # Setup the items and their weights
             items = self._setup_item(db, group, g)
             weight_conf = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
-            if weight_conf == WebsiteControl.CUSTOM_WEIGHT:
+            if weight_conf == StudyControl.CUSTOM_WEIGHT:
                 self._setup_custom_item_pair(db, items, group, g)
-            if weight_conf == WebsiteControl.WEIGHTED_TOTAL:
+            if weight_conf == StudyControl.WEIGHTED_TOTAL:
                 total_judgements_required = WS.get_comparison_conf(WS.TARGET_COMPARISONS, self.app)
                 self._setup_weighted_total_pairs(db, items, group, g, total_judgements_required)
 
@@ -242,6 +243,29 @@ class Setup:
                 conn.execute(
                     text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"')
                 )
+
+    def _setup_website_control(self, db):
+        """Load the configuration for the website control.
+
+        Args:
+            db (SQLAlchemy): Database connection,
+        """
+        # TODO: get values from config file
+        config = WebsiteControl()
+        config.study_count = 1
+        config.export_path_location = WS.get_behaviour_conf(WS.BEHAVIOUR_EXPORT_PATH_LOCATION, self.app)
+        config.render_instructions_page = WS.should_render(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE, self.app)
+        if WS.configuration_has_key(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, self.app):
+            config.instructions_html = WS.get_behaviour_conf(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, self.app)
+        config.render_ethics_agreement_page = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
+        if WS.configuration_has_key(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, self.app):
+            config.ethics_html = WS.get_behaviour_conf(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, self.app)
+        config.render_site_policies_page = WS.should_render(WS.BEHAVIOUR_RENDER_SITE_POLICIES, self.app)
+        if WS.configuration_has_key(WS.BEHAVIOUR_SITE_POLICIES_HTML, self.app):
+            config.site_policies_html = WS.get_behaviour_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, self.app)
+        config.render_cookie_banner = WS.should_render(WS.BEHAVIOUR_RENDER_COOKIE_BANNER, self.app)
+        config.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
+        db.session.add(config)
 
     def _setup_website_control_history(self, db):
         """Setup the control history to monitor for changes to the website configuration file.

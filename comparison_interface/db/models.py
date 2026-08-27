@@ -202,7 +202,7 @@ class ParticipantItem(db.Model, BaseModel):
 
 
 class WebsiteControl(db.Model, BaseModel):
-    """Control table to know if the application is in a healthy state.
+    """Control table to store settings which can only be set for the whole website.
 
     Args:
         db (SQLAlchemy): SQLAlchemy connection object
@@ -211,13 +211,18 @@ class WebsiteControl(db.Model, BaseModel):
     __tablename__ = 'website_control'
     __bind_key__ = "study_db"
 
-    # Available weight configuration
-    EQUAL_WEIGHT = 'equal'  # All items weights during the comparison are the same.
-    CUSTOM_WEIGHT = 'manual'  # The weights of the items were manually assigned by the researcher.
-    WEIGHTED_TOTAL = 'weighted-total'  # The weights of the items are calculated by weight and total target judgements.
-
     website_control_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    weight_configuration = db.Column(db.String(20), nullable=False)
+    study_count = db.Column(db.Integer, nullable=False)
+    export_path_location = db.Column(db.String(250), nullable=False)
+    render_instructions_page = db.Column(db.Boolean, nullable=False)
+    instructions_html = db.Column(db.String(250), nullable=True)
+    render_ethics_agreement_page = db.Column(db.Boolean, nullable=False)
+    ethics_html = db.Column(db.String(250), nullable=True)
+    render_site_policies_page = db.Column(db.Boolean, nullable=False)
+    site_policies_html = db.Column(db.String(250), nullable=True)
+    render_cookie_banner = db.Column(db.Boolean, nullable=False)
+
+    # these two will need to be removed
     configuration_file = db.Column(db.String(500), nullable=False)
     setup_exec_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
@@ -229,11 +234,62 @@ class WebsiteControl(db.Model, BaseModel):
         """
         return self.query.order_by(WebsiteControl.website_control_id.desc()).first()
 
-    def equal_weight_configuration(self):
-        """Determine if the system is running with an equal weight configuration.
 
-        Returns:
-            boolean: True if the configuration is for equal weighted items, False if not
-        """
-        c = self.get_conf()
-        return c.weight_configuration == self.EQUAL_WEIGHT
+class StudyControl(db.Model, BaseModel):
+    """Table to control the studies running on the website.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'study_control'
+    __bind_key__ = "study_db"
+
+    # Available weight configuration
+    EQUAL_WEIGHT = 'equal'  # All items weights during the comparison are the same.
+    CUSTOM_WEIGHT = 'manual'  # The weights of the items were manually assigned by the researcher.
+    WEIGHTED_TOTAL = 'weighted-total'  # The weights of the items are calculated by weight and total target judgements.
+
+    study_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    study_sequence = db.Column(db.Integer, nullable=False)
+    weight_configuration = db.Column(db.String(20), nullable=False)
+    allow_ties = db.Column(db.Boolean, nullable=False)
+    allow_skip = db.Column(db.Boolean, nullable=False)
+    allow_back = db.Column(db.Boolean, nullable=False)
+    render_user_item_preference_page = db.Column(db.Boolean, nullable=False)
+    offer_escape_route_between_cycles = db.Column(db.Boolean, nullable=False)
+    cycle_length = db.Column(db.Integer, nullable=False)
+    max_cycles_per_user = db.Column(db.Integer, nullable=False)
+
+
+class WebsiteText(db.Model, BaseModel):
+    """Table to for all the text strings used on the website.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'website_text'
+    __bind_key__ = "study_db"
+
+    website_text_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    language = db.Column(db.String(3), nullable=False)
+    string_key = db.Column(db.String(500), nullable=False)
+    string_value = db.Column(db.String(500), nullable=False)
+
+
+class StudyText(db.Model, BaseModel):
+    """Table to for all the text strings used on the website.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'study_text'
+    __bind_key__ = "study_db"
+
+    study_text_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
+    language = db.Column(db.String(3), nullable=False)
+    string_key = db.Column(db.String(500), nullable=False)
+    string_value = db.Column(db.String(500), nullable=False)
