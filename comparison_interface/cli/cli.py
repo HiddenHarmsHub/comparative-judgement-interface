@@ -135,6 +135,7 @@ def export(format):
             WS.set_configuration_location(app, conf.configuration_file)
             ConfigValidation(app).validate()
             location = WS.get_export_location(app)
+            print(location)
             if not os.path.exists(location):
                 os.makedirs(location)
                 app.logger.info('Creating folder for data export.')

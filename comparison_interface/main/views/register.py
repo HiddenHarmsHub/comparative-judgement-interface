@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Group, Participant, ParticipantGroup, WebsiteControl
+from comparison_interface.db.models import Group, Participant, ParticipantGroup, StudyControl
 
 from .request import Request
 
@@ -80,7 +80,7 @@ class Register(Request):
             # Save reference to the inserted values in the session
             self._session['participant_id'] = participant.participant_id
             self._session['group_ids'] = group_ids
-            self._session['weight_conf'] = WebsiteControl().get_conf().weight_configuration
+            self._session['weight_conf'] = StudyControl().get_conf().weight_configuration
             self._session['previous_comparison_id'] = None
             self._session['comparison_ids'] = []
         except SQLAlchemyError as e:
@@ -108,7 +108,7 @@ class Register(Request):
         """
         # Allow multiple item selection only if the item's weight distribution is "equal"
         multiple_selection = False
-        if WebsiteControl().get_conf().weight_configuration == WebsiteControl.EQUAL_WEIGHT:
+        if StudyControl().get_conf().weight_configuration == StudyControl.EQUAL_WEIGHT:
             multiple_selection = True
 
         groups = db.session.scalars(db.select(Group)).all()
@@ -146,11 +146,11 @@ class Register(Request):
         Args:
             user_components (list): Components render in the user registry view
         """
-        additional_list = WS.get_optional_text(WS.ADDITIONAL_REGISTRATION_TEXT, self._app)
+        additional_list = WS.get_text(WS.ADDITIONAL_REGISTRATION_TEXT, self._app)
         if additional_list is not None:
             if len(additional_list) > 0:
                 user_components.append('<hr/>')
-                for item in additional_list:
+                for item in additional_list.split('||'):
                     user_components.append(render_template('main/components/additional_text.html', **{'text': item}))
 
     def _load_ethics_component(self, user_components: list):

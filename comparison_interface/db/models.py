@@ -261,6 +261,16 @@ class StudyControl(db.Model, BaseModel):
     cycle_length = db.Column(db.Integer, nullable=False)
     max_cycles_per_user = db.Column(db.Integer, nullable=False)
 
+    def get_conf(self):
+        """Get the study control configuration.
+
+        NB: this will need to get the right study once we allow multiple studies
+
+        Returns:
+            StudyControl: Study Control configuration model object
+        """
+        return self.query.order_by(StudyControl.study_sequence.desc()).first()
+
 
 class WebsiteText(db.Model, BaseModel):
     """Table to for all the text strings used on the website.

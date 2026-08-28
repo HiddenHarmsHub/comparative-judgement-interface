@@ -6,10 +6,11 @@ from math import ceil
 from sqlalchemy import create_engine, text
 
 from comparison_interface.configuration.csv_processor import CsvProcessor
+from comparison_interface.configuration.schema import WebsiteTextConfiguration
 from comparison_interface.configuration.website import Settings as WS
 
 from .connection import db, persist
-from .models import CustomItemPair, Group, Item, ItemGroup, StudyControl, TotalItemPair, WebsiteControl
+from .models import CustomItemPair, Group, Item, ItemGroup, StudyControl, TotalItemPair, WebsiteControl, WebsiteText
 
 
 class Setup:
@@ -42,7 +43,8 @@ class Setup:
             # The session needs be committed after the creation of the groups.
             self._setup_group(db)
             self._setup_website_control(db)
-            #self._setup_website_control_history(db)
+            self._setup_study_control(db)
+            self._setup_website_text(db)
             db.session.commit()
 
             # The setup of the participant configuration doesn't use SQLAlchemy ORM. The transaction
@@ -274,9 +276,6 @@ class Setup:
         if key not in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
             self.app.logger.critical(f"Label {key} wasn't found in the behaviour configuration.")
             exit()
-        elif key == WS.BEHAVIOUR_EXPORT_PATH_LOCATION:
-            path = self.json_conf[WS.CONFIGURATION_BEHAVIOUR][key]
-            return os.path.abspath(os.path.dirname(__file__)) + "/../" + path
         else:
             return self.json_conf[WS.CONFIGURATION_BEHAVIOUR][key]
 
@@ -304,17 +303,37 @@ class Setup:
         config.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
         db.session.add(config)
 
-    # def _setup_website_control_history(self, db):
-    #     """Setup the control history to monitor for changes to the website configuration file.
+    def _setup_study_control(self, db):
+        """Load the configuration for the studies.
 
-    #     Once the project has been setup no changes are allowed to the website configuration file.
-    #     if the file is changed the web interface will no longer respond to requests. A reset will be necessary and all
-    #     information in the current database will be deleted as part of that process.
+        Args:
+            db (SQLAlchemy): Database connection,
+        """
+        config = StudyControl()
+        config.study_sequence = 1
+        config.weight_configuration = self._get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION)
+        config.allow_ties = self._get_config_value(WS.BEHAVIOUR_ALLOW_TIES)
+        config.allow_skip = self._get_config_value(WS.BEHAVIOUR_ALLOW_SKIP)
+        config.allow_back = self._get_config_value(WS.BEHAVIOUR_ALLOW_BACK)
+        config.render_user_item_preference_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE)
+        config.offer_escape_route_between_cycles = self._get_config_value(WS.BEHAVIOUR_ESCAPE_ROUTE)
+        config.cycle_length = self._get_config_value(WS.BEHAVIOUR_CYCLE_LENGTH)
+        config.max_cycles_per_user = self._get_config_value(WS.BEHAVIOUR_MAX_CYCLES)
+        db.session.add(config)
 
-    #     Args:
-    #         db (SQLAlchemy): Database connection,
-    #     """
-    #     hist = WebsiteControl()
-    #     hist.weight_configuration = self._get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
-    #     hist.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
-    #     db.session.add(hist)
+    def _setup_website_text(self, db):
+
+        keys = vars(WebsiteTextConfiguration())['declared_fields'].keys()
+        for key in keys:
+            config = WebsiteText()
+            config.string_key = key
+            config.language = "en"
+            if key in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT]:
+                config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]
+            elif key in self.app.language_config[WS.CONFIGURATION_WEBSITE_TEXT]:
+                config.string_value = self.app.language_config[WS.CONFIGURATION_WEBSITE_TEXT][key]
+            else:
+                config.string_value = "missing"
+            if isinstance(config.string_value, list):
+                config.string_value = '||'.join(config.string_value)
+            db.session.add(config)

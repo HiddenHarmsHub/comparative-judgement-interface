@@ -1,5 +1,9 @@
 import json
 import os
+from pathlib import Path
+
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import WebsiteControl, WebsiteText
 
 
 class Settings:
@@ -191,37 +195,12 @@ class Settings:
         Returns:
             string: Text configuration for the specified label
         """
-        conf = cls.get_configuration(app)
-
-        # first try the project configuration
-        if label in conf[cls.CONFIGURATION_WEBSITE_TEXT]:
-            return conf[cls.CONFIGURATION_WEBSITE_TEXT][label]
-        # now try the language configuration
-        if label in app.language_config[cls.CONFIGURATION_WEBSITE_TEXT]:
-            return app.language_config[cls.CONFIGURATION_WEBSITE_TEXT][label]
-        # raise an error
-        app.logger.critical(f"Label {label} wasn't found in the project configuration or the language configuration.")
-        exit()
-
-    @classmethod
-    def get_optional_text(cls, label, app):
-        """Get the text to render for a specific label of the website or None if not supplied.
-
-        Args:
-            label (string): Label text required
-            app (Flask app): Flask application
-
-        Returns:
-            string: Text configuration for the specified label or None is not supplied in config
-        """
-        conf = cls.get_configuration(app)
-        if label not in conf[cls.CONFIGURATION_WEBSITE_TEXT]:
-            return None
-
-        return conf[cls.CONFIGURATION_WEBSITE_TEXT][label]
-
-    # NB: function only used in setup.py
-
+        with app.app_context():
+            query = db.select(WebsiteText.string_value).where(
+                WebsiteText.language == "en",
+                WebsiteText.string_key == label,
+            )
+            return db.session.scalars(query).first()
 
     @classmethod
     def get_user_conf(cls, app):
@@ -269,8 +248,15 @@ class Settings:
         Returns:
             string: export path
         """
-        path = cls.get_behaviour_conf(cls.BEHAVIOUR_EXPORT_PATH_LOCATION, app)
-        return os.path.abspath(os.path.dirname(__file__)) + "/../" + path
+        with app.app_context():
+            query = db.select(WebsiteControl.export_path_location)
+            path = db.session.scalar(query)
+            allowed_root = Path(__file__).resolve().parent.parent.parent
+            absolute_path = Path((__file__) + "/../" + path).resolve()
+            if absolute_path.is_relative_to(allowed_root):
+                return absolute_path
+            app.logger.critical("The requested export path was not within the permitted directory")
+            exit()
 
     @classmethod
     def should_render(cls, section, app):
@@ -283,8 +269,11 @@ class Settings:
         Returns:
             boolean: True when the section should be rendered, False if not.
         """
-        render = cls.get_behaviour_conf(section, app)
-        return render == "true" or render == "True" or render == "1" or render is True
+        with app.app_context():
+            query = db.select(WebsiteControl.export_path_location)
+            db.session.scalar(query)
+        # render = cls.get_behaviour_conf(section, app)
+        # return render == "true" or render == "True" or render == "1" or render is True
 
     @classmethod
     def _unmarshall(cls, app):
