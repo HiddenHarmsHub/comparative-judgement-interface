@@ -5,6 +5,7 @@ from math import ceil
 
 from sqlalchemy import create_engine, text
 
+from comparison_interface.configuration.csv_processor import CsvProcessor
 from comparison_interface.configuration.website import Settings as WS
 
 from .connection import db, persist
@@ -17,6 +18,7 @@ class Setup:
     def __init__(self, app) -> None:
         """Initialise the Setup with the Flask app."""
         self.app = app
+        self.json_conf = WS.get_configuration(self.app)
 
     def exec(self):
         """Initialise the website database.
@@ -29,7 +31,7 @@ class Setup:
             db.create_all('study_db')
 
             # Remove previous exported database content
-            export_location = WS.get_export_location(self.app)
+            export_location = self._get_config_value(WS.BEHAVIOUR_EXPORT_PATH_LOCATION)
             if os.path.exists(export_location):
                 for file in os.listdir(export_location):
                     try:
@@ -48,22 +50,46 @@ class Setup:
             # columns values are dynamically defined so a different process needs to be followed.
             self._setup_participant(db)
 
+    def _get_comparison_conf(self, key):
+        """Get the configuration values related to the comparison behaviour of the website.
+
+        This could come from the config file or from the csv file.
+
+        Args:
+            key (string): configuration key required
+            app (Flask app): Flask application
+
+        Returns:
+            string: Configuration value for the requested key
+        """
+        if "csvFile" in self.json_conf[WS.CONFIGURATION_COMPARISON]:
+            # then we need to get the data from the csv file
+            location = WS.get_configuration_location(self.app)
+            filepath = os.path.join(location, self.json_conf[WS.CONFIGURATION_COMPARISON]["csvFile"])
+            data = CsvProcessor().create_config_from_csv(filepath)
+            return data[key]
+        else:
+            if key not in self.json_conf[WS.CONFIGURATION_COMPARISON]:
+                self.app.logger.critical("Label %s wasn't found in the comparison configuration." % (key))
+                exit()
+        return self.json_conf[WS.CONFIGURATION_COMPARISON][key]
+
     def _setup_group(self, db):
         """Save the group configuration in the database.
 
         Args:
             db (SQLAlchemy): Database connection
         """
-        for g in WS.get_comparison_conf(WS.GROUPS, self.app):
+        for g in self._get_comparison_conf(WS.GROUPS):
             group = Group(name=g[WS.GROUP_NAME], display_name=g[WS.GROUP_DISPLAY_NAME])
             group = persist(db, group)
             # Setup the items and their weights
             items = self._setup_item(db, group, g)
-            weight_conf = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
+            weight_conf = self._get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION)
             if weight_conf == StudyControl.CUSTOM_WEIGHT:
                 self._setup_custom_item_pair(db, items, group, g)
             if weight_conf == StudyControl.WEIGHTED_TOTAL:
-                total_judgements_required = WS.get_comparison_conf(WS.TARGET_COMPARISONS, self.app)
+                total_judgements_required = self._get_comparison_conf(WS.TARGET_COMPARISONS)
                 self._setup_weighted_total_pairs(db, items, group, g, total_judgements_required)
 
     def _setup_custom_item_pair(self, db, items, group, g):
@@ -200,7 +226,7 @@ class Setup:
         Args:
             db (SQLAlchemy): Database connection
         """
-        participant_conf = WS.get_user_conf(self.app)
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
         # Create each of the new participant columns
         os.chdir(self.app.instance_path)
         engine = create_engine(self.app.config["SQLALCHEMY_BINDS"]["study_db"])
@@ -238,11 +264,21 @@ class Setup:
 
             # Add a field to specify if the participant accepted the ethics agreement
             # if this section was configured to be rendered
-            render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
+            render_ethics = self._get_config_value(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE)
             if render_ethics:
                 conn.execute(
                     text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"')
                 )
+
+    def _get_config_value(self, key):
+        if key not in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            self.app.logger.critical(f"Label {key} wasn't found in the behaviour configuration.")
+            exit()
+        elif key == WS.BEHAVIOUR_EXPORT_PATH_LOCATION:
+            path = self.json_conf[WS.CONFIGURATION_BEHAVIOUR][key]
+            return os.path.abspath(os.path.dirname(__file__)) + "/../" + path
+        else:
+            return self.json_conf[WS.CONFIGURATION_BEHAVIOUR][key]
 
     def _setup_website_control(self, db):
         """Load the configuration for the website control.
@@ -250,34 +286,35 @@ class Setup:
         Args:
             db (SQLAlchemy): Database connection,
         """
-        # TODO: get values from config file
         config = WebsiteControl()
         config.study_count = 1
-        config.export_path_location = WS.get_behaviour_conf(WS.BEHAVIOUR_EXPORT_PATH_LOCATION, self.app)
-        config.render_instructions_page = WS.should_render(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE, self.app)
-        if WS.configuration_has_key(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, self.app):
-            config.instructions_html = WS.get_behaviour_conf(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, self.app)
-        config.render_ethics_agreement_page = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
-        if WS.configuration_has_key(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, self.app):
-            config.ethics_html = WS.get_behaviour_conf(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, self.app)
-        config.render_site_policies_page = WS.should_render(WS.BEHAVIOUR_RENDER_SITE_POLICIES, self.app)
-        if WS.configuration_has_key(WS.BEHAVIOUR_SITE_POLICIES_HTML, self.app):
-            config.site_policies_html = WS.get_behaviour_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, self.app)
-        config.render_cookie_banner = WS.should_render(WS.BEHAVIOUR_RENDER_COOKIE_BANNER, self.app)
+
+        config.export_path_location = self._get_config_value(WS.BEHAVIOUR_EXPORT_PATH_LOCATION)
+        config.render_instructions_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE)
+        config.render_ethics_agreement_page = self._get_config_value(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE)
+        config.render_site_policies_page = self._get_config_value(WS.BEHAVIOUR_RENDER_SITE_POLICIES)
+        config.render_cookie_banner = self._get_config_value(WS.BEHAVIOUR_RENDER_COOKIE_BANNER)
+        if WS.BEHAVIOUR_USER_INSTRUCTION_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.instructions_html = self._get_config_value(WS.BEHAVIOUR_USER_INSTRUCTION_HTML)
+        if WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.ethics_html = self._get_config_value(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML)
+        if WS.BEHAVIOUR_SITE_POLICIES_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.site_policies_html = self._get_config_value(WS.BEHAVIOUR_SITE_POLICIES_HTML)
+
         config.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
         db.session.add(config)
 
-    def _setup_website_control_history(self, db):
-        """Setup the control history to monitor for changes to the website configuration file.
+    # def _setup_website_control_history(self, db):
+    #     """Setup the control history to monitor for changes to the website configuration file.
 
-        Once the project has been setup no changes are allowed to the website configuration file.
-        if the file is changed the web interface will no longer respond to requests. A reset will be necessary and all
-        information in the current database will be deleted as part of that process.
+    #     Once the project has been setup no changes are allowed to the website configuration file.
+    #     if the file is changed the web interface will no longer respond to requests. A reset will be necessary and all
+    #     information in the current database will be deleted as part of that process.
 
-        Args:
-            db (SQLAlchemy): Database connection,
-        """
-        hist = WebsiteControl()
-        hist.weight_configuration = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
-        hist.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
-        db.session.add(hist)
+    #     Args:
+    #         db (SQLAlchemy): Database connection,
+    #     """
+    #     hist = WebsiteControl()
+    #     hist.weight_configuration = self._get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
+    #     hist.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
+    #     db.session.add(hist)

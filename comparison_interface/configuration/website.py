@@ -1,8 +1,6 @@
 import json
 import os
 
-from .csv_processor import CsvProcessor
-
 
 class Settings:
     """The configuration settings for this instance of the website."""
@@ -222,32 +220,8 @@ class Settings:
 
         return conf[cls.CONFIGURATION_WEBSITE_TEXT][label]
 
-    @classmethod
-    def get_comparison_conf(cls, key, app):
-        """Get the configuration values related to the comparison behaviour of the website.
+    # NB: function only used in setup.py
 
-        This could come from the config file or from the csv file.
-
-        Args:
-            key (string): configuration key required
-            app (Flask app): Flask application
-
-        Returns:
-            string: Configuration value for the requested key
-        """
-        conf = cls.get_configuration(app)
-        if "csvFile" in conf[cls.CONFIGURATION_COMPARISON]:
-            # then we need to get the data from the csv file
-            location = cls.get_configuration_location(app)
-            filepath = os.path.join(location, conf[cls.CONFIGURATION_COMPARISON]["csvFile"])
-            data = CsvProcessor().create_config_from_csv(filepath)
-            return data[key]
-        else:
-            conf = cls.get_configuration(app)
-            if key not in conf[cls.CONFIGURATION_COMPARISON]:
-                app.logger.critical("Label %s wasn't found in the comparison configuration." % (key))
-                exit()
-        return conf[cls.CONFIGURATION_COMPARISON][key]
 
     @classmethod
     def get_user_conf(cls, app):
