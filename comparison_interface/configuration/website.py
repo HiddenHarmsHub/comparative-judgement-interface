@@ -272,8 +272,6 @@ class Settings:
         with app.app_context():
             query = db.select(WebsiteControl.export_path_location)
             db.session.scalar(query)
-        # render = cls.get_behaviour_conf(section, app)
-        # return render == "true" or render == "True" or render == "1" or render is True
 
     @classmethod
     def _unmarshall(cls, app):

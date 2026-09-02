@@ -13,8 +13,8 @@ from comparison_interface.db.models import (
     Participant,
     ParticipantGroup,
     ParticipantItem,
+    StudyControl,
     TotalItemPair,
-    WebsiteControl,
 )
 
 from .request import Request
@@ -156,7 +156,7 @@ class Rank(Request):
                 )
                 try:
                     db.session.add(c)
-                    if self._session['weight_conf'] == WebsiteControl.WEIGHTED_TOTAL and state != self.SKIPPED:
+                    if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and state != self.SKIPPED:
                         pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
                         pair.judged = True
                     db.session.commit()
@@ -293,19 +293,19 @@ class Rank(Request):
             return self._get_comparison_items(comparison_id)
 
         # Case 2: Get a random pair from list of custom defined weights
-        if self._session['weight_conf'] == WebsiteControl.CUSTOM_WEIGHT:
+        if self._session['weight_conf'] == StudyControl.CUSTOM_WEIGHT:
             return self._get_custom_items()
 
         # Case 3: Get a random item pair when equal weights and item preference was defined
-        if self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT and render_item_prefer:
+        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT and render_item_prefer:
             return self._get_preferred_items()
 
         # Case 4: Get a random item pair when equal weights and no item preference was defined
-        if self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT and not render_item_prefer:
+        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT and not render_item_prefer:
             return self._get_random_items()
 
         # Case 5: Get a random pair from the item pair totals table
-        if self._session['weight_conf'] == WebsiteControl.WEIGHTED_TOTAL:
+        if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL:
             return self._get_random_pair()
 
         # All no implemented cases
