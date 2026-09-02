@@ -10,7 +10,17 @@ from comparison_interface.configuration.schema import WebsiteTextConfiguration
 from comparison_interface.configuration.website import Settings as WS
 
 from .connection import db, persist
-from .models import CustomItemPair, Group, Item, ItemGroup, StudyControl, TotalItemPair, WebsiteControl, WebsiteText
+from .models import (
+    CustomItemPair,
+    Group,
+    Item,
+    ItemGroup,
+    RegistrationQuestions,
+    StudyControl,
+    TotalItemPair,
+    WebsiteControl,
+    WebsiteText,
+)
 
 
 class Setup:
@@ -43,6 +53,7 @@ class Setup:
             # The session needs be committed after the creation of the groups.
             self._setup_group(db)
             self._setup_website_control(db)
+            self._setup_registration_questions(db)
             self._setup_study_control(db)
             self._setup_website_text(db)
             db.session.commit()
@@ -279,6 +290,33 @@ class Setup:
         else:
             return self.json_conf[WS.CONFIGURATION_BEHAVIOUR][key]
 
+    def _setup_registration_questions(self, db):
+        """Load the configuration for the registration questions.
+
+        Args:
+            db (SQLAlchemy): Database connection,
+        """
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
+        for question in participant_conf:
+            config = RegistrationQuestions()
+            config.question_name = question[WS.USER_FIELD_NAME]
+            config.question_display = question[WS.USER_FIELD_DISPLAY_NAME]
+            config.type = question[WS.USER_FIELD_TYPE]
+            try:
+                config.max_limit = question[WS.USER_FIELD_MAX_LIMIT]
+            except KeyError:
+                config.max_limit = None
+            try:
+                config.min_limit = question[WS.USER_FIELD_MIN_LIMIT]
+            except KeyError:
+                config.min_limit = None
+            try:
+                config.option = question[WS.USER_FIELD_SELECT_OPTION]
+            except KeyError:
+                config.option = None
+            config.required = question[WS.USER_FIELD_REQUIRED]
+            db.session.add(config)
+
     def _setup_website_control(self, db):
         """Load the configuration for the website control.
 
@@ -289,7 +327,7 @@ class Setup:
         config.study_count = 1
 
         config.export_path_location = self._get_config_value(WS.BEHAVIOUR_EXPORT_PATH_LOCATION)
-        config.render_instructions_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE)
+        config.render_user_instruction_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE)
         config.render_ethics_agreement_page = self._get_config_value(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE)
         config.render_site_policies_page = self._get_config_value(WS.BEHAVIOUR_RENDER_SITE_POLICIES)
         config.render_cookie_banner = self._get_config_value(WS.BEHAVIOUR_RENDER_COOKIE_BANNER)
@@ -318,7 +356,7 @@ class Setup:
         config.render_user_item_preference_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE)
         config.offer_escape_route_between_cycles = self._get_config_value(WS.BEHAVIOUR_ESCAPE_ROUTE)
         config.cycle_length = self._get_config_value(WS.BEHAVIOUR_CYCLE_LENGTH)
-        config.max_cycles_per_user = self._get_config_value(WS.BEHAVIOUR_MAX_CYCLES)
+        config.maximum_cycles_per_user = self._get_config_value(WS.BEHAVIOUR_MAX_CYCLES)
         db.session.add(config)
 
     def _setup_website_text(self, db):
@@ -337,3 +375,17 @@ class Setup:
             if isinstance(config.string_value, list):
                 config.string_value = '||'.join(config.string_value)
             db.session.add(config)
+        # now add the user study data
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
+        for question in participant_conf:
+            config = WebsiteText()
+            config.string_key = f"{question[WS.USER_FIELD_NAME]}_question_text"
+            config.language = "en"
+            config.string_value = question[WS.USER_FIELD_DISPLAY_NAME]
+            db.session.add(config)
+            if "option" in question:
+                config = WebsiteText()
+                config.string_key = f"{question[WS.USER_FIELD_NAME]}_option_text"
+                config.language = "en"
+                config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION])
+                db.session.add(config)

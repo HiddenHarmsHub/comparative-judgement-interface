@@ -1,9 +1,10 @@
 import json
 import os
+import re
 from pathlib import Path
 
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import WebsiteControl, WebsiteText
+from comparison_interface.db.models import StudyControl, WebsiteControl, WebsiteText
 
 
 class Settings:
@@ -33,7 +34,7 @@ class Settings:
     BEHAVIOUR_ALLOW_SKIP = "allowSkip"
     BEHAVIOUR_ALLOW_BACK = "allowBack"
     BEHAVIOUR_USER_INSTRUCTION_HTML = "userInstructionHtml"
-    BEHAVIOUR_ETHICS_AGREEMENT_HTML = "userEthicsAgreementHtml"
+    BEHAVIOUR_ETHICS_AGREEMENT_HTML = "ethicsAgreementHtml"
     BEHAVIOUR_SITE_POLICIES_HTML = "sitePoliciesHtml"
     # Group related configuration keys
     GROUPS = "groups"
@@ -147,24 +148,6 @@ class Settings:
         return location
 
     @classmethod
-    def configuration_has_key(cls, label, app):
-        """Check if the requested label is in either the website text or behaviour sections of the configuration file.
-
-        Args:
-            label (string): Label text required
-            app (Flask app): Flask application
-
-        Returns:
-            boolean: True if the label exists, False it if does not
-        """
-        conf = cls.get_configuration(app)
-        if label in conf[cls.CONFIGURATION_WEBSITE_TEXT]:
-            return True
-        if label in conf[cls.CONFIGURATION_BEHAVIOUR]:
-            return True
-        return False
-
-    @classmethod
     def get_configuration(cls, app, force_reload=False):
         """Get the website configuration.
 
@@ -221,8 +204,26 @@ class Settings:
         return conf[cls.CONFIGURATION_USER_FIELDS]
 
     @classmethod
-    def get_behaviour_conf(cls, key, app):
-        """Get the configuration values related to the behaviour of the website.
+    def get_study_conf(cls, key, study, app):
+        """Get the configuration values related to the requested study.
+
+        Args:
+            key (string): configuration key required
+            study (int): id of the study required
+            app (Flask app): Flask application
+
+        Returns:
+            string: Configuration value related to the key
+        """
+        with app.app_context():
+            column_name = '_'.join(re.sub( r"([A-Z])", r" \1", key).split()).lower().strip()
+            column = getattr(StudyControl, column_name)
+            query = db.select(column).where(StudyControl.study_id == study)
+            return db.session.scalar(query)
+
+    @classmethod
+    def get_website_conf(cls, key, app):
+        """Get the configuration values related to the website behaviour.
 
         Args:
             key (string): configuration key required
@@ -231,12 +232,11 @@ class Settings:
         Returns:
             string: Configuration value related to the key
         """
-        conf = cls.get_configuration(app)
-        if key not in conf[cls.CONFIGURATION_BEHAVIOUR]:
-            app.logger.critical(f"Label {key} wasn't found in the behaviour configuration.")
-            exit()
-
-        return conf[cls.CONFIGURATION_BEHAVIOUR][key]
+        with app.app_context():
+            column_name = '_'.join(re.sub( r"([A-Z])", r" \1", key).split()).lower().strip()
+            column = getattr(WebsiteControl, column_name)
+            query = db.select(column)
+            return db.session.scalar(query)
 
     @classmethod
     def get_export_location(cls, app):
@@ -270,8 +270,10 @@ class Settings:
             boolean: True when the section should be rendered, False if not.
         """
         with app.app_context():
-            query = db.select(WebsiteControl.export_path_location)
-            db.session.scalar(query)
+            column_name = '_'.join(re.sub( r"([A-Z])", r" \1", section).split()).lower().strip()
+            column = getattr(WebsiteControl, column_name)
+            query = db.select(column)
+            return db.session.scalar(query)
 
     @classmethod
     def _unmarshall(cls, app):

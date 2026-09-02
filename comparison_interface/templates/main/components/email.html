@@ -1,5 +1,5 @@
 <div class="row mb-3">
-    <label for="{{name}}-input" class="col-4 col-form-label {% if required == true %}required-field-label{% else %}{% endif %}">{{displayName}}</label>
+    <label for="{{name}}-input" class="col-4 col-form-label {% if required == true %}required-field-label{% else %}{% endif %}">{{question_text}}</label>
     <div class="col-8">
         <input class="form-control" autocomplete="email" type="email" id="{{name}}-input" name="{{name}}" maxlength="{{maxLimit}}" {% if required == true %}required{% else %}{% endif %}>
     </div>

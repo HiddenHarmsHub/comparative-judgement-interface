@@ -55,7 +55,7 @@ class Register(Request):
         db_meta.reflect(bind=db_engine)
         table = db_meta.tables["participant"]
         dic_user_attr['created_date'] = datetime.now(timezone.utc)
-        if not WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app):
+        if not WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, 1, self._app):
             dic_user_attr['completed_cycles'] = None
         new_user_sql = table.insert().values(**dic_user_attr)
         try:
@@ -98,7 +98,12 @@ class Register(Request):
         # Add the custom user fields
         for field in user_fields:
             component = 'main/components/{}.html'.format(field[WS.USER_FIELD_TYPE])
-            user_components.append(render_template(component, **field))
+            text = {
+                "question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._app)
+            }
+            if 'option' in field:
+                text['option_text'] = WS.get_text(f"{field[WS.USER_FIELD_NAME]}_option_text", self._app).split("||")
+            user_components.append(render_template(component, **field, **text))
 
     def _load_group_component(self, user_components: list):
         """Load the group selection component.

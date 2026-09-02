@@ -29,7 +29,8 @@ class ItemsPreference(Request):
         # The item selection won't be allow if either:
         # 1. Manual weights were defined.
         # 2. The participant explicitly configured the website to not render this section.
-        render_item_preference = WS.should_render(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._app)
+        # TODO change hardcoded study id from 1 ro the current study
+        render_item_preference = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, 1, self._app)
         equal_weight_conf = self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT
         if not equal_weight_conf or not render_item_preference:
             return self._redirect('.rank')

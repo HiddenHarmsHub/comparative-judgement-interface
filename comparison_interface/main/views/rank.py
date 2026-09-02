@@ -33,13 +33,13 @@ class Rank(Request):
         if not self._valid_session():
             return self._redirect('.participant_registration')
 
-        allow_ties = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_TIES, self._app)
-        allow_skip = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._app)
-        allow_back = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_BACK, self._app)
+        allow_ties = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_TIES, 1, self._app)
+        allow_skip = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_SKIP, 1, self._app)
+        allow_back = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_BACK, 1, self._app)
 
-        use_escape_route = WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app)
+        use_escape_route = WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, 1, self._app)
 
-        if use_escape_route and self._get_current_cycle() >= WS.get_behaviour_conf(WS.BEHAVIOUR_MAX_CYCLES, self._app):
+        if use_escape_route and self._get_current_cycle() >= WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, self._app):
             return self._redirect('.thankyou')
 
         comparison_id = None
@@ -83,7 +83,7 @@ class Rank(Request):
             # If we have asked for an escape route check the counts and redirect if necessary
             completed_cycles = self._get_current_cycle()
 
-            if compared + skipped >= WS.get_behaviour_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._app) * (
+            if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, self._app) * (
                 completed_cycles + 1
             ):
                 self._increment_cycle_count()
@@ -286,7 +286,8 @@ class Rank(Request):
             Item: Model Item | None
             Item: Model Item | None
         """
-        render_item_prefer = WS.should_render(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._app)
+        # TODO: change hard coded study id from 1 to the current study
+        render_item_prefer = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, 1, self._app)
 
         # Case 1: Returns the items related to a particular comparison.
         if comparison_id is not None:

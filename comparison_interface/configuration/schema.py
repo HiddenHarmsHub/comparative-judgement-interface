@@ -326,7 +326,7 @@ class BehaviourConfiguration(Schema):
     allowSkip = fields.Boolean(required=True)
     allowBack = fields.Boolean(required=True)
     userInstructionHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
-    userEthicsAgreementHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
+    ethicsAgreementHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
     sitePoliciesHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
 
     @post_load

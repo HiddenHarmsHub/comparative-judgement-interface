@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy import JSON
 
 from .connection import db
 
@@ -92,8 +93,25 @@ class Participant(db.Model, BaseModel):
     __bind_key__ = "study_db"
 
     participant_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    current_study = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=True)
     # Other user files are added automatically by using the Website configuration file
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
+    # TODO: temporary, we will be moving this to the participant study table when we do multiple studies
+    completed_cycles = db.Column(db.Integer, server_default='0')
+
+class ParticipantStudy(db.Model, BaseModel):
+    """Tracks how far through the studies each user is.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'participant_study'
+    __bind_key__ = "study_db"
+
+    study_tracking_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     completed_cycles = db.Column(db.Integer, server_default='0')
 
 
@@ -201,6 +219,26 @@ class ParticipantItem(db.Model, BaseModel):
     __table_args__ = (UniqueConstraint('participant_id', 'item_id', name='_participant_item_uidx'),)
 
 
+class RegistrationQuestions(db.Model, BaseModel):
+    """Table to store details of participant registration questions. This can only be changed on rebuild.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'registration_questions'
+    __bind_key__ = "study_db"
+
+    question_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    question_name = db.Column(db.String(100), nullable=False)
+    question_display = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    min_limit = db.Column(db.Integer, nullable=True)
+    max_limit = db.Column(db.Integer, nullable=True)
+    option = db.Column(JSON)
+    required = db.Column(db.Boolean, nullable=False)
+
+
 class WebsiteControl(db.Model, BaseModel):
     """Control table to store settings which can only be set for the whole website.
 
@@ -214,10 +252,10 @@ class WebsiteControl(db.Model, BaseModel):
     website_control_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     study_count = db.Column(db.Integer, nullable=False)
     export_path_location = db.Column(db.String(250), nullable=False)
-    render_instructions_page = db.Column(db.Boolean, nullable=False)
-    instructions_html = db.Column(db.String(250), nullable=True)
+    render_user_instruction_page = db.Column(db.Boolean, nullable=False)
+    user_instruction_html = db.Column(db.String(250), nullable=True)
     render_ethics_agreement_page = db.Column(db.Boolean, nullable=False)
-    ethics_html = db.Column(db.String(250), nullable=True)
+    ethics_agreement_html = db.Column(db.String(250), nullable=True)
     render_site_policies_page = db.Column(db.Boolean, nullable=False)
     site_policies_html = db.Column(db.String(250), nullable=True)
     render_cookie_banner = db.Column(db.Boolean, nullable=False)
@@ -259,7 +297,7 @@ class StudyControl(db.Model, BaseModel):
     render_user_item_preference_page = db.Column(db.Boolean, nullable=False)
     offer_escape_route_between_cycles = db.Column(db.Boolean, nullable=False)
     cycle_length = db.Column(db.Integer, nullable=False)
-    max_cycles_per_user = db.Column(db.Integer, nullable=False)
+    maximum_cycles_per_user = db.Column(db.Integer, nullable=False)
 
     def get_conf(self):
         """Get the study control configuration.

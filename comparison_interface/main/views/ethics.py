@@ -13,8 +13,8 @@ class Ethics(Request):
 
     def get(self, _):
         """Request get handler."""
-        if WS.configuration_has_key(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, self._app):
-            ethics_agreement_html = WS.get_behaviour_conf(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, self._app)
+        ethics_agreement_html = WS.get_website_conf(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, self._app)
+        if ethics_agreement_html is not None:
             with open(os.path.join(self._app.root_path, ethics_agreement_html)) as input_file:
                 html = input_file.read()
         else:
