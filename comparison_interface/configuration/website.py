@@ -1,7 +1,10 @@
 import json
 import os
+import re
+from pathlib import Path
 
-from .csv_processor import CsvProcessor
+from comparison_interface.db.connection import db
+from comparison_interface.db.models import StudyControl, WebsiteControl, WebsiteText
 
 
 class Settings:
@@ -31,7 +34,7 @@ class Settings:
     BEHAVIOUR_ALLOW_SKIP = "allowSkip"
     BEHAVIOUR_ALLOW_BACK = "allowBack"
     BEHAVIOUR_USER_INSTRUCTION_HTML = "userInstructionHtml"
-    BEHAVIOUR_ETHICS_AGREEMENT_HTML = "userEthicsAgreementHtml"
+    BEHAVIOUR_ETHICS_AGREEMENT_HTML = "ethicsAgreementHtml"
     BEHAVIOUR_SITE_POLICIES_HTML = "sitePoliciesHtml"
     # Group related configuration keys
     GROUPS = "groups"
@@ -145,24 +148,6 @@ class Settings:
         return location
 
     @classmethod
-    def configuration_has_key(cls, label, app):
-        """Check if the requested label is in either the website text or behaviour sections of the configuration file.
-
-        Args:
-            label (string): Label text required
-            app (Flask app): Flask application
-
-        Returns:
-            boolean: True if the label exists, False it if does not
-        """
-        conf = cls.get_configuration(app)
-        if label in conf[cls.CONFIGURATION_WEBSITE_TEXT]:
-            return True
-        if label in conf[cls.CONFIGURATION_BEHAVIOUR]:
-            return True
-        return False
-
-    @classmethod
     def get_configuration(cls, app, force_reload=False):
         """Get the website configuration.
 
@@ -193,61 +178,12 @@ class Settings:
         Returns:
             string: Text configuration for the specified label
         """
-        conf = cls.get_configuration(app)
-
-        # first try the project configuration
-        if label in conf[cls.CONFIGURATION_WEBSITE_TEXT]:
-            return conf[cls.CONFIGURATION_WEBSITE_TEXT][label]
-        # now try the language configuration
-        if label in app.language_config[cls.CONFIGURATION_WEBSITE_TEXT]:
-            return app.language_config[cls.CONFIGURATION_WEBSITE_TEXT][label]
-        # raise an error
-        app.logger.critical(f"Label {label} wasn't found in the project configuration or the language configuration.")
-        exit()
-
-    @classmethod
-    def get_optional_text(cls, label, app):
-        """Get the text to render for a specific label of the website or None if not supplied.
-
-        Args:
-            label (string): Label text required
-            app (Flask app): Flask application
-
-        Returns:
-            string: Text configuration for the specified label or None is not supplied in config
-        """
-        conf = cls.get_configuration(app)
-        if label not in conf[cls.CONFIGURATION_WEBSITE_TEXT]:
-            return None
-
-        return conf[cls.CONFIGURATION_WEBSITE_TEXT][label]
-
-    @classmethod
-    def get_comparison_conf(cls, key, app):
-        """Get the configuration values related to the comparison behaviour of the website.
-
-        This could come from the config file or from the csv file.
-
-        Args:
-            key (string): configuration key required
-            app (Flask app): Flask application
-
-        Returns:
-            string: Configuration value for the requested key
-        """
-        conf = cls.get_configuration(app)
-        if "csvFile" in conf[cls.CONFIGURATION_COMPARISON]:
-            # then we need to get the data from the csv file
-            location = cls.get_configuration_location(app)
-            filepath = os.path.join(location, conf[cls.CONFIGURATION_COMPARISON]["csvFile"])
-            data = CsvProcessor().create_config_from_csv(filepath)
-            return data[key]
-        else:
-            conf = cls.get_configuration(app)
-            if key not in conf[cls.CONFIGURATION_COMPARISON]:
-                app.logger.critical("Label %s wasn't found in the comparison configuration." % (key))
-                exit()
-        return conf[cls.CONFIGURATION_COMPARISON][key]
+        with app.app_context():
+            query = db.select(WebsiteText.string_value).where(
+                WebsiteText.language == "en",
+                WebsiteText.string_key == label,
+            )
+            return db.session.scalars(query).first()
 
     @classmethod
     def get_user_conf(cls, app):
@@ -268,8 +204,26 @@ class Settings:
         return conf[cls.CONFIGURATION_USER_FIELDS]
 
     @classmethod
-    def get_behaviour_conf(cls, key, app):
-        """Get the configuration values related to the behaviour of the website.
+    def get_study_conf(cls, key, study, app):
+        """Get the configuration values related to the requested study.
+
+        Args:
+            key (string): configuration key required
+            study (int): id of the study required
+            app (Flask app): Flask application
+
+        Returns:
+            string: Configuration value related to the key
+        """
+        with app.app_context():
+            column_name = '_'.join(re.sub(r"([A-Z])", r" \1", key).split()).lower().strip()
+            column = getattr(StudyControl, column_name)
+            query = db.select(column).where(StudyControl.study_id == study)
+            return db.session.scalar(query)
+
+    @classmethod
+    def get_website_conf(cls, key, app):
+        """Get the configuration values related to the website behaviour.
 
         Args:
             key (string): configuration key required
@@ -278,12 +232,11 @@ class Settings:
         Returns:
             string: Configuration value related to the key
         """
-        conf = cls.get_configuration(app)
-        if key not in conf[cls.CONFIGURATION_BEHAVIOUR]:
-            app.logger.critical(f"Label {key} wasn't found in the behaviour configuration.")
-            exit()
-
-        return conf[cls.CONFIGURATION_BEHAVIOUR][key]
+        with app.app_context():
+            column_name = '_'.join(re.sub(r"([A-Z])", r" \1", key).split()).lower().strip()
+            column = getattr(WebsiteControl, column_name)
+            query = db.select(column)
+            return db.session.scalar(query)
 
     @classmethod
     def get_export_location(cls, app):
@@ -295,8 +248,15 @@ class Settings:
         Returns:
             string: export path
         """
-        path = cls.get_behaviour_conf(cls.BEHAVIOUR_EXPORT_PATH_LOCATION, app)
-        return os.path.abspath(os.path.dirname(__file__)) + "/../" + path
+        with app.app_context():
+            query = db.select(WebsiteControl.export_path_location)
+            path = db.session.scalar(query)
+            allowed_root = Path(__file__).resolve().parent.parent.parent
+            absolute_path = Path((__file__) + "/../" + path).resolve()
+            if absolute_path.is_relative_to(allowed_root):
+                return absolute_path
+            app.logger.critical("The requested export path was not within the permitted directory")
+            exit()
 
     @classmethod
     def should_render(cls, section, app):
@@ -309,8 +269,11 @@ class Settings:
         Returns:
             boolean: True when the section should be rendered, False if not.
         """
-        render = cls.get_behaviour_conf(section, app)
-        return render == "true" or render == "True" or render == "1" or render is True
+        with app.app_context():
+            column_name = '_'.join(re.sub(r"([A-Z])", r" \1", section).split()).lower().strip()
+            column = getattr(WebsiteControl, column_name)
+            query = db.select(column)
+            return db.session.scalar(query)
 
     @classmethod
     def _unmarshall(cls, app):

@@ -13,8 +13,8 @@ from comparison_interface.db.models import (
     Participant,
     ParticipantGroup,
     ParticipantItem,
+    StudyControl,
     TotalItemPair,
-    WebsiteControl,
 )
 
 from .request import Request
@@ -33,13 +33,13 @@ class Rank(Request):
         if not self._valid_session():
             return self._redirect('.participant_registration')
 
-        allow_ties = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_TIES, self._app)
-        allow_skip = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._app)
-        allow_back = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_BACK, self._app)
+        allow_ties = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_TIES, 1, self._app)
+        allow_skip = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_SKIP, 1, self._app)
+        allow_back = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_BACK, 1, self._app)
 
-        use_escape_route = WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app)
+        use_escape_route = WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, 1, self._app)
 
-        if use_escape_route and self._get_current_cycle() >= WS.get_behaviour_conf(WS.BEHAVIOUR_MAX_CYCLES, self._app):
+        if use_escape_route and self._get_current_cycle() >= WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, self._app):
             return self._redirect('.thankyou')
 
         comparison_id = None
@@ -83,7 +83,7 @@ class Rank(Request):
             # If we have asked for an escape route check the counts and redirect if necessary
             completed_cycles = self._get_current_cycle()
 
-            if compared + skipped >= WS.get_behaviour_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._app) * (
+            if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, self._app) * (
                 completed_cycles + 1
             ):
                 self._increment_cycle_count()
@@ -156,7 +156,7 @@ class Rank(Request):
                 )
                 try:
                     db.session.add(c)
-                    if self._session['weight_conf'] == WebsiteControl.WEIGHTED_TOTAL and state != self.SKIPPED:
+                    if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and state != self.SKIPPED:
                         pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
                         pair.judged = True
                     db.session.commit()
@@ -286,26 +286,27 @@ class Rank(Request):
             Item: Model Item | None
             Item: Model Item | None
         """
-        render_item_prefer = WS.should_render(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._app)
+        # TODO: change hard coded study id from 1 to the current study
+        render_item_prefer = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, 1, self._app)
 
         # Case 1: Returns the items related to a particular comparison.
         if comparison_id is not None:
             return self._get_comparison_items(comparison_id)
 
         # Case 2: Get a random pair from list of custom defined weights
-        if self._session['weight_conf'] == WebsiteControl.CUSTOM_WEIGHT:
+        if self._session['weight_conf'] == StudyControl.CUSTOM_WEIGHT:
             return self._get_custom_items()
 
         # Case 3: Get a random item pair when equal weights and item preference was defined
-        if self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT and render_item_prefer:
+        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT and render_item_prefer:
             return self._get_preferred_items()
 
         # Case 4: Get a random item pair when equal weights and no item preference was defined
-        if self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT and not render_item_prefer:
+        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT and not render_item_prefer:
             return self._get_random_items()
 
         # Case 5: Get a random pair from the item pair totals table
-        if self._session['weight_conf'] == WebsiteControl.WEIGHTED_TOTAL:
+        if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL:
             return self._get_random_pair()
 
         # All no implemented cases
