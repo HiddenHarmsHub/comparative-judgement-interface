@@ -89,8 +89,8 @@ def test_item_retrieval_function_choice_with_preference(mocker, equal_weight_app
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
     ranker._app = request._app
-    should_render = mocker.patch.object(rank.WS, 'should_render')
-    should_render.side_effect = [True]
+    get_study_conf = mocker.patch.object(rank.WS, 'get_study_conf')
+    get_study_conf.side_effect = [True]
     comparison_function = mocker.patch.object(rank.Rank, '_get_preferred_items')
     ranker._get_items_to_compare()
     comparison_function.assert_called_once_with()
@@ -110,8 +110,8 @@ def test_item_retrieval_function_choice_without_preference(mocker, equal_weight_
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
     ranker._app = request._app
-    should_render = mocker.patch.object(rank.WS, 'should_render')
-    should_render.side_effect = [False]
+    get_study_conf = mocker.patch.object(rank.WS, 'get_study_conf')
+    get_study_conf.side_effect = [False]
     comparison_function = mocker.patch.object(rank.Rank, '_get_random_items')
     ranker._get_items_to_compare()
     comparison_function.assert_called_once_with()
