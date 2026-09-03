@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy import JSON
+from sqlalchemy.schema import UniqueConstraint
 
 from .connection import db
 
@@ -98,6 +98,7 @@ class Participant(db.Model, BaseModel):
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
     # TODO: temporary, we will be moving this to the participant study table when we do multiple studies
     completed_cycles = db.Column(db.Integer, server_default='0')
+
 
 class ParticipantStudy(db.Model, BaseModel):
     """Tracks how far through the studies each user is.

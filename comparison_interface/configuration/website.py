@@ -216,7 +216,7 @@ class Settings:
             string: Configuration value related to the key
         """
         with app.app_context():
-            column_name = '_'.join(re.sub( r"([A-Z])", r" \1", key).split()).lower().strip()
+            column_name = '_'.join(re.sub(r"([A-Z])", r" \1", key).split()).lower().strip()
             column = getattr(StudyControl, column_name)
             query = db.select(column).where(StudyControl.study_id == study)
             return db.session.scalar(query)
@@ -233,7 +233,7 @@ class Settings:
             string: Configuration value related to the key
         """
         with app.app_context():
-            column_name = '_'.join(re.sub( r"([A-Z])", r" \1", key).split()).lower().strip()
+            column_name = '_'.join(re.sub(r"([A-Z])", r" \1", key).split()).lower().strip()
             column = getattr(WebsiteControl, column_name)
             query = db.select(column)
             return db.session.scalar(query)
@@ -270,7 +270,7 @@ class Settings:
             boolean: True when the section should be rendered, False if not.
         """
         with app.app_context():
-            column_name = '_'.join(re.sub( r"([A-Z])", r" \1", section).split()).lower().strip()
+            column_name = '_'.join(re.sub(r"([A-Z])", r" \1", section).split()).lower().strip()
             column = getattr(WebsiteControl, column_name)
             query = db.select(column)
             return db.session.scalar(query)

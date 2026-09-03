@@ -98,9 +98,7 @@ class Register(Request):
         # Add the custom user fields
         for field in user_fields:
             component = 'main/components/{}.html'.format(field[WS.USER_FIELD_TYPE])
-            text = {
-                "question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._app)
-            }
+            text = {"question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._app)}
             if 'option' in field:
                 text['option_text'] = WS.get_text(f"{field[WS.USER_FIELD_NAME]}_option_text", self._app).split("||")
             user_components.append(render_template(component, **field, **text))
