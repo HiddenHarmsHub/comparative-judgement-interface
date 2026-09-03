@@ -46,6 +46,7 @@ def test_item_retrieval_function_choice_with_id(mocker, equal_weight_app):
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     should_render = mocker.patch.object(rank.WS, 'should_render')
     should_render.side_effect = [True]
     comparison_function = mocker.patch.object(rank.Rank, '_get_comparison_items')
@@ -66,6 +67,7 @@ def test_item_retrieval_function_choice_with_custom_weights(mocker, custom_weigh
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     should_render = mocker.patch.object(rank.WS, 'should_render')
     should_render.side_effect = [True]
     comparison_function = mocker.patch.object(rank.Rank, '_get_custom_items')
@@ -86,6 +88,7 @@ def test_item_retrieval_function_choice_with_preference(mocker, equal_weight_app
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     should_render = mocker.patch.object(rank.WS, 'should_render')
     should_render.side_effect = [True]
     comparison_function = mocker.patch.object(rank.Rank, '_get_preferred_items')
@@ -106,6 +109,7 @@ def test_item_retrieval_function_choice_without_preference(mocker, equal_weight_
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     should_render = mocker.patch.object(rank.WS, 'should_render')
     should_render.side_effect = [False]
     comparison_function = mocker.patch.object(rank.Rank, '_get_random_items')
@@ -126,6 +130,7 @@ def test_item_retrieval_function_choice_with_unrecognised_setting(mocker, equal_
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     should_render = mocker.patch.object(rank.WS, 'should_render')
     should_render.side_effect = [False]
     result = ranker._get_items_to_compare()
@@ -172,6 +177,7 @@ def test_get_comparison_items_normal_order(equal_weight_app):
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     items = ranker._get_comparison_items(1)
     assert items[0].item_id == 1
     assert items[1].item_id == 2
@@ -216,6 +222,7 @@ def test_get_comparison_items_different_order(equal_weight_app):
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     items = ranker._get_comparison_items(2)
     assert items[0].item_id == 4
     assert items[1].item_id == 3
@@ -262,6 +269,7 @@ def test_get_comparison_items_invalid_id(equal_weight_app):
         request._session['previous_comparison_id'] = 1
         request._session['comparison_ids'] = [1, 2]
         ranker = rank.Rank(request, request._session)
+        ranker._app = request._app
         ranker._get_comparison_items(3)
 
 
@@ -278,6 +286,7 @@ def test_calculate_comparison_state_tied(equal_weight_app):
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     response = {}
     result = ranker._calculate_comparison_state('confirmed', response)
     assert result[0] == 'tied'
@@ -297,6 +306,7 @@ def test_calculate_comparison_state_selected(equal_weight_app):
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     response = {'selected_item_id': 1}
     result = ranker._calculate_comparison_state('confirmed', response)
     assert result[0] == 'selected'
@@ -316,6 +326,7 @@ def test_calculate_comparison_state_skipped(equal_weight_app):
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     response = {}
     result = ranker._calculate_comparison_state('skipped', response)
     assert result[0] == 'skipped'
@@ -336,6 +347,7 @@ def test_increment_cycle_count(equal_weight_app):
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     starting_cycle = ranker._get_current_cycle()
     ranker._increment_cycle_count()
     new_cycle_count = ranker._get_current_cycle()
@@ -466,6 +478,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     counts = ranker._get_comparison_stats()
     assert counts[0] == 8
     assert counts[1] == 3
@@ -485,6 +498,7 @@ def test_comparison_stats_retrieval_no_data(equal_weight_app):
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     counts = ranker._get_comparison_stats()
     assert counts[0] == 0
     assert counts[1] == 0
@@ -504,6 +518,7 @@ def test_custom_item_retrieval(mocker, custom_weight_app):
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     mock_rng = mocker.Mock(spec=random.Generator)
     custom_weight_app.rng = mock_rng
     ranker._app = custom_weight_app
@@ -527,6 +542,7 @@ def test_weighted_totals_item_retrieval(mocker, custom_totals_app):
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     mock_rng = mocker.Mock(spec=random.Generator)
     custom_totals_app.rng = mock_rng
     ranker._app = custom_totals_app
@@ -555,6 +571,7 @@ def test_weighted_totals_item_retrieval_some_judgements(mocker, custom_totals_ap
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     mock_rng = mocker.Mock(spec=random.Generator)
     custom_totals_app.rng = mock_rng
     ranker._app = custom_totals_app
@@ -636,6 +653,7 @@ def test_preferred_item_retrieval_not_enough_items(equal_weight_app):
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     items = ranker._get_preferred_items()
     # check that we get two items returned from the range
     assert len(items) == 2
@@ -736,6 +754,7 @@ def test_random_item_retrieval_only_one_item(equal_weight_app):
     request._session['previous_comparison_id'] = None
     request._session['comparison_ids'] = []
     ranker = rank.Rank(request, request._session)
+    ranker._app = request._app
     items = ranker._get_random_items()
     # check that we get two None entries because there is only 1
     assert len(items) == 2

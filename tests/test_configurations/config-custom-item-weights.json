@@ -1,7 +1,7 @@
 {
     "behaviourConfiguration": {
         "exportPathLocation": "../exports",
-        "renderUserItemPreferencePage": "false",
+        "renderUserItemPreferencePage": false,
         "renderUserInstructionPage":  true,
         "renderEthicsAgreementPage":  true,
         "renderSitePoliciesPage":  true,
@@ -13,7 +13,7 @@
         "allowSkip": true,
         "allowBack": true,
         "userInstructionHtml": "examples/html/instructions.html",
-        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
+        "ethicsAgreementHtml": "examples/html/ethics-agreement.html",
         "sitePoliciesHtml": "examples/html/site-policies.html"
     },
     "comparisonConfiguration" : {

@@ -66,7 +66,7 @@ def test_register_participant_with_escape_route_off(mocker, equal_weight_client,
     selection page
     """
     with equal_weight_client:
-        escape_route_setting = mocker.patch.object(register.WS, 'get_behaviour_conf')
+        escape_route_setting = mocker.patch.object(register.WS, 'get_study_conf')
         escape_route_setting.side_effect = [False]
         response = equal_weight_client.post("/register", data=participant_data)
 

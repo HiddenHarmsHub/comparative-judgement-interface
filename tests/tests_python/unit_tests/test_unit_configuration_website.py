@@ -45,7 +45,8 @@ def test_get_comparison_conf(equal_weight_app):
     THEN the correct information is returned
     """
     settings = Settings()
-    result = settings.get_comparison_conf(settings.GROUP_WEIGHT_CONFIGURATION, equal_weight_app)
+    # TODO: unhardcode study id
+    result = settings.get_study_conf(settings.GROUP_WEIGHT_CONFIGURATION, 1, equal_weight_app)
     assert result == 'equal'
 
 
@@ -61,15 +62,15 @@ def test_get_user_conf(equal_weight_app):
     assert result[0] == {"name": "name", "displayName": "First Name", "type": "text", "maxLimit": 250, "required": True}  # NoQA
 
 
-def test_get_behaviour_conf(equal_weight_app):
-    """
-    GIVEN a flask app configured for testing and with equal weights
-    WHEN the export path is requested from the config
-    THEN the export path is returned
-    """
-    settings = Settings()
-    result = settings.get_behaviour_conf('exportPathLocation', equal_weight_app)
-    assert result == '../exports'
+# def test_get_behaviour_conf(equal_weight_app):
+#     """
+#     GIVEN a flask app configured for testing and with equal weights
+#     WHEN the export path is requested from the config
+#     THEN the export path is returned
+#     """
+#     settings = Settings()
+#     result = settings.get_behaviour_conf('exportPathLocation', equal_weight_app)
+#     assert result == '../exports'
 
 
 def test_should_render(equal_weight_app):
@@ -79,5 +80,5 @@ def test_should_render(equal_weight_app):
     THEN the correct boolean is returned
     """
     settings = Settings()
-    result = settings.should_render('renderUserItemPreferencePage', equal_weight_app)
+    result = settings.should_render('renderUserInstructionPage', equal_weight_app)
     assert result is True

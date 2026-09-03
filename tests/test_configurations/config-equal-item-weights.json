@@ -13,7 +13,7 @@
         "allowSkip": true,
         "allowBack": true,
         "userInstructionHtml": "examples/html/instructions.html",
-        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
+        "ethicsAgreementHtml": "examples/html/ethics-agreement.html",
         "sitePoliciesHtml": "examples/html/site-policies.html"
     },
     "comparisonConfiguration" : {
