@@ -22,7 +22,15 @@ npx puppeteer browsers install chrome
 
 ## Python tests
 
-The Python tests are written in pytest and can be found in the `tests/tests_python` directory. The tests are run as follows:
+The Python tests are written in pytest and can be found in the `tests/tests_python` directory. To run the playwright tests the first time you will need to install plywright by running the following command in the virtual environment.
+
+```bash
+playwright install
+```
+
+The output of this script may also suggest some additional system packages be installed.
+
+The tests are run as follows:
 
 ```bash
 pytest
