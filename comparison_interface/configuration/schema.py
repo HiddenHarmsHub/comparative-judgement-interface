@@ -2,12 +2,54 @@ import itertools
 import os
 import re
 
-from marshmallow import Schema, ValidationError, fields, post_load, validate, validates
+from marshmallow import Schema, ValidationError, fields, post_load, validate, validates, validates_schema
 from PIL import Image
 
 from comparison_interface.db.models import StudyControl
 
 from .website import Settings as WS
+
+
+class OptionalMultiLangField(fields.Field):
+    """Allows either the type specified by value_type or that type wrapped in a dictionary by language codes."""
+    def __init__(self, *, value_type="string", min_length=1, max_length=200, **kwargs):
+        """Set some custom values on the Field."""
+        super().__init__(**kwargs)
+        self.value_type = value_type
+        self.validator = validate.Length(min=min_length, max=max_length)
+
+    def _validate_value(self, value):
+        if self.value_type == "string":
+            if not isinstance(value, str):
+                raise ValidationError(
+                    "The value must be a string (either alone as the value in the langauge dictionary)."
+                )
+            self.validator(value)
+
+        elif self.value_type == "list":
+            if not isinstance(value, list):
+                raise ValidationError(
+                    "The value must be a list (either alone as the value in the langauge dictionary)."
+                )
+            self.validator(value)
+
+            for item in value:
+                if not isinstance(item, str):
+                    raise ValidationError(
+                        "The items in the list items must be strings."
+                    )
+        else:
+            raise ValidationError(
+                f"Unsupported value_type: {self.value_type}"
+            )
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if isinstance(value, dict):
+            for unpacked_value in value.values():
+                self._validate_value(unpacked_value)
+        else:
+            self._validate_value(value)
+        return value
 
 
 class Item(Schema):
@@ -247,7 +289,7 @@ class UserField(Schema):
     """The schema for a user."""
 
     name = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
-    displayName = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
+    displayName = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=100)  # fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
     type = fields.Str(
         required=True,
         validate=[
@@ -265,7 +307,7 @@ class UserField(Schema):
     maxLimit = fields.Int()
     minLimit = fields.Int()
     required = fields.Boolean(required=True)
-    option = fields.List(fields.Str(), validate=[validate.Length(min=1, max=50)])
+    option = OptionalMultiLangField(required=False, value_type="list")  # fields.List(fields.Str(), validate=[validate.Length(min=1, max=50)])
 
     @validates('name')
     def _validate_name(self, name, data_key):
@@ -313,6 +355,7 @@ class UserField(Schema):
 class BehaviourConfiguration(Schema):
     """The schema for the behaviour configuration."""
 
+    supportedLanguages = fields.Dict(required=True)
     exportPathLocation = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
     renderUserItemPreferencePage = fields.Boolean(required=True)
     renderUserInstructionPage = fields.Boolean(required=True)
@@ -342,6 +385,10 @@ class BehaviourConfiguration(Schema):
 
 class Configuration(Schema):
     """The schema for the full configuration."""
+    def __init__(self, *args, **kwargs):
+        """Initialise the schema adding a variable for missing translation warnings."""
+        super().__init__(*args, **kwargs)
+        self.missing_translation_warnings = []
 
     behaviourConfiguration = fields.Nested(BehaviourConfiguration(), required=True)
     comparisonConfiguration = fields.Nested(ComparisonConfiguration(), required=True)
@@ -349,6 +396,7 @@ class Configuration(Schema):
     userFieldsConfiguration = fields.List(
         fields.Nested(UserField()), required=True, validate=[validate.Length(min=0, max=20)]
     )
+
 
     @validates('userFieldsConfiguration')
     def _validate_unique_names(self, fields, data_key):
@@ -361,9 +409,41 @@ class Configuration(Schema):
             else:
                 names.append(f['name'])
 
-    @post_load
-    def _post_load_validation(self, data, **kwargs):
+    @staticmethod
+    def _find_optional_multi_language_fields(schema, data):
+        for field_name, field in schema.fields.items():
+
+            if field_name not in data:
+                continue
+            value = data[field_name]
+
+            if isinstance(field, OptionalMultiLangField):
+                yield value, field_name
+            elif isinstance(field, fields.Nested):
+                yield from Configuration._find_optional_multi_language_fields(field.schema, value)
+            elif isinstance(field, fields.List) and isinstance(field.inner, fields.Nested):
+                for item in value:
+                    yield from Configuration._find_optional_multi_language_fields(field.inner.schema, item)
+
+    @validates_schema
+    def _schema_level_validation(self, data, **kwargs):
         render_item_preference = data['behaviourConfiguration']['renderUserItemPreferencePage']
+        supported_languages = list(data['behaviourConfiguration']['supportedLanguages'].keys())
+
+        # find all the multi-language keys and check them for validation errors or missing values
+        for value, field_name in Configuration._find_optional_multi_language_fields(self, data):
+            if not isinstance(value, dict) and len(supported_languages) > 1:
+                self.missing_translation_warnings.append(field_name)
+            elif isinstance(value, dict):
+                if supported_languages[0] not in value.keys():
+                    raise ValidationError(
+                        'The first language in your list of supported languages must be present in all mutliple '
+                        f'language fields, missing in {field_name}'
+                    )
+                for language in supported_languages[1:]:
+                    if language not in value.keys():
+                        self.missing_translation_warnings.append(field_name)
+
 
         if 'weightConfiguration' in data['comparisonConfiguration']:
             # Check that we are not trying to render item preferences it we are using custom weights
@@ -400,4 +480,3 @@ class Configuration(Schema):
                     "userRegistrationGroupSelectionErr must be provided in the websiteTextConfiguration section."
                 )
 
-        return data

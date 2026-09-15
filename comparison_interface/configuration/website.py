@@ -21,6 +21,7 @@ class Settings:
     CONFIGURATION_USER_FIELDS = "userFieldsConfiguration"
     CONFIGURATION_WEBSITE_TEXT = "websiteTextConfiguration"
     # Website behaviour configuration keys
+    BEHAVIOUR_SUPPORTED_LANGUAGES = "supportedLanguages"
     BEHAVIOUR_EXPORT_PATH_LOCATION = "exportPathLocation"
     BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE = "renderUserItemPreferencePage"
     BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE = "renderUserInstructionPage"

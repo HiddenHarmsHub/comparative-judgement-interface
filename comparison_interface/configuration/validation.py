@@ -34,6 +34,13 @@ class Validation:
         except ValidationError:
             raise
         else:
+            if len(schema.missing_translation_warnings) > 0:
+                print(
+                    'Some fields are missing at least one of the translation strings expected. In these cases the first'
+                    ' language on the list will be used as the fallback language. These missing translations can be'
+                    ' provided in the configuration or via the admin interface (latter not yet implemented). The fields'
+                    f' missing the translations are: {", ".join(schema.missing_translation_warnings)}'
+                )
             # now we have validated, reload the config so that we just have the project
             conf = WS.get_configuration(self.__app, True)
             # now if we reference a csv file validate that

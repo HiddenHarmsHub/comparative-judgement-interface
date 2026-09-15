@@ -300,7 +300,7 @@ class Setup:
         for question in participant_conf:
             config = RegistrationQuestions()
             config.question_name = question[WS.USER_FIELD_NAME]
-            config.question_display = question[WS.USER_FIELD_DISPLAY_NAME]
+            # config.question_display = question[WS.USER_FIELD_DISPLAY_NAME]
             config.type = question[WS.USER_FIELD_TYPE]
             try:
                 config.max_limit = question[WS.USER_FIELD_MAX_LIMIT]
@@ -310,10 +310,10 @@ class Setup:
                 config.min_limit = question[WS.USER_FIELD_MIN_LIMIT]
             except KeyError:
                 config.min_limit = None
-            try:
-                config.option = question[WS.USER_FIELD_SELECT_OPTION]
-            except KeyError:
-                config.option = None
+            # try:
+            #     config.option = question[WS.USER_FIELD_SELECT_OPTION]
+            # except KeyError:
+            #     config.option = None
             config.required = question[WS.USER_FIELD_REQUIRED]
             db.session.add(config)
 
@@ -326,6 +326,7 @@ class Setup:
         config = WebsiteControl()
         config.study_count = 1
 
+        config.supported_languages = self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES)
         config.export_path_location = self._get_config_value(WS.BEHAVIOUR_EXPORT_PATH_LOCATION)
         config.render_user_instruction_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE)
         config.render_ethics_agreement_page = self._get_config_value(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE)
@@ -378,14 +379,28 @@ class Setup:
         # now add the user study data
         participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
         for question in participant_conf:
-            config = WebsiteText()
-            config.string_key = f"{question[WS.USER_FIELD_NAME]}_question_text"
-            config.language = "en"
-            config.string_value = question[WS.USER_FIELD_DISPLAY_NAME]
-            db.session.add(config)
-            if "option" in question:
+            first_language = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())[0]
+            for language in list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys()):
                 config = WebsiteText()
-                config.string_key = f"{question[WS.USER_FIELD_NAME]}_option_text"
-                config.language = "en"
-                config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION])
+                config.string_key = f"{question[WS.USER_FIELD_NAME]}_question_text"
+                config.language = language
+                if isinstance(question[WS.USER_FIELD_DISPLAY_NAME], dict):
+                    try:
+                        config.string_value = question[WS.USER_FIELD_DISPLAY_NAME][language]
+                    except KeyError:
+                        config.string_value = question[WS.USER_FIELD_DISPLAY_NAME][first_language]
+                else:
+                    config.string_value = question[WS.USER_FIELD_DISPLAY_NAME]
                 db.session.add(config)
+                if "option" in question:
+                    config = WebsiteText()
+                    config.string_key = f"{question[WS.USER_FIELD_NAME]}_option_text"
+                    config.language = language
+                    if isinstance(question[WS.USER_FIELD_SELECT_OPTION], dict):
+                        try:
+                            config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION][language])
+                        except KeyError:
+                            config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION][first_language])
+                    else:
+                        config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION])
+                    db.session.add(config)
