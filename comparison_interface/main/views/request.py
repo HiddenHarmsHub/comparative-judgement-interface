@@ -15,6 +15,10 @@ class Request:
         """
         self._app = app
         self._session = session
+        try:
+            self._language = session['language']
+        except Exception:
+            self._language = 'en'
 
     @staticmethod
     def process(handler, request):
@@ -51,21 +55,21 @@ class Request:
             render_language_selector = False
 
         return {
-            # 'language_code': self._app.language_code,
-            'language_select_label': WS.get_text(WS.LANGUAGE_SELECT_LABEL, self._app),
+            'current_language': self._language,
+            'language_select_label': WS.get_text(WS.LANGUAGE_SELECT_LABEL, self._language, self._app),
             'languages': supported_languages,
-            'website_title': WS.get_text(WS.WEBSITE_TITLE, self._app),
-            'introduction_page_title': WS.get_text(WS.PAGE_TITLE_INTRODUCTION, self._app),
-            'ethics_agreement_page_title': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._app),
-            'policies_page_title': WS.get_text(WS.PAGE_TITLE_POLICIES, self._app),
-            'participant_registration_page_title': WS.get_text(WS.PAGE_TITLE_USER_REGISTRATION, self._app),
-            'skip_to_main_content': WS.get_text(WS.SKIP_TO_MAIN_CONTENT, self._app),
-            'logout_page_title': WS.get_text(WS.PAGE_TITLE_LOGOUT, self._app),
-            'item_preference_page_title': WS.get_text(WS.PAGE_TITLE_ITEM_PREFERENCE, self._app),
-            'rank_page_title': WS.get_text(WS.PAGE_TITLE_RANK, self._app),
-            'site_cookies_accept_button_label': WS.get_text(WS.SITE_COOKIES_ACCEPT_BUTTON_LABEL, self._app),
-            'site_cookies_title': WS.get_text(WS.SITE_COOKIES_TITLE, self._app),
-            'site_cookies_text': WS.get_text(WS.SITE_COOKIES_TEXT, self._app),
+            'website_title': WS.get_text(WS.WEBSITE_TITLE, self._language, self._app),
+            'introduction_page_title': WS.get_text(WS.PAGE_TITLE_INTRODUCTION, self._language, self._app),
+            'ethics_agreement_page_title': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._language, self._app),
+            'policies_page_title': WS.get_text(WS.PAGE_TITLE_POLICIES, self._language, self._app),
+            'participant_registration_page_title': WS.get_text(WS.PAGE_TITLE_USER_REGISTRATION, self._language, self._app),
+            'skip_to_main_content': WS.get_text(WS.SKIP_TO_MAIN_CONTENT, self._language, self._app),
+            'logout_page_title': WS.get_text(WS.PAGE_TITLE_LOGOUT, self._language, self._app),
+            'item_preference_page_title': WS.get_text(WS.PAGE_TITLE_ITEM_PREFERENCE, self._language, self._app),
+            'rank_page_title': WS.get_text(WS.PAGE_TITLE_RANK, self._language, self._app),
+            'site_cookies_accept_button_label': WS.get_text(WS.SITE_COOKIES_ACCEPT_BUTTON_LABEL, self._language, self._app),
+            'site_cookies_title': WS.get_text(WS.SITE_COOKIES_TITLE, self._language, self._app),
+            'site_cookies_text': WS.get_text(WS.SITE_COOKIES_TEXT, self._language, self._app),
             'render_user_instructions': render_instructions,
             'render_user_ethics_agreement': render_ethics_agreement,
             'render_site_policies': render_site_policies,

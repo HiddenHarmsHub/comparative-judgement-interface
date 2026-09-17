@@ -11,12 +11,12 @@ class Thankyou(Request):
     def get(self, _):
         """Request get handler."""
         data = {
-            'thank_you_page_title': WS.get_text(WS.PAGE_TITLE_THANK_YOU, self._app),
-            'title': WS.get_text(WS.THANK_YOU_TITLE, self._app),
-            'opening_text': WS.get_text(WS.THANK_YOU_OPENING_TEXT, self._app),
-            'continue_text': WS.get_text(WS.THANK_YOU_CONTINUE_TEXT, self._app),
-            'stop_text': WS.get_text(WS.THANK_YOU_STOP_TEXT, self._app),
-            'button': WS.get_text(WS.THANK_YOU_CONTINUE_BUTTON_LABEL, self._app),
+            'thank_you_page_title': WS.get_text(WS.PAGE_TITLE_THANK_YOU, self._language, self._app),
+            'title': WS.get_text(WS.THANK_YOU_TITLE, self._language, self._app),
+            'opening_text': WS.get_text(WS.THANK_YOU_OPENING_TEXT, self._language, self._app),
+            'continue_text': WS.get_text(WS.THANK_YOU_CONTINUE_TEXT, self._language, self._app),
+            'stop_text': WS.get_text(WS.THANK_YOU_STOP_TEXT, self._language, self._app),
+            'button': WS.get_text(WS.THANK_YOU_CONTINUE_BUTTON_LABEL, self._language, self._app),
         }
         if self._can_continue():
             data['continue'] = True
