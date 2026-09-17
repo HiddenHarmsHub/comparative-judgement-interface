@@ -79,7 +79,8 @@ def create_app(testing=False, test_config=None):
         @app.security.context_processor
         def security_context_processor():
             if WS.CONFIGURATION_LOCATION in app.config:
-                return {"website_title": WS.get_text(WS.WEBSITE_TITLE, app)}
+                language = _get_language()
+                return {"website_title": WS.get_text(WS.WEBSITE_TITLE, language, app)}
             else:
                 return {"website_title": "No active study"}
 
@@ -170,8 +171,16 @@ def _validate_app_integrity():
             raise RuntimeError("Application unhealthy state. Please contact the website administrator.")
 
 
+def _get_language():
+    language = session.get("language", None)
+    if language is None:
+        language = "en"
+    return language
+
+
 def _page_not_found(e):
     """Return 404 page."""
+    language = _get_language()
     subdomain = current_app.config["SUBDOMAIN"]
     if subdomain == "":
         subdomain = "/"
@@ -186,9 +195,9 @@ def _page_not_found(e):
         return render_template('404.html', **data)
     else:
         data = {
-            'error_404_title': WS.get_text(WS.ERROR_404_TITLE, current_app),
-            'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, current_app),
-            'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, current_app),
+            'error_404_title': WS.get_text(WS.ERROR_404_TITLE, language, current_app),
+            'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, language, current_app),
+            'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, language, current_app),
             'error_404_home_location': subdomain,
         }
     return render_template('404.html', **{**data, **Request(current_app, session).get_layout_text()}), 404
@@ -196,8 +205,9 @@ def _page_not_found(e):
 
 def _page_unexpected_condition(e):
     """Return 500 page."""
+    language = _get_language()
     data = {
-        'error_500_title': WS.get_text(WS.ERROR_500_TITLE, current_app),
-        'error_500_message': WS.get_text(WS.ERROR_500_MESSAGE, current_app),
+        'error_500_title': WS.get_text(WS.ERROR_500_TITLE, language, current_app),
+        'error_500_message': WS.get_text(WS.ERROR_500_MESSAGE, language, current_app),
     }
     return render_template('500.html', **{**data, **Request(current_app, session).get_layout_text()}), 500

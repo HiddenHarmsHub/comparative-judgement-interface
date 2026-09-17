@@ -170,7 +170,7 @@ class Settings:
         return cls.configuration
 
     @classmethod
-    def get_text(cls, label, app):
+    def get_text(cls, label, language, app):
         """Get the text to render for a specific label of the website.
 
         Args:
@@ -182,7 +182,7 @@ class Settings:
         """
         with app.app_context():
             query = db.select(WebsiteText.string_value).where(
-                WebsiteText.language == "en",
+                WebsiteText.language == language,
                 WebsiteText.string_key == label,
             )
             return db.session.scalars(query).first()

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ language_code }}">
+<html lang="{{ current_language }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -47,13 +47,19 @@
           {% endif %}
           {% if render_language_selector %}
             <li class="nav-item">
-              <label for="language-selector" class="nav-link ms-3 ps-3 border-start border-secondary">{{ language_select_label }}: 
-                <select id="language-selector" class="focus-ring">
-                  {% for code, language in languages.items() %}
-                    <option value="{{ code }}">{{ language }}</option>
-                  {% endfor %}
-                </select>
-              </label>
+              <form action="{{ url_for('main.set_language') }}" method="post">
+                <label for="language-selector" class="nav-link ms-3 ps-3 border-start border-secondary">{{ language_select_label }}: 
+                  <select id="language-selector" name="language" class="focus-ring" onchange="this.form.submit()">
+                    {% for code, language in languages.items() %}
+                      {% if current_language == code %}
+                        <option value="{{ code }}" selected>{{ language }}</option>
+                      {% else %}
+                        <option value="{{ code }}">{{ language }}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
+                </label>
+              </form>
             </li>
           {% endif %}
           <li class="nav-item">

@@ -69,9 +69,9 @@ class ItemsPreference(Request):
             'main/pages/item_preference.html',
             {
                 'item': item,
-                'item_selection_question': WS.get_text(WS.ITEM_SELECTION_QUESTION_LABEL, self._app),
-                'item_selection_answer_no': WS.get_text(WS.ITEM_SELECTION_NO_BUTTON_LABEL, self._app),
-                'item_selection_answer_yes': WS.get_text(WS.ITEM_SELECTION_YES_BUTTON_LABEL, self._app),
+                'item_selection_question': WS.get_text(WS.ITEM_SELECTION_QUESTION_LABEL, self._language, self._app),
+                'item_selection_answer_no': WS.get_text(WS.ITEM_SELECTION_NO_BUTTON_LABEL, self._language, self._app),
+                'item_selection_answer_yes': WS.get_text(WS.ITEM_SELECTION_YES_BUTTON_LABEL, self._language, self._app),
             },
         )
 
