@@ -300,7 +300,6 @@ class Setup:
         for question in participant_conf:
             config = RegistrationQuestions()
             config.question_name = question[WS.USER_FIELD_NAME]
-            # config.question_display = question[WS.USER_FIELD_DISPLAY_NAME]
             config.type = question[WS.USER_FIELD_TYPE]
             try:
                 config.max_limit = question[WS.USER_FIELD_MAX_LIMIT]
@@ -310,10 +309,6 @@ class Setup:
                 config.min_limit = question[WS.USER_FIELD_MIN_LIMIT]
             except KeyError:
                 config.min_limit = None
-            # try:
-            #     config.option = question[WS.USER_FIELD_SELECT_OPTION]
-            # except KeyError:
-            #     config.option = None
             config.required = question[WS.USER_FIELD_REQUIRED]
             db.session.add(config)
 
@@ -361,7 +356,7 @@ class Setup:
         db.session.add(config)
 
     def _setup_website_text(self, db):
-        supported_languages = self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys()
+        supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
         keys = vars(WebsiteTextConfiguration())['declared_fields'].keys()
         for key in keys:
             for language in supported_languages:
