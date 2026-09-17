@@ -30,7 +30,6 @@ class Setup:
         """Initialise the Setup with the Flask app."""
         self.app = app
         self.json_conf = WS.get_configuration(self.app)
-        print(self.json_conf)
 
     def exec(self):
         """Initialise the website database.
