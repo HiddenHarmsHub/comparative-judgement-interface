@@ -231,6 +231,7 @@ class WebsiteTextConfiguration(Schema):
 
     skipToMainContent = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=100)
     websiteTitle = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=100)
+    languageSelectLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
     pageTitleLogout = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
     pageTitleUserRegistration = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
     pageTitleEthicsAgreement = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)

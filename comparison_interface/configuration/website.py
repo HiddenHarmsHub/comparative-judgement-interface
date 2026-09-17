@@ -68,6 +68,7 @@ class Settings:
     # Website labels
     SKIP_TO_MAIN_CONTENT = "skipToMainContent"
     WEBSITE_TITLE = "websiteTitle"
+    LANGUAGE_SELECT_LABEL = "languageSelectLabel"
     PAGE_TITLE_LOGOUT = "pageTitleLogout"
     PAGE_TITLE_USER_REGISTRATION = "pageTitleUserRegistration"
     PAGE_TITLE_ETHICS_AGREEMENT = "pageTitleEthicsAgreement"

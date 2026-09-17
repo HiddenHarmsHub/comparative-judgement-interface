@@ -44,9 +44,16 @@ class Request:
         render_ethics_agreement = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app)
         render_site_policies = WS.should_render(WS.BEHAVIOUR_RENDER_SITE_POLICIES, self._app)
         render_site_cookies = WS.should_render(WS.BEHAVIOUR_RENDER_COOKIE_BANNER, self._app)
+        supported_languages = WS.get_website_conf(WS.BEHAVIOUR_SUPPORTED_LANGUAGES, self._app)
+        if len(supported_languages) > 1:
+            render_language_selector = True
+        else:
+            render_language_selector = False
 
         return {
-            'language_code': self._app.language_code,
+            # 'language_code': self._app.language_code,
+            'language_select_label': WS.get_text(WS.LANGUAGE_SELECT_LABEL, self._app),
+            'languages': supported_languages,
             'website_title': WS.get_text(WS.WEBSITE_TITLE, self._app),
             'introduction_page_title': WS.get_text(WS.PAGE_TITLE_INTRODUCTION, self._app),
             'ethics_agreement_page_title': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._app),
@@ -63,6 +70,7 @@ class Request:
             'render_user_ethics_agreement': render_ethics_agreement,
             'render_site_policies': render_site_policies,
             'render_cookie_banner': render_site_cookies,
+            'render_language_selector': render_language_selector,
         }
 
     def _valid_session(self):
