@@ -30,6 +30,7 @@ class Setup:
         """Initialise the Setup with the Flask app."""
         self.app = app
         self.json_conf = WS.get_configuration(self.app)
+        print(self.json_conf)
 
     def exec(self):
         """Initialise the website database.
@@ -361,21 +362,30 @@ class Setup:
         db.session.add(config)
 
     def _setup_website_text(self, db):
-
+        supported_languages = self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys()
         keys = vars(WebsiteTextConfiguration())['declared_fields'].keys()
         for key in keys:
-            config = WebsiteText()
-            config.string_key = key
-            config.language = "en"
-            if key in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT]:
-                config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]
-            elif key in self.app.language_config[WS.CONFIGURATION_WEBSITE_TEXT]:
-                config.string_value = self.app.language_config[WS.CONFIGURATION_WEBSITE_TEXT][key]
-            else:
-                config.string_value = "missing"
-            if isinstance(config.string_value, list):
-                config.string_value = '||'.join(config.string_value)
-            db.session.add(config)
+            for language in supported_languages:
+                config = WebsiteText()
+                config.string_key = key
+                config.language = language
+                if key in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT]:
+                    if not isinstance(self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key], dict):
+                        config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]
+                    else:
+                        if language in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]:
+                            config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key][language]
+                        elif supported_languages[0] in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]:
+                            config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key][
+                                supported_languages[0]
+                            ]
+                        else:
+                            config.string_value = "missing"
+                else:
+                    config.string_value = "missing"
+                if isinstance(config.string_value, list):
+                    config.string_value = '||'.join(config.string_value)
+                db.session.add(config)
         # now add the user study data
         participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
         for question in participant_conf:

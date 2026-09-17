@@ -46,22 +46,6 @@ def create_app(testing=False, test_config=None):
     if test_config is not None:
         app.config.from_mapping(test_config)
 
-    # make sure the language setting is consistent
-    try:
-        language = app.config["LANGUAGE"].split(':')[1]
-    except IndexError:
-        language = app.config["LANGUAGE"]
-    except KeyError:
-        language = 'en'
-    app.language_code = language
-
-    language_filepath = os.path.join(os.path.dirname(__file__), "languages", f"{language}.json")
-    if not os.path.exists(language_filepath):
-        raise RuntimeError("The required file for the language requested in the flask configuration is not available.")
-
-    with open(language_filepath, mode='r', encoding='utf-8') as config_file:
-        app.language_config = json.load(config_file)
-
     # Register the database
     db.init_app(app)
 
