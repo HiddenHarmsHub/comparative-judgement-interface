@@ -45,6 +45,17 @@
               <a class="nav-link focus-ring mx-2" href="{{ url_for('main.policies') }}">{{policies_page_title}}</a>
             </li>
           {% endif %}
+          {% if render_language_selector %}
+            <li class="nav-item">
+              <label for="language-selector" class="nav-link ms-3 ps-3 border-start border-secondary">{{ language_select_label }}: 
+                <select id="language-selector" class="focus-ring">
+                  {% for code, language in languages.items() %}
+                    <option value="{{ code }}">{{ language }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link focus-ring ml-2" href="{{ url_for('main.logout') }}">{{logout_page_title}}</a>
           </li>
