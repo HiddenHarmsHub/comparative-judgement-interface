@@ -31,6 +31,6 @@ class Policies(Request):
             {
                 'fragment': fragment,
                 'html_string': html,
-                'site_policies_back_button': WS.get_text(WS.SITE_POLICIES_BACK_BUTTON_LABEL, self._app),
+                'site_policies_back_button': WS.get_text(WS.SITE_POLICIES_BACK_BUTTON_LABEL, self._language, self._app),
             },
         )
