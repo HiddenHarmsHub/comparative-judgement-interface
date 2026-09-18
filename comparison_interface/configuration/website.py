@@ -175,6 +175,7 @@ class Settings:
 
         Args:
             label (string): Label text required
+            language (string): The language code required for the text string
             app (Flask app): Flask application
 
         Returns:

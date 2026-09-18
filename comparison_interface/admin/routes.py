@@ -19,12 +19,6 @@ from comparison_interface.db.models import Comparison, Participant, WebsiteContr
 from comparison_interface.db.setup import Setup as DBSetup
 
 
-def _get_language():
-    language = session.get("language", None)
-    if language is None:
-        language = "en"
-    return language
-
 @blueprint.route("/", methods=["GET"])
 @auth_required("session", within=10)
 def admin_root():
@@ -36,7 +30,7 @@ def admin_root():
 @auth_required("session", within=10)
 def dashboard():
     """Show the admin dashboard."""
-    language = _get_language()
+    language = "en"  # only English support in admin interface
     form = forms.StartStudyForm()
     if db.session.query(WebsiteControl).count() == 1 and os.path.exists(
         os.path.join(current_app.root_path, db.session.query(WebsiteControl).first().configuration_file)
@@ -104,7 +98,7 @@ def dashboard():
 @blueprint.route("/logged-out", methods=["GET"])
 def logged_out():
     """Display a post log out page."""
-    language = _get_language()
+    language = "en"
     current_app.logger.critical("********")
     current_app.logger.critical(WS.CONFIGURATION_LOCATION)
     current_app.logger.critical(current_app.config[WS.CONFIGURATION_LOCATION])
@@ -147,7 +141,7 @@ def new_study():
 @auth_required("session", within=10)
 def setup_study():
     """Set up a new study."""
-    language = _get_language()
+    language = "en"
     form = forms.CreateStudyForm()
     form.uploads_complete.data
     if form.uploads_complete.data == "true":
@@ -242,7 +236,7 @@ def current_files():
 @auth_required("session", within=10)
 def upload_images():
     """Image uploading."""
-    language = _get_language()
+    language = "en"
     form = forms.ImageUploadForm()
     if request.method == "POST":
         return redirect(url_for("admin.setup_study"))
@@ -304,7 +298,7 @@ def process_errors(errors):
 @auth_required("session", within=30)
 def upload_csv():
     """Upload an image csv file."""
-    language = _get_language()
+    language = "en"
     form = forms.CsvUploadForm()
     if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
         website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
@@ -337,7 +331,7 @@ def upload_csv():
 @auth_required("session", within=30)
 def upload_config():
     """Upload a new config file."""
-    language = _get_language()
+    language = "en"
     form = forms.ConfigUploadForm()
     if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
         website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
@@ -394,7 +388,7 @@ def edit_page():
     """Edit the markdown behind an html page."""
     form = forms.EditHtmlPageForm()
     folder = current_app.config["HTML_PAGES_DIR"]
-    language = _get_language()
+    language = "en"
     if form.md_text.data:
         md_text = form.md_text.data
         html = markdown.markdown(md_text)

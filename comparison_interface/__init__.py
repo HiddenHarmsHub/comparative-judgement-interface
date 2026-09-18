@@ -49,6 +49,13 @@ def create_app(testing=False, test_config=None):
     # Register the database
     db.init_app(app)
 
+    with app.app_context():
+        website_control = db.session.execute(
+            db.select(WebsiteControl)
+        ).scalar_one()
+        app.config["SUPPORTED_LANGUAGES"] = list(website_control.supported_languages.keys())
+
+
     # Register the custom Flask commands
     app.register_blueprint(commands_bp)
 
@@ -173,6 +180,8 @@ def _validate_app_integrity():
 
 def _get_language():
     language = session.get("language", None)
+    if language not in current_app.config["SUPPORTED_LANGUAGES"]:
+        language = current_app.config["SUPPORTED_LANGUAGES"][0]
     if language is None:
         language = "en"
     return language
