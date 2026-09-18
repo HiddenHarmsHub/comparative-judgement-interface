@@ -34,7 +34,7 @@ def test_website_get_text(equal_weight_app):
     THEN the correct text is returned
     """
     settings = Settings()
-    result = settings.get_text(settings.PAGE_TITLE_USER_REGISTRATION, equal_weight_app)
+    result = settings.get_text(settings.PAGE_TITLE_USER_REGISTRATION, "en", equal_weight_app)
     assert result == 'User Registration'
 
 

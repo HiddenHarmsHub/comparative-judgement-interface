@@ -31,6 +31,8 @@ class Introduction(Request):
             {
                 'fragment': fragment,
                 'html_string': html,
-                'introduction_continue_button': WS.get_text(WS.INTRODUCTION_CONTINUE_BUTTON_LABEL, self._app),
+                'introduction_continue_button': WS.get_text(
+                    WS.INTRODUCTION_CONTINUE_BUTTON_LABEL, self._language, self._app
+                ),
             },
         )
