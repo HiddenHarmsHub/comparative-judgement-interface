@@ -50,11 +50,8 @@ def create_app(testing=False, test_config=None):
     db.init_app(app)
 
     with app.app_context():
-        website_control = db.session.execute(
-            db.select(WebsiteControl)
-        ).scalar_one()
+        website_control = db.session.execute(db.select(WebsiteControl)).scalar_one()
         app.config["SUPPORTED_LANGUAGES"] = list(website_control.supported_languages.keys())
-
 
     # Register the custom Flask commands
     app.register_blueprint(commands_bp)

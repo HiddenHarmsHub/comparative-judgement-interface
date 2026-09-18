@@ -98,9 +98,13 @@ class Register(Request):
         # Add the custom user fields
         for field in user_fields:
             component = 'main/components/{}.html'.format(field[WS.USER_FIELD_TYPE])
-            text = {"question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._language, self._app)}
+            text = {
+                "question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._language, self._app)
+            }
             if 'option' in field:
-                text['option_text'] = WS.get_text(f"{field[WS.USER_FIELD_NAME]}_option_text", self._language, self._app).split("||")
+                text['option_text'] = WS.get_text(
+                    f"{field[WS.USER_FIELD_NAME]}_option_text", self._language, self._app
+                ).split("||")
             user_components.append(render_template(component, **field, **text))
 
     def _load_group_component(self, user_components: list):
@@ -168,7 +172,9 @@ class Register(Request):
                 render_template(
                     'main/components/ethics.html',
                     **{
-                        'ethics_agreement_label': WS.get_text(WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._language, self._app),
+                        'ethics_agreement_label': WS.get_text(
+                            WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._language, self._app
+                        ),
                         'ethics_link_text': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._language, self._app),
                     },
                 )

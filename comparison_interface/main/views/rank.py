@@ -92,12 +92,18 @@ class Rank(Request):
         if allow_ties:
             additional_screen_reader_instructions = ""
         else:
-            additional_screen_reader_instructions = WS.get_text(WS.ADDITIONAL_RADIO_BUTTON_INSTRUCTIONS, self._language, self._app)
+            additional_screen_reader_instructions = WS.get_text(
+                WS.ADDITIONAL_RADIO_BUTTON_INSTRUCTIONS, self._language, self._app
+            )
 
         if allow_skip:
-            confirm_button_error_message = WS.get_text(WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITH_SKIP, self._language, self._app)
+            confirm_button_error_message = WS.get_text(
+                WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITH_SKIP, self._language, self._app
+            )
         else:
-            confirm_button_error_message = WS.get_text(WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP, self._language, self._app)
+            confirm_button_error_message = WS.get_text(
+                WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP, self._language, self._app
+            )
         return self._render_template(
             'main/pages/rank.html',
             {
@@ -105,17 +111,25 @@ class Rank(Request):
                 'item_2': item_2,
                 'weighted_pair_id': pair_id,
                 'selected_item_label': WS.get_text(WS.RANK_ITEM_SELECTED_INDICATOR_LABEL, self._language, self._app),
-                'tied_selection_label': WS.get_text(WS.RANK_ITEM_TIED_SELECTION_INDICATOR_LABEL, self._language, self._app),
-                'skipped_selection_label': WS.get_text(WS.RANK_ITEM_SKIPPED_SELECTION_INDICATOR_LABEL, self._language, self._app),
+                'tied_selection_label': WS.get_text(
+                    WS.RANK_ITEM_TIED_SELECTION_INDICATOR_LABEL, self._language, self._app
+                ),
+                'skipped_selection_label': WS.get_text(
+                    WS.RANK_ITEM_SKIPPED_SELECTION_INDICATOR_LABEL, self._language, self._app
+                ),
                 'rejudge_label': WS.get_text(WS.RANK_ITEM_REJUDGE_BUTTON_LABEL, self._language, self._app),
                 'confirmed_label': WS.get_text(WS.RANK_ITEM_CONFIRMED_BUTTON_LABEL, self._language, self._app),
                 'confirm_button_error_message': confirm_button_error_message,
                 'skip_button_error_message': WS.get_text(WS.SKIP_BUTTON_ERROR_MESSAGE, self._language, self._app),
                 'skipped_label': WS.get_text(WS.RANK_ITEM_SKIPPED_BUTTON_LABEL, self._language, self._app),
                 'comparison_instruction_label': WS.get_text(WS.RANK_ITEM_INSTRUCTION_LABEL, self._language, self._app),
-                'comparison_number_label': WS.get_text(WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._language, self._app),
+                'comparison_number_label': WS.get_text(
+                    WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._language, self._app
+                ),
                 'comparison_number': compared,
-                'skipped_number_label': WS.get_text(WS.RANK_ITEM_SKIPPED_COMPARISON_EXECUTED_LABEL, self._language, self._app),
+                'skipped_number_label': WS.get_text(
+                    WS.RANK_ITEM_SKIPPED_COMPARISON_EXECUTED_LABEL, self._language, self._app
+                ),
                 'skipped_number': skipped,
                 'rejudge_value': self.REJUDGE,
                 'confirmed_value': self.CONFIRMED,

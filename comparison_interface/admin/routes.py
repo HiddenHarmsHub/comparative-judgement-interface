@@ -5,7 +5,7 @@ from json.decoder import JSONDecodeError
 from tempfile import TemporaryDirectory
 
 import markdown
-from flask import Response, current_app, redirect, render_template, request, send_file, session, url_for
+from flask import Response, current_app, redirect, render_template, request, send_file, url_for
 from flask_security import auth_required
 from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
