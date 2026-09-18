@@ -39,7 +39,7 @@ class Validation:
     def validate(self) -> list:
         """Validate the configuration file or directory."""
         conf = WS.get_configuration(self.__app)
-        supported_languages = conf["behaviourConfiguration"]["supportedLanguages"].keys()
+        supported_languages = list(conf["behaviourConfiguration"]["supportedLanguages"].keys())
         language_config = self._load_language_files(supported_languages, self.__app)
 
         # now add the keys from the language file if they are not in the project file so we can validate the full set
