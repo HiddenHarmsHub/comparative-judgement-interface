@@ -232,11 +232,11 @@ class RegistrationQuestions(db.Model, BaseModel):
 
     question_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     question_name = db.Column(db.String(100), nullable=False)
-    question_display = db.Column(db.String(100), nullable=False)
+    # question_display = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(50), nullable=False)
     min_limit = db.Column(db.Integer, nullable=True)
     max_limit = db.Column(db.Integer, nullable=True)
-    option = db.Column(JSON)
+    # option = db.Column(JSON)
     required = db.Column(db.Boolean, nullable=False)
 
 
@@ -252,6 +252,7 @@ class WebsiteControl(db.Model, BaseModel):
 
     website_control_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     study_count = db.Column(db.Integer, nullable=False)
+    supported_languages = db.Column(JSON, nullable=False)
     export_path_location = db.Column(db.String(250), nullable=False)
     render_user_instruction_page = db.Column(db.Boolean, nullable=False)
     user_instruction_html = db.Column(db.String(250), nullable=True)

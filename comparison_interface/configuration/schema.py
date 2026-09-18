@@ -2,12 +2,51 @@ import itertools
 import os
 import re
 
-from marshmallow import Schema, ValidationError, fields, post_load, validate, validates
+from marshmallow import Schema, ValidationError, fields, post_load, validate, validates, validates_schema
 from PIL import Image
 
 from comparison_interface.db.models import StudyControl
 
 from .website import Settings as WS
+
+
+class OptionalMultiLangField(fields.Field):
+    """Allows either the type specified by value_type or that type wrapped in a dictionary by language codes."""
+
+    def __init__(self, *, value_type="string", min_length=1, max_length=200, **kwargs):
+        """Set some custom values on the Field."""
+        super().__init__(**kwargs)
+        self.value_type = value_type
+        self.validator = validate.Length(min=min_length, max=max_length)
+
+    def _validate_value(self, value):
+        if self.value_type == "string":
+            if not isinstance(value, str):
+                raise ValidationError(
+                    "The value must be a string (either alone as the value in the langauge dictionary)."
+                )
+            self.validator(value)
+
+        elif self.value_type == "list":
+            if not isinstance(value, list):
+                raise ValidationError(
+                    "The value must be a list (either alone as the value in the langauge dictionary)."
+                )
+            self.validator(value)
+
+            for item in value:
+                if not isinstance(item, str):
+                    raise ValidationError("The items in the list items must be strings.")
+        else:
+            raise ValidationError(f"Unsupported value_type: {self.value_type}")
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if isinstance(value, dict):
+            for unpacked_value in value.values():
+                self._validate_value(unpacked_value)
+        else:
+            self._validate_value(value)
+        return value
 
 
 class Item(Schema):
@@ -190,64 +229,109 @@ class ComparisonConfiguration(Schema):
 class WebsiteTextConfiguration(Schema):
     """The schema for the website text configuration."""
 
-    skipToMainContent = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
-    websiteTitle = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
-    pageTitleLogout = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    pageTitleUserRegistration = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    pageTitleEthicsAgreement = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    pageTitlePolicies = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    pageTitleIntroduction = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    pageTitleItemPreference = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    pageTitleRank = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    pageTitleThankYou = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    userRegistrationGroupQuestionLabel = fields.Str(required=False, validate=[validate.Length(min=1, max=500)])
-    userRegistrationFormTitleLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    userRegistrationSummitButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    userRegistrationGroupSelectionErr = fields.Str(required=False, validate=[validate.Length(min=1, max=500)])
-    userRegistrationEthicsAgreementLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
-    itemSelectionQuestionLabel = fields.Str(required=False, validate=[validate.Length(min=1, max=500)])
-    itemSelectionYesButtonLabel = fields.Str(required=False, validate=[validate.Length(min=1, max=50)])
-    itemSelectionNoButtonLabel = fields.Str(required=False, validate=[validate.Length(min=1, max=50)])
-    itemSelectedIndicatorLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    rankItemTiedSelectionIndicatorLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    rankItemSkippedIndicatorLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    rankItemItemRejudgeButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    rankItemConfirmedButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    rankItemSkippedButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    rankItemInstructionLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
-    rankItemComparisonExecutedLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    rankItemSkippedComparisonExecutedLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    confirmButtonErrorMessageWithSkip = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    confirmButtonErrorMessageWithoutSkip = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    skipButtonErrorMessage = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    additionalRadioButtonInstructions = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    itemSelectionGroupLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
-    introductionContinueButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    thankYouContinueButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    thankYouTitle = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    thankYouOpeningText = fields.Str(required=True, validate=[validate.Length(min=0, max=500)])
-    thankYouContinueText = fields.Str(required=True, validate=[validate.Length(min=0, max=500)])
-    thankYouStopText = fields.Str(required=True, validate=[validate.Length(min=0, max=500)])
-    ethicsAgreementBackButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    sitePoliciesBackButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    siteCookiesAcceptButtonLabel = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    siteCookiesTitle = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    siteCookiesText = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    error500Title = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    error500Message = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    error404Title = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    error404Message = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    error404HomeLink = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    error204Title = fields.Str(required=True, validate=[validate.Length(min=1, max=50)])
-    error204Message = fields.Str(required=True, validate=[validate.Length(min=1, max=1000)])
-    additionalRegistrationPageText = fields.List(fields.Str(), required=False)
+    skipToMainContent = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=100)
+    websiteTitle = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=100)
+    languageSelectLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    pageTitleLogout = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    pageTitleUserRegistration = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    pageTitleEthicsAgreement = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    pageTitlePolicies = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    pageTitleIntroduction = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    pageTitleItemPreference = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    pageTitleRank = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    pageTitleThankYou = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    userRegistrationGroupQuestionLabel = OptionalMultiLangField(
+        required=False, value_type="string", min_length=1, max_length=500
+    )
+    userRegistrationFormTitleLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    userRegistrationSummitButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    userRegistrationGroupSelectionErr = OptionalMultiLangField(
+        required=False, value_type="string", min_length=1, max_length=500
+    )
+    userRegistrationEthicsAgreementLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=500
+    )
+    itemSelectionQuestionLabel = OptionalMultiLangField(
+        required=False, value_type="string", min_length=1, max_length=500
+    )
+    itemSelectionYesButtonLabel = OptionalMultiLangField(
+        required=False, value_type="string", min_length=1, max_length=50
+    )
+    itemSelectionNoButtonLabel = OptionalMultiLangField(
+        required=False, value_type="string", min_length=1, max_length=50
+    )
+    itemSelectedIndicatorLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    rankItemTiedSelectionIndicatorLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    rankItemSkippedIndicatorLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    rankItemItemRejudgeButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    rankItemConfirmedButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    rankItemSkippedButtonLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    rankItemInstructionLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    rankItemComparisonExecutedLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    rankItemSkippedComparisonExecutedLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    confirmButtonErrorMessageWithSkip = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=1000
+    )
+    confirmButtonErrorMessageWithoutSkip = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=1000
+    )
+    skipButtonErrorMessage = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=1000)
+    additionalRadioButtonInstructions = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=1000
+    )
+    itemSelectionGroupLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=100)
+    introductionContinueButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    thankYouContinueButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    thankYouTitle = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    thankYouOpeningText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    thankYouContinueText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    thankYouStopText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    ethicsAgreementBackButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    sitePoliciesBackButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    siteCookiesAcceptButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
+    siteCookiesTitle = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=1000)
+    siteCookiesText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=1000)
+    error500Title = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    error500Message = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=1000)
+    error404Title = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    error404Message = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=1000)
+    error404HomeLink = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=1000)
+    error204Title = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
+    error204Message = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=1000)
+    additionalRegistrationPageText = OptionalMultiLangField(required=False, value_type="list")
 
 
 class UserField(Schema):
     """The schema for a user."""
 
     name = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
-    displayName = fields.Str(required=True, validate=[validate.Length(min=1, max=100)])
+    displayName = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=100)
     type = fields.Str(
         required=True,
         validate=[
@@ -265,7 +349,9 @@ class UserField(Schema):
     maxLimit = fields.Int()
     minLimit = fields.Int()
     required = fields.Boolean(required=True)
-    option = fields.List(fields.Str(), validate=[validate.Length(min=1, max=50)])
+    option = OptionalMultiLangField(
+        required=False, value_type="list"
+    )  # fields.List(fields.Str(), validate=[validate.Length(min=1, max=50)])
 
     @validates('name')
     def _validate_name(self, name, data_key):
@@ -313,6 +399,7 @@ class UserField(Schema):
 class BehaviourConfiguration(Schema):
     """The schema for the behaviour configuration."""
 
+    supportedLanguages = fields.Dict(required=True)
     exportPathLocation = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
     renderUserItemPreferencePage = fields.Boolean(required=True)
     renderUserInstructionPage = fields.Boolean(required=True)
@@ -343,6 +430,11 @@ class BehaviourConfiguration(Schema):
 class Configuration(Schema):
     """The schema for the full configuration."""
 
+    def __init__(self, *args, **kwargs):
+        """Initialise the schema adding a variable for missing translation warnings."""
+        super().__init__(*args, **kwargs)
+        self.missing_translation_warnings = []
+
     behaviourConfiguration = fields.Nested(BehaviourConfiguration(), required=True)
     comparisonConfiguration = fields.Nested(ComparisonConfiguration(), required=True)
     websiteTextConfiguration = fields.Nested(WebsiteTextConfiguration(), required=True)
@@ -361,9 +453,39 @@ class Configuration(Schema):
             else:
                 names.append(f['name'])
 
-    @post_load
-    def _post_load_validation(self, data, **kwargs):
+    @staticmethod
+    def _find_optional_multi_language_fields(schema, data):
+        for field_name, field in schema.fields.items():
+            if field_name not in data:
+                continue
+            value = data[field_name]
+
+            if isinstance(field, OptionalMultiLangField):
+                yield value, field_name
+            elif isinstance(field, fields.Nested):
+                yield from Configuration._find_optional_multi_language_fields(field.schema, value)
+            elif isinstance(field, fields.List) and isinstance(field.inner, fields.Nested):
+                for item in value:
+                    yield from Configuration._find_optional_multi_language_fields(field.inner.schema, item)
+
+    @validates_schema
+    def _schema_level_validation(self, data, **kwargs):
         render_item_preference = data['behaviourConfiguration']['renderUserItemPreferencePage']
+        supported_languages = list(data['behaviourConfiguration']['supportedLanguages'].keys())
+
+        # find all the multi-language keys and check them for validation errors or missing values
+        for value, field_name in Configuration._find_optional_multi_language_fields(self, data):
+            if not isinstance(value, dict) and len(supported_languages) > 1:
+                self.missing_translation_warnings.append(field_name)
+            elif isinstance(value, dict):
+                if supported_languages[0] not in value.keys():
+                    raise ValidationError(
+                        'The first language in your list of supported languages must be present in all mutliple '
+                        f'language fields, missing in {field_name}'
+                    )
+                for language in supported_languages[1:]:
+                    if language not in value.keys():
+                        self.missing_translation_warnings.append(field_name)
 
         if 'weightConfiguration' in data['comparisonConfiguration']:
             # Check that we are not trying to render item preferences it we are using custom weights
@@ -399,5 +521,3 @@ class Configuration(Schema):
                     "If multiple item groups are defined then both userRegistrationGroupQuestionLabel and "
                     "userRegistrationGroupSelectionErr must be provided in the websiteTextConfiguration section."
                 )
-
-        return data

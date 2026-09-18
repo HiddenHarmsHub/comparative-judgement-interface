@@ -24,6 +24,7 @@ def test_behaviour_configuration_for_escape_route_false():
     THEN no error is raised
     """
     test_behaviour_schema = {
+        "supportedLanguages": {"en": "English"},
         "exportPathLocation": "exports",
         "renderUserItemPreferencePage": False,
         "renderUserInstructionPage": False,
@@ -49,6 +50,7 @@ def test_behaviour_configuration_for_escape_route_true_with_all_requirements():
     THEN no error is raised
     """
     test_behaviour_schema = {
+        "supportedLanguages": {"en": "English"},
         "exportPathLocation": "exports",
         "renderUserItemPreferencePage": False,
         "renderUserInstructionPage": False,
@@ -76,6 +78,7 @@ def test_behaviour_configuration_for_escape_route_true_with_missing_requirements
     THEN a Validation Error is raised
     """
     test_behaviour_schema = {
+        "supportedLanguages": {"en": "English"},
         "exportPathLocation": "exports",
         "renderUserItemPreferencePage": False,
         "renderUserInstructionPage": False,

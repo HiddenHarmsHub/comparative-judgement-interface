@@ -8,6 +8,7 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask, current_app, render_template, request, session
 from numpy.random import default_rng
+from sqlalchemy import inspect
 from whitenoise import WhiteNoise
 
 from comparison_interface.cli import blueprint as commands_bp
@@ -46,24 +47,16 @@ def create_app(testing=False, test_config=None):
     if test_config is not None:
         app.config.from_mapping(test_config)
 
-    # make sure the language setting is consistent
-    try:
-        language = app.config["LANGUAGE"].split(':')[1]
-    except IndexError:
-        language = app.config["LANGUAGE"]
-    except KeyError:
-        language = 'en'
-    app.language_code = language
-
-    language_filepath = os.path.join(os.path.dirname(__file__), "languages", f"{language}.json")
-    if not os.path.exists(language_filepath):
-        raise RuntimeError("The required file for the language requested in the flask configuration is not available.")
-
-    with open(language_filepath, mode='r', encoding='utf-8') as config_file:
-        app.language_config = json.load(config_file)
-
     # Register the database
     db.init_app(app)
+
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if inspector.has_table("website_control"):
+            website_control = db.session.execute(db.select(WebsiteControl)).scalar_one()
+            app.config["SUPPORTED_LANGUAGES"] = list(website_control.supported_languages.keys())
+        else:
+            app.config["SUPPORTED_LANGUAGES"] = ["en"]
 
     # Register the custom Flask commands
     app.register_blueprint(commands_bp)
@@ -95,7 +88,8 @@ def create_app(testing=False, test_config=None):
         @app.security.context_processor
         def security_context_processor():
             if WS.CONFIGURATION_LOCATION in app.config:
-                return {"website_title": WS.get_text(WS.WEBSITE_TITLE, app)}
+                language = _get_language()
+                return {"website_title": WS.get_text(WS.WEBSITE_TITLE, language, app)}
             else:
                 return {"website_title": "No active study"}
 
@@ -186,8 +180,18 @@ def _validate_app_integrity():
             raise RuntimeError("Application unhealthy state. Please contact the website administrator.")
 
 
+def _get_language():
+    language = session.get("language", None)
+    if language not in current_app.config["SUPPORTED_LANGUAGES"]:
+        language = current_app.config["SUPPORTED_LANGUAGES"][0]
+    if language is None:
+        language = "en"
+    return language
+
+
 def _page_not_found(e):
     """Return 404 page."""
+    language = _get_language()
     subdomain = current_app.config["SUBDOMAIN"]
     if subdomain == "":
         subdomain = "/"
@@ -202,9 +206,9 @@ def _page_not_found(e):
         return render_template('404.html', **data)
     else:
         data = {
-            'error_404_title': WS.get_text(WS.ERROR_404_TITLE, current_app),
-            'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, current_app),
-            'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, current_app),
+            'error_404_title': WS.get_text(WS.ERROR_404_TITLE, language, current_app),
+            'error_404_message': WS.get_text(WS.ERROR_404_MESSAGE, language, current_app),
+            'error_404_home_link': WS.get_text(WS.ERROR_404_HOME_LINK, language, current_app),
             'error_404_home_location': subdomain,
         }
     return render_template('404.html', **{**data, **Request(current_app, session).get_layout_text()}), 404
@@ -212,8 +216,9 @@ def _page_not_found(e):
 
 def _page_unexpected_condition(e):
     """Return 500 page."""
+    language = _get_language()
     data = {
-        'error_500_title': WS.get_text(WS.ERROR_500_TITLE, current_app),
-        'error_500_message': WS.get_text(WS.ERROR_500_MESSAGE, current_app),
+        'error_500_title': WS.get_text(WS.ERROR_500_TITLE, language, current_app),
+        'error_500_message': WS.get_text(WS.ERROR_500_MESSAGE, language, current_app),
     }
     return render_template('500.html', **{**data, **Request(current_app, session).get_layout_text()}), 500

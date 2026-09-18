@@ -30,8 +30,8 @@ class Register(Request):
         return self._render_template(
             'main/pages/register.html',
             {
-                'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._app),
-                'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._app),
+                'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._language, self._app),
+                'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._language, self._app),
                 'components': user_components,
                 'group_columns': group_columns,
             },
@@ -98,9 +98,13 @@ class Register(Request):
         # Add the custom user fields
         for field in user_fields:
             component = 'main/components/{}.html'.format(field[WS.USER_FIELD_TYPE])
-            text = {"question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._app)}
+            text = {
+                "question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._language, self._app)
+            }
             if 'option' in field:
-                text['option_text'] = WS.get_text(f"{field[WS.USER_FIELD_NAME]}_option_text", self._app).split("||")
+                text['option_text'] = WS.get_text(
+                    f"{field[WS.USER_FIELD_NAME]}_option_text", self._language, self._app
+                ).split("||")
             user_components.append(render_template(component, **field, **text))
 
     def _load_group_component(self, user_components: list):
@@ -116,8 +120,8 @@ class Register(Request):
 
         groups = db.session.scalars(db.select(Group)).all()
         if len(groups) > 1:
-            label_text = WS.get_text(WS.USER_REGISTRATION_GROUP_QUESTION_LABEL, self._app)
-            error_text = WS.get_text(WS.USER_REGISTRATION_GROUP_SELECTION_ERROR, self._app)
+            label_text = WS.get_text(WS.USER_REGISTRATION_GROUP_QUESTION_LABEL, self._language, self._app)
+            error_text = WS.get_text(WS.USER_REGISTRATION_GROUP_SELECTION_ERROR, self._language, self._app)
         else:
             label_text = ''
             error_text = ''
@@ -149,7 +153,7 @@ class Register(Request):
         Args:
             user_components (list): Components render in the user registry view
         """
-        additional_list = WS.get_text(WS.ADDITIONAL_REGISTRATION_TEXT, self._app)
+        additional_list = WS.get_text(WS.ADDITIONAL_REGISTRATION_TEXT, self._language, self._app)
         if additional_list is not None:
             if len(additional_list) > 0:
                 user_components.append('<hr/>')
@@ -168,8 +172,10 @@ class Register(Request):
                 render_template(
                     'main/components/ethics.html',
                     **{
-                        'ethics_agreement_label': WS.get_text(WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._app),
-                        'ethics_link_text': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._app),
+                        'ethics_agreement_label': WS.get_text(
+                            WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._language, self._app
+                        ),
+                        'ethics_link_text': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._language, self._app),
                     },
                 )
             )
