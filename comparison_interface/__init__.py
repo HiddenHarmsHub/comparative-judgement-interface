@@ -8,6 +8,7 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask, current_app, render_template, request, session
 from numpy.random import default_rng
+from sqlalchemy import inspect
 from whitenoise import WhiteNoise
 
 from comparison_interface.cli import blueprint as commands_bp
@@ -50,8 +51,12 @@ def create_app(testing=False, test_config=None):
     db.init_app(app)
 
     with app.app_context():
-        website_control = db.session.execute(db.select(WebsiteControl)).scalar_one()
-        app.config["SUPPORTED_LANGUAGES"] = list(website_control.supported_languages.keys())
+        inspector = inspect(db.engine)
+        if inspector.has_table("website_control"):
+            website_control = db.session.execute(db.select(WebsiteControl)).scalar_one()
+            app.config["SUPPORTED_LANGUAGES"] = list(website_control.supported_languages.keys())
+        else:
+            app.config["SUPPORTED_LANGUAGES"] = ["en"]
 
     # Register the custom Flask commands
     app.register_blueprint(commands_bp)
