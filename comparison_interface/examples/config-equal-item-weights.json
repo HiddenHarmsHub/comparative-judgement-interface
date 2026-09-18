@@ -1,6 +1,6 @@
 {
     "behaviourConfiguration": {
-        "supportedLanguages": {"en": "English", "es": "Español"},
+        "supportedLanguages": {"en": "English"},
         "exportPathLocation": "../exports",
         "renderUserItemPreferencePage": false,
         "offerEscapeRouteBetweenCycles": true,
@@ -18,14 +18,14 @@
     "userFieldsConfiguration": [
         {
             "name": "name",
-            "displayName": {"en": "EN First Name", "es": "ES First Name"},
+            "displayName": "First Name",
             "type": "text",
             "maxLimit": 250,
             "required": true
         },
         {
             "name": "country",
-            "displayName": {"en": "EN In which country do you live?", "es": "ES In which country do you live?"},
+            "displayName": "In which country do you live?",
             "type": "radio",
             "option": ["England", "Northern Ireland", "Scotland", "Wales", "Outside the UK"],
             "required": true
