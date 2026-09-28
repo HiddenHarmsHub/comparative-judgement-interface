@@ -36,10 +36,11 @@ class Group(db.Model, BaseModel):
 
     group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
     display_name = db.Column(db.String(255), nullable=False)
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
-    __table_args__ = (UniqueConstraint('name', name='_group_name_uidx'),)
+    __table_args__ = (UniqueConstraint('name', 'study_id', name='_group_study_name_uidx'),)
 
 
 class Item(db.Model, BaseModel):

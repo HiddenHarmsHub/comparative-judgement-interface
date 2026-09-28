@@ -20,6 +20,7 @@ class Settings:
     CONFIGURATION_COMPARISON = "comparisonConfiguration"
     CONFIGURATION_USER_FIELDS = "userFieldsConfiguration"
     CONFIGURATION_WEBSITE_TEXT = "websiteTextConfiguration"
+    CONFIGURATION_STUDY = "studyConfiguration"
     # Website behaviour configuration keys
     BEHAVIOUR_SUPPORTED_LANGUAGES = "supportedLanguages"
     BEHAVIOUR_EXPORT_PATH_LOCATION = "exportPathLocation"

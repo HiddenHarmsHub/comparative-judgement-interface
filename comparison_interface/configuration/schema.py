@@ -196,11 +196,11 @@ class ComparisonConfiguration(Schema):
     @post_load
     def _post_load_validation(self, data, **kwargs):
         if 'csvFile' in data:
-            # then we shouldn't have any other keys at all
-            if 'weightConfiguration' in data or 'groups' in data:
+            # then we shouldn't have groups but we can specify the configuration expected (in anticipation of this
+            # option being added)
+            if 'groups' in data:
                 raise ValidationError(
-                    "If a CSV file is specified then neither the weightConfiguration nor groups keys should be "
-                    "present in the JSON configuration file."
+                    "If a CSV file is specified then the groups keys should be present in the study configuration."
                 )
         else:
             if 'weightConfiguration' not in data or 'groups' not in data:
@@ -240,17 +240,11 @@ class WebsiteTextConfiguration(Schema):
     pageTitleItemPreference = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
     pageTitleRank = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
     pageTitleThankYou = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
-    userRegistrationGroupQuestionLabel = OptionalMultiLangField(
-        required=False, value_type="string", min_length=1, max_length=500
-    )
     userRegistrationFormTitleLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=50
     )
     userRegistrationSummitButtonLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=50
-    )
-    userRegistrationGroupSelectionErr = OptionalMultiLangField(
-        required=False, value_type="string", min_length=1, max_length=500
     )
     userRegistrationEthicsAgreementLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=500
@@ -278,7 +272,6 @@ class WebsiteTextConfiguration(Schema):
         required=True, value_type="string", min_length=1, max_length=50
     )
     rankItemSkippedButtonLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=50)
-    rankItemInstructionLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
     rankItemComparisonExecutedLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=50
     )
@@ -401,20 +394,33 @@ class BehaviourConfiguration(Schema):
 
     supportedLanguages = fields.Dict(required=True)
     exportPathLocation = fields.Str(required=True, validate=[validate.Length(min=1, max=500)])
-    renderUserItemPreferencePage = fields.Boolean(required=True)
     renderUserInstructionPage = fields.Boolean(required=True)
     renderEthicsAgreementPage = fields.Boolean(required=True)
     renderSitePoliciesPage = fields.Boolean(required=True)
     renderCookieBanner = fields.Boolean(required=True)
-    offerEscapeRouteBetweenCycles = fields.Boolean(required=True)
-    cycleLength = fields.Integer(required=False)
-    maximumCyclesPerUser = fields.Integer(required=False)
-    allowTies = fields.Boolean(required=True)
-    allowSkip = fields.Boolean(required=True)
-    allowBack = fields.Boolean(required=True)
     userInstructionHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
     ethicsAgreementHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
     sitePoliciesHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
+    parallelStudies = fields.Boolean(required=False)
+
+
+class StudyConfiguration(Schema):
+    """The schema for a single study."""
+    allowTies = fields.Boolean(required=True)
+    allowSkip = fields.Boolean(required=True)
+    allowBack = fields.Boolean(required=True)
+    renderUserItemPreferencePage = fields.Boolean(required=True)
+    offerEscapeRouteBetweenCycles = fields.Boolean(required=True)
+    cycleLength = fields.Integer(required=False)
+    maximumCyclesPerUser = fields.Integer(required=False)
+    comparisonConfiguration = fields.Nested(ComparisonConfiguration(), required=True)
+    rankItemInstructionLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    userRegistrationGroupQuestionLabel = OptionalMultiLangField(
+        required=False, value_type="string", min_length=1, max_length=500
+    )
+    userRegistrationGroupSelectionErr = OptionalMultiLangField(
+        required=False, value_type="string", min_length=1, max_length=500
+    )
 
     @post_load
     def _post_load_validation(self, data, **kwargs):
@@ -436,7 +442,10 @@ class Configuration(Schema):
         self.missing_translation_warnings = []
 
     behaviourConfiguration = fields.Nested(BehaviourConfiguration(), required=True)
-    comparisonConfiguration = fields.Nested(ComparisonConfiguration(), required=True)
+    studyConfiguration = fields.List(
+        fields.Nested(StudyConfiguration()), required=True, validate=[validate.Length(min=1, max=5)]
+    )
+    # comparisonConfiguration = fields.Nested(ComparisonConfiguration(), required=True)
     websiteTextConfiguration = fields.Nested(WebsiteTextConfiguration(), required=True)
     userFieldsConfiguration = fields.List(
         fields.Nested(UserField()), required=True, validate=[validate.Length(min=0, max=20)]
@@ -470,7 +479,6 @@ class Configuration(Schema):
 
     @validates_schema
     def _schema_level_validation(self, data, **kwargs):
-        render_item_preference = data['behaviourConfiguration']['renderUserItemPreferencePage']
         supported_languages = list(data['behaviourConfiguration']['supportedLanguages'].keys())
 
         # find all the multi-language keys and check them for validation errors or missing values
@@ -487,37 +495,39 @@ class Configuration(Schema):
                     if language not in value.keys():
                         self.missing_translation_warnings.append(field_name)
 
-        if 'weightConfiguration' in data['comparisonConfiguration']:
-            # Check that we are not trying to render item preferences it we are using custom weights
-            weight_conf = data['comparisonConfiguration']['weightConfiguration']
-            if weight_conf == StudyControl.CUSTOM_WEIGHT and render_item_preference:
+        for i, study in enumerate(data['studyConfiguration']):
+            render_item_preference = study['renderUserItemPreferencePage']
+            if 'weightConfiguration' in study:
+                weight_conf = study['weightConfiguration']
+                if weight_conf == StudyControl.CUSTOM_WEIGHT and render_item_preference:
+                    raise ValidationError(
+                        "User item preference section cannot be rendered when defining a manual weight configuration. "
+                        f"Please change renderUserItemPreferencePage to false in study {i + 1}"
+                    )
+
+            # Check that if we want to show the item selection page we have the required text field too
+            if render_item_preference and ('itemSelectionQuestionLabel' not in study):
                 raise ValidationError(
-                    "User item preference section cannot be rendered when defining a manual weight configuration. "
-                    "Please change renderUserItemPreferencePage to false"
+                    "If renderUserItemPreferencePage is true then itemSelectionQuestionLabel must be provided in the "
+                    "same study section."
                 )
-
-        # Check that if we want to show the item selection page we have the required text field too
-        if render_item_preference and ('itemSelectionQuestionLabel' not in data['websiteTextConfiguration']):
-            raise ValidationError(
-                "If renderUserItemPreferencePage is true then itemSelectionQuestionLabel must be provided in the "
-                "websiteTextConfiguration section."
-            )
-        if render_item_preference and (
-            'itemSelectionYesButtonLabel' not in data['websiteTextConfiguration']
-            or 'itemSelectionNoButtonLabel' not in data['websiteTextConfiguration']
-        ):
-            raise ValidationError(
-                "If renderUserItemPreferencePage is true then itemSelectionYesButtonLabel and"
-                "itemSelectionYesButtonLabel must be provided in the websiteTextConfiguration section."
-            )
-
-        # Check that if we have defined multiple groups then we have the relevant selection/error text available
-        if 'groups' in data['comparisonConfiguration'] and len(data['comparisonConfiguration']['groups']) > 1:
-            if (
-                'userRegistrationGroupQuestionLabel' not in data['websiteTextConfiguration']
-                or 'userRegistrationGroupSelectionErr' not in data['websiteTextConfiguration']
+            if render_item_preference and (
+                'itemSelectionYesButtonLabel' not in data['websiteTextConfiguration']
+                or 'itemSelectionNoButtonLabel' not in data['websiteTextConfiguration']
             ):
                 raise ValidationError(
-                    "If multiple item groups are defined then both userRegistrationGroupQuestionLabel and "
-                    "userRegistrationGroupSelectionErr must be provided in the websiteTextConfiguration section."
+                    "If renderUserItemPreferencePage is true then itemSelectionYesButtonLabel and "
+                    "itemSelectionYesButtonLabel must be provided in the websiteTextConfiguration "
+                    "section or the language file."
                 )
+
+            # Check that if we have defined multiple groups then we have the relevant selection/error text available
+            if 'groups' in study['comparisonConfiguration'] and len(study['comparisonConfiguration']['groups']) > 1:
+                if (
+                    'userRegistrationGroupQuestionLabel' not in study
+                    or 'userRegistrationGroupSelectionErr' not in study
+                ):
+                    raise ValidationError(
+                        "If multiple item groups are defined then both userRegistrationGroupQuestionLabel and "
+                        "userRegistrationGroupSelectionErr must be provided in the same study section."
+                    )

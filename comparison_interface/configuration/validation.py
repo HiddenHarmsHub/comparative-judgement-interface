@@ -73,21 +73,28 @@ class Validation:
                     ' provided in the configuration or via the admin interface (latter not yet implemented). The fields'
                     f' missing the translations are: {", ".join(schema.missing_translation_warnings)}'
                 )
-            # now if we reference a csv file validate that
-            if "csvFile" in conf["comparisonConfiguration"]:
-                config_location = WS.get_configuration_location(self.__app)
-                # check the csv file structure is good enough.
-                self.validate_csv_structure(os.path.join(config_location, conf["comparisonConfiguration"]["csvFile"]))
-                self.__app.logger.info("structure of csv file is good")
-                # structure is fine so read the contents and send it to the comparisonConfiguration schema validator
-                config = CsvProcessor().create_config_from_csv(
-                    os.path.join(config_location, conf["comparisonConfiguration"]["csvFile"])
-                )
-                schema = CompSchema()
-                try:
-                    schema.load(config)
-                except ValidationError:
-                    raise
+            for study in conf["studyConfiguration"]:
+                # now if we reference a csv file validate that
+                if "csvFile" in study["comparisonConfiguration"]:
+                    config_location = WS.get_configuration_location(self.__app)
+                    # check the csv file structure is good enough.
+                    self.validate_csv_structure(os.path.join(config_location, study["comparisonConfiguration"]["csvFile"]))
+                    self.__app.logger.info("structure of csv file is good")
+                    # structure is fine so read the contents and send it to the comparisonConfiguration schema validator
+                    config = CsvProcessor().create_config_from_csv(
+                        os.path.join(config_location, study["comparisonConfiguration"]["csvFile"])
+                    )
+                    print()
+                    print()
+                    print('================')
+                    print(config)
+                    print()
+                    print()
+                    schema = CompSchema()
+                    try:
+                        schema.load(config)
+                    except ValidationError:
+                        raise
 
     def check_config_path(self, path):
         """Check that the path provided meets the requirements.
