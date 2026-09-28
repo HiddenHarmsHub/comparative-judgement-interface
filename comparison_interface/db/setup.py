@@ -50,11 +50,10 @@ class Setup:
                     except IsADirectoryError:
                         pass
 
-            # The session needs be committed after the creation of the groups.
-            self._setup_group(db)
             self._setup_website_control(db)
             self._setup_registration_questions(db)
             self._setup_study_control(db)
+            # self._setup_group(db)
             self._setup_website_text(db)
             db.session.commit()
 
@@ -63,7 +62,7 @@ class Setup:
             # columns values are dynamically defined so a different process needs to be followed.
             self._setup_participant(db)
 
-    def _get_comparison_conf(self, key):
+    def _get_comparison_conf(self, study_config, key):
         """Get the configuration values related to the comparison behaviour of the website.
 
         This could come from the config file or from the csv file.
@@ -75,34 +74,35 @@ class Setup:
         Returns:
             string: Configuration value for the requested key
         """
-        if "csvFile" in self.json_conf[WS.CONFIGURATION_COMPARISON]:
+        if "csvFile" in study_config[WS.CONFIGURATION_COMPARISON]:
             # then we need to get the data from the csv file
             location = WS.get_configuration_location(self.app)
-            filepath = os.path.join(location, self.json_conf[WS.CONFIGURATION_COMPARISON]["csvFile"])
+            filepath = os.path.join(location, study_config[WS.CONFIGURATION_COMPARISON]["csvFile"])
             data = CsvProcessor().create_config_from_csv(filepath)
             return data[key]
         else:
             if key not in self.json_conf[WS.CONFIGURATION_COMPARISON]:
                 self.app.logger.critical("Label %s wasn't found in the comparison configuration." % (key))
                 exit()
-        return self.json_conf[WS.CONFIGURATION_COMPARISON][key]
+        return study_config[WS.CONFIGURATION_COMPARISON][key]
 
-    def _setup_group(self, db):
+    def _setup_group(self, db, study_config, study_id):
         """Save the group configuration in the database.
 
         Args:
             db (SQLAlchemy): Database connection
         """
-        for g in self._get_comparison_conf(WS.GROUPS):
-            group = Group(name=g[WS.GROUP_NAME], display_name=g[WS.GROUP_DISPLAY_NAME])
+        for g in self._get_comparison_conf(study_config, WS.GROUPS):
+            group = Group(name=g[WS.GROUP_NAME], display_name=g[WS.GROUP_DISPLAY_NAME], study_id=study_id)
             group = persist(db, group)
             # Setup the items and their weights
             items = self._setup_item(db, group, g)
-            weight_conf = self._get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION)
+
+            weight_conf = self._get_comparison_conf(study_config, WS.GROUP_WEIGHT_CONFIGURATION)
             if weight_conf == StudyControl.CUSTOM_WEIGHT:
                 self._setup_custom_item_pair(db, items, group, g)
             if weight_conf == StudyControl.WEIGHTED_TOTAL:
-                total_judgements_required = self._get_comparison_conf(WS.TARGET_COMPARISONS)
+                total_judgements_required = self._get_comparison_conf(study_config, WS.TARGET_COMPARISONS)
                 self._setup_weighted_total_pairs(db, items, group, g, total_judgements_required)
 
     def _setup_custom_item_pair(self, db, items, group, g):
@@ -343,17 +343,21 @@ class Setup:
         Args:
             db (SQLAlchemy): Database connection,
         """
-        config = StudyControl()
-        config.study_sequence = 1
-        config.weight_configuration = self._get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION)
-        config.allow_ties = self._get_config_value(WS.BEHAVIOUR_ALLOW_TIES)
-        config.allow_skip = self._get_config_value(WS.BEHAVIOUR_ALLOW_SKIP)
-        config.allow_back = self._get_config_value(WS.BEHAVIOUR_ALLOW_BACK)
-        config.render_user_item_preference_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE)
-        config.offer_escape_route_between_cycles = self._get_config_value(WS.BEHAVIOUR_ESCAPE_ROUTE)
-        config.cycle_length = self._get_config_value(WS.BEHAVIOUR_CYCLE_LENGTH)
-        config.maximum_cycles_per_user = self._get_config_value(WS.BEHAVIOUR_MAX_CYCLES)
-        db.session.add(config)
+        studies = self.json_conf[WS.CONFIGURATION_STUDY]
+        for i, study in enumerate(studies):
+            config = StudyControl()
+            config.study_sequence = i + 1
+            config.weight_configuration = study[WS.CONFIGURATION_COMPARISON][WS.GROUP_WEIGHT_CONFIGURATION]
+            config.allow_ties = study[WS.BEHAVIOUR_ALLOW_TIES]
+            config.allow_skip = study[WS.BEHAVIOUR_ALLOW_SKIP]
+            config.allow_back = study[WS.BEHAVIOUR_ALLOW_BACK]
+            config.render_user_item_preference_page = study[WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE]
+            config.offer_escape_route_between_cycles = study[WS.BEHAVIOUR_ESCAPE_ROUTE]
+            config.cycle_length = study[WS.BEHAVIOUR_CYCLE_LENGTH]
+            config.maximum_cycles_per_user = study[WS.BEHAVIOUR_MAX_CYCLES]
+            db.session.add(config)
+            db.session.flush()
+            self._setup_group(db, study, config.study_id)
 
     def _setup_website_text(self, db):
         supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
