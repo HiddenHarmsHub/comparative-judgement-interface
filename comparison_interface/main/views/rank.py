@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+from flask import abort
+from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.expression import func
 
@@ -16,6 +18,7 @@ from comparison_interface.db.models import (
     TotalItemPair,
     WebsiteControl,
 )
+from comparison_interface.schema.request_schema import RankPostSchema
 
 from .request import Request
 
@@ -134,7 +137,12 @@ class Rank(Request):
 
     def post(self, request):
         """Request post handler."""
-        response = request.form.to_dict(flat=True)
+        try:
+            response = RankPostSchema().load(request.form.to_dict(flat=True))
+        except ValidationError as err:
+            self._app.logger.warning("Rejected rank payload: %s", err.messages)
+            abort(400)
+
         action = response['state']
         if action != self.REJUDGE:
             # Set the comparison state based on the participant's action
@@ -204,7 +212,7 @@ class Rank(Request):
         )
         return res
 
-    def _calculate_comparison_state(self, action: str, response: dict):
+    def _calculate_comparison_state(self, action, response):
         """Get the right comparison parameters based on the participant's action.
 
         Args:
@@ -217,14 +225,13 @@ class Rank(Request):
         """
         state = None
         selected_item_id = None
-        if action == self.CONFIRMED and ('selected_item_id' not in response or response['selected_item_id'] == ""):
-            state = Comparison.TIED
-
-        if action == self.CONFIRMED and 'selected_item_id' in response and response['selected_item_id'] != "":
-            state = Comparison.SELECTED
-            selected_item_id = response['selected_item_id']
-
-        if action == self.SKIPPED:
+        if action == self.CONFIRMED:
+            if response.get('selected_item_id') is not None:
+                state = Comparison.SELECTED
+                selected_item_id = response['selected_item_id']
+            else:
+                state = Comparison.TIED
+        elif action == self.SKIPPED:
             state = Comparison.SKIPPED
 
         return state, selected_item_id

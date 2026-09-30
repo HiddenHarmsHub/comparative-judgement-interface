@@ -142,7 +142,6 @@ def _before_request():
         _validate_app_integrity()
     _configure_user_session()
 
-
 def _configure_user_session():
     """Configure the user's session behaviour."""
     app = current_app
