@@ -17,6 +17,7 @@ from .models import (
     ItemGroup,
     RegistrationQuestions,
     StudyControl,
+    StudyText,
     TotalItemPair,
     WebsiteControl,
     WebsiteText,
@@ -53,7 +54,6 @@ class Setup:
             self._setup_website_control(db)
             self._setup_registration_questions(db)
             self._setup_study_control(db)
-            # self._setup_group(db)
             self._setup_website_text(db)
             db.session.commit()
 
@@ -358,6 +358,39 @@ class Setup:
             db.session.add(config)
             db.session.flush()
             self._setup_group(db, study, config.study_id)
+            self._setup_study_text(db, study, config.study_id)
+
+    def _setup_study_text(self, db, study_config, study_id):
+        supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
+        study_keys = [
+            "userRegistrationGroupQuestionLabel",
+            "userRegistrationGroupSelectionErr",
+            "rankItemInstructionLabel"
+        ]
+        for key in study_keys:
+            for language in supported_languages:
+                if key in study_config:
+                    config = StudyText()
+                    config.study_id = study_id
+                    config.string_key = key
+                    config.language = language
+                    if not isinstance(study_config[key], dict):
+                        config.string_value = study_config[key]
+                    else:
+                        if language in study_config[key]:
+                            config.string_value = study_config[key][language]
+                        elif supported_languages[0] in study_config[key]:
+                            config.string_value = study_config[key][
+                                supported_languages[0]
+                            ]
+                        else:
+                            config.string_value = "missing"
+                else:
+                    config.string_value = "missing"
+                if isinstance(config.string_value, list):
+                    config.string_value = '||'.join(config.string_value)
+                db.session.add(config)
+
 
     def _setup_website_text(self, db):
         supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
