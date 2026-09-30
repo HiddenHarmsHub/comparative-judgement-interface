@@ -1,6 +1,6 @@
 """Marshmallow schemas for runtime request validation."""
 
-from marshmallow import RAISE, Schema, ValidationError, fields, validate, validates_schema
+from marshmallow import RAISE, Schema, ValidationError, fields, pre_load, validate, validates_schema
 from sqlalchemy import Boolean, Date, DateTime, Integer, String
 
 
@@ -9,6 +9,14 @@ class RankPostSchema(Schema):
 
     class Meta:
         unknown = RAISE
+
+    OPTIONAL_ID_FIELDS = {
+        "comparison_id",
+        "selected_item_id",
+        "item_1_id",
+        "item_2_id",
+        "weighted_pair_id",
+    }
 
     state = fields.Str(
         required=True,
@@ -19,6 +27,30 @@ class RankPostSchema(Schema):
     item_1_id = fields.Int(required=False, allow_none=True)
     item_2_id = fields.Int(required=False, allow_none=True)
     weighted_pair_id = fields.Int(required=False, allow_none=True)
+
+    @pre_load
+    def normalise_optional_ids(self, data, **kwargs):
+        """Convert blank optional HTML ID inputs to None before validation.
+
+        HTML forms submit an empty hidden input as ``""``. Marshmallow's
+        ``allow_none=True`` accepts Python ``None``, not an empty string, so
+        only blank values for known optional ID fields are normalised. Any
+        non-blank, non-integer value remains invalid and is rejected by
+        ``fields.Int``.
+
+        Args:
+            data (dict): Untrusted form values before field deserialisation.
+            **kwargs: Additional Marshmallow hook arguments.
+
+        Returns:
+            dict: A copy of the payload with blank optional ID values set to
+            ``None``.
+        """
+        normalised = dict(data)
+        for field_name in self.OPTIONAL_ID_FIELDS:
+            if normalised.get(field_name) == "" or normalised.get(field_name) == "None":
+                normalised[field_name] = None
+        return normalised
 
     @validates_schema
     def validate_action_shape(self, data, **kwargs):
@@ -32,11 +64,6 @@ class RankPostSchema(Schema):
             ValidationError: If the submitted fields are incompatible with the
                 declared ranking action.
         """
-        if data["state"] == "rejudged" and data.get("comparison_id") is None:
-            raise ValidationError(
-                {"comparison_id": ["comparison_id is required when state is rejudged."]}
-            )
-
         if data["state"] == "skipped" and data.get("selected_item_id") is not None:
             raise ValidationError(
                 {"selected_item_id": ["selected_item_id must not be set when state is skipped."]}
@@ -48,6 +75,7 @@ class RankPostSchema(Schema):
             raise ValidationError(
                 {"item_1_id": ["item_1_id and item_2_id are required for new comparisons."]}
             )
+
 
 
 class ParticipantSchemaFactory:
