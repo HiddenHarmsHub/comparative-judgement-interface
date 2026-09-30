@@ -84,12 +84,6 @@ class Validation:
                     config = CsvProcessor().create_config_from_csv(
                         os.path.join(config_location, study["comparisonConfiguration"]["csvFile"])
                     )
-                    print()
-                    print()
-                    print('================')
-                    print(config)
-                    print()
-                    print()
                     schema = CompSchema()
                     try:
                         schema.load(config)
