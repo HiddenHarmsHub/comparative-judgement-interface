@@ -208,7 +208,7 @@ describe('tests for hintItem', () => {
       ' data-selected-item-indicator="HIGHER"' +
       ' data-tied-items-indicator="EQUAL"' +
       ' data-skipped-items-indicator="SKIPPED"' +
-      ' data-allow-ties="true"' +
+      ' data-allow-ties="false"' +
       '>' +
       '<input type="hidden" id="selected_item_id">' +
       '<input type="hidden" id="item_1_id" value="1"/>' +
