@@ -9,7 +9,7 @@
     method="POST"
     aria-labelledby="instructions"
     onsubmit="return checkSelection(event);"
-    data-allow-ties="{{ allow_ties }}"
+    data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
     data-selected-item-indicator="{{selected_item_label}}"
     data-tied-items-indicator="{{tied_selection_label}}"
     data-skipped-items-indicator="{{skipped_selection_label}}"

@@ -18,7 +18,7 @@ from comparison_interface.db.models import (
     TotalItemPair,
     WebsiteControl,
 )
-from comparison_interface.schema.request_schema import RankPostSchema
+from comparison_interface.main.schemas.rank import RankPostSchema
 
 from .request import Request
 
@@ -127,7 +127,7 @@ class Rank(Request):
                 'comparison_id': comparison_id,
                 'initial_state': current_state,
                 'initial_selected_item_id': selected_item_id,
-                'allow_ties': str(allow_ties).lower(),
+                'allow_ties': allow_ties,
                 'allow_skip': allow_skip,
                 'allow_back': allow_back,
                 'additional_screen_reader_instructions': additional_screen_reader_instructions,

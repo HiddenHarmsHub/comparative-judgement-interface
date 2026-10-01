@@ -7,8 +7,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Group, Participant, ParticipantGroup, WebsiteControl
-from comparison_interface.schema.request_schema import ParticipantSchemaFactory
+from comparison_interface.db.models import Group, ParticipantGroup, WebsiteControl
+from comparison_interface.main.schemas.register import ParticipantSchemaFactory
 
 from .request import Request
 
@@ -66,18 +66,19 @@ class Register(Request):
         # 1. Read the form once in multi-value mode so repeated checkbox fields
         #    (group_ids) are preserved, then flatten the remaining single-value
         #    fields for the schema.
-        raw_form = request.form.to_dict(flat=False)
+        raw_form = request.form.to_dict(flat=True)
         raw_form.pop('csrf_token', None)
-        raw_group_ids = raw_form.pop('group_ids', [])
-        form_data = {key: values[0] for key, values in raw_form.items()}
 
         # 2. Validate the participant fields.
         schema = self._get_participant_write_schema()
         try:
-            dic_user_attr = schema.load(form_data)
+            form_data = schema.load(raw_form)
         except ValidationError as err:
             self._app.logger.warning("Rejected registration payload: %s", err.messages)
             abort(400)
+
+        raw_group_ids = form_data.pop('group_ids', [])
+        # form_data = {key: values[0] for key, values in form_data.items()}
 
         # 3. Structural check on the group selection only. The front end enforces
         #    "at least one group" in the participant's language; here we only
@@ -90,12 +91,12 @@ class Register(Request):
 
         # 4. Add server-managed fields. These are dump_only in the schema, so they
         #    can never arrive from the client, but the app is free to set them.
-        dic_user_attr['created_date'] = datetime.now(timezone.utc)
+        form_data['created_date'] = datetime.now(timezone.utc)
         if not WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app):
             # Cycles are not tracked for this study configuration.
-            dic_user_attr['completed_cycles'] = None
+            form_data['completed_cycles'] = None
         else:
-            dic_user_attr['completed_cycles'] = 0
+            form_data['completed_cycles'] = 0
 
         # 5. Insert the participant and the group preferences together, on one
         #    connection and in one transaction, so that a foreign key failure on
@@ -104,7 +105,7 @@ class Register(Request):
 
         try:
             with db.engines['study_db'].begin() as connection:
-                result = connection.execute(table.insert().values(**dic_user_attr))
+                result = connection.execute(table.insert().values(**form_data))
                 participant_id = result.inserted_primary_key[0]
 
                 if group_ids:
@@ -133,7 +134,7 @@ class Register(Request):
         return self._redirect('.item_selection')
 
     def _get_participant_table(self):
-        """Use the cached participant table of reflect a new one."""
+        """Use the cached participant table or reflect a new one."""
         cached = getattr(self._app, '_participant_table', None)
         if cached is not None:
             return cached

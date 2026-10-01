@@ -1,3 +1,5 @@
+from flask import abort
+from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.expression import func
 
@@ -11,6 +13,7 @@ from comparison_interface.db.models import (
     ParticipantItem,
     WebsiteControl,
 )
+from comparison_interface.main.schemas.item_preference import ItemPreferencePostSchema
 
 from .request import Request
 
@@ -76,7 +79,13 @@ class ItemsPreference(Request):
 
     def post(self, request):
         """Request post handler."""
-        response = request.form.to_dict(flat=True)
+        raw_form = request.form.to_dict(flat=True)
+        raw_form.pop('csrf_token', None)
+        try:
+            response = ItemPreferencePostSchema().load(raw_form)
+        except ValidationError as err:
+            self._app.logger.warning("Rejected rank payload: %s", err.messages)
+            abort(400)
 
         known = False
         if response['action'] == 'agree':

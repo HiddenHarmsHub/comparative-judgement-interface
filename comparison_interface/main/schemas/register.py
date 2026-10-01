@@ -1,82 +1,11 @@
-"""Marshmallow schemas for runtime request validation."""
-
 from marshmallow import RAISE, Schema, ValidationError, fields, pre_load, validate, validates_schema
 from sqlalchemy import Boolean, Date, DateTime, Integer, String
 
 
-class RankPostSchema(Schema):
-    """Validate POST data submitted by the ranking view."""
-
-    class Meta:
-        """Reject any unexpected keys."""
-        unknown = RAISE
-
-    OPTIONAL_ID_FIELDS = {
-        "comparison_id",
-        "selected_item_id",
-        "item_1_id",
-        "item_2_id",
-        "weighted_pair_id",
-    }
-
-    state = fields.Str(
-        required=True,
-        validate=validate.OneOf(["rejudged", "confirmed", "skipped"]),
-    )
-    comparison_id = fields.Int(required=False, allow_none=True)
-    selected_item_id = fields.Int(required=False, allow_none=True)
-    item_1_id = fields.Int(required=False, allow_none=True)
-    item_2_id = fields.Int(required=False, allow_none=True)
-    weighted_pair_id = fields.Int(required=False, allow_none=True)
-
-    @pre_load
-    def normalise_optional_ids(self, data, **kwargs):
-        """Convert blank optional HTML ID inputs to None before validation.
-
-        HTML forms submit an empty hidden input as ``""``. Marshmallow's
-        ``allow_none=True`` accepts Python ``None``, not an empty string, so
-        only blank values for known optional ID fields are normalised. Any
-        non-blank, non-integer value remains invalid and is rejected by
-        ``fields.Int``.
-
-        Args:
-            data (dict): Untrusted form values before field deserialisation.
-            **kwargs: Additional Marshmallow hook arguments.
-
-        Returns:
-            dict: A copy of the payload with blank optional ID values set to
-            ``None``.
-        """
-        normalised = dict(data)
-        for field_name in self.OPTIONAL_ID_FIELDS:
-            if normalised.get(field_name) == "" or normalised.get(field_name) == "None":
-                normalised[field_name] = None
-        return normalised
-
-    @validates_schema
-    def validate_action_shape(self, data, **kwargs):
-        """Validate field combinations required for each rank action.
-
-        Args:
-            data (dict): Individually validated rank request values.
-            **kwargs: Additional Marshmallow validator arguments.
-
-        Raises:
-            ValidationError: If the submitted fields are incompatible with the
-                declared ranking action.
-        """
-        if data["state"] == "skipped" and data.get("selected_item_id") is not None:
-            raise ValidationError(
-                {"selected_item_id": ["selected_item_id must not be set when state is skipped."]}
-            )
-
-        if data["state"] != "rejudged" and (
-            data.get("item_1_id") is None or data.get("item_2_id") is None
-        ):
-            raise ValidationError(
-                {"item_1_id": ["item_1_id and item_2_id are required for new comparisons."]}
-            )
-
+def no_duplicate_group_ids(values):
+    """Ensure group ids are unique."""
+    if len(values) != len(set(values)):
+        raise ValidationError("Duplicate group ids are not allowed")
 
 
 class ParticipantSchemaFactory:
@@ -92,6 +21,7 @@ class ParticipantSchemaFactory:
         "created_date": fields.DateTime(dump_only=True),
         "completed_cycles": fields.Int(dump_only=True),
     }
+
 
     @classmethod
     def build_from_table(
@@ -124,10 +54,31 @@ class ParticipantSchemaFactory:
         attrs = {
             "Meta": type("Meta", (), {"unknown": RAISE}),
             **cls.SYSTEM_FIELDS,
+            "group_ids": fields.List(
+                fields.Int(validate=validate.Range(min=1)),
+                required=True,
+                validate=[
+                    validate.Length(min=1),
+                    validate.Length(max=100),  # set at 100 to match configuration schema
+                    no_duplicate_group_ids,
+                ],
+            ),
         }
 
+        def normalise_group_ids(self, data, **kwargs):
+            """Normalise group_ids to a list because it will be a string if there is only 1."""
+            data = dict(data)
+            group_ids = data.get("group_ids")
+            if group_ids is None:
+                return data
+            if isinstance(group_ids, str):
+                data["group_ids"] = [group_ids]
+            return data
+
+        attrs["normalise_group_ids"] = pre_load(normalise_group_ids)
+
         for column in table.columns:
-            if column.name in cls.SYSTEM_FIELDS:
+            if column.name in cls.SYSTEM_FIELDS or column.name == "group_ids":
                 continue
             attrs[column.name] = cls._field_for_column(column)
 
