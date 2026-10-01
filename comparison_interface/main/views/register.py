@@ -42,10 +42,6 @@ class Register(Request):
     def post(self, request):
         """Handle participant registration submission.
 
-        Validates the submitted registration form against the dynamically built
-        participant schema, then inserts the participant row and the selected
-        group preferences in a single transaction, and initialises the user
-        session.
 
         User-facing validation is handled by the front end so that messages can be
         localised. This handler therefore treats any validation failure as a
@@ -63,9 +59,6 @@ class Register(Request):
             werkzeug.exceptions.BadRequest: If the payload is structurally invalid,
                 or if the database rejects it (for example an unknown group id).
         """
-        # 1. Read the form once in multi-value mode so repeated checkbox fields
-        #    (group_ids) are preserved, then flatten the remaining single-value
-        #    fields for the schema.
         raw_form = request.form.to_dict(flat=True)
         raw_form.pop('csrf_token', None)
 
@@ -79,17 +72,15 @@ class Register(Request):
 
         raw_group_ids = form_data.pop('group_ids', [])
 
-        # 3. Structural check on the group selection only. The front end enforces
-        #    "at least one group" in the participant's language; here we only
-        #    confirm we have a list of integers we can safely insert.
+        # Confirm we have a list of integers we can safely insert.
         try:
             group_ids = [int(gid) for gid in raw_group_ids]
         except (TypeError, ValueError):
             self._app.logger.warning("Rejected group_ids")
             abort(400)
 
-        # 4. Add server-managed fields. These are dump_only in the schema, so they
-        #    can never arrive from the client, but the app is free to set them.
+        # Add server-managed fields. These are dump_only in the schema, so they
+        #   can never arrive from the client, but the app is free to set them.
         form_data['created_date'] = datetime.now(timezone.utc)
         if not WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app):
             # Cycles are not tracked for this study configuration.
@@ -97,7 +88,7 @@ class Register(Request):
         else:
             form_data['completed_cycles'] = 0
 
-        # 5. Insert the participant and the group preferences together, on one
+        # Insert the participant and the group preferences together, on one
         #    connection and in one transaction, so that a foreign key failure on
         #    any group id rolls the participant row back too.
         table = self._get_participant_table()
@@ -108,7 +99,6 @@ class Register(Request):
                 participant_id = result.inserted_primary_key[0]
 
                 if group_ids:
-                    # executemany raises on an empty list, hence the guard above.
                     connection.execute(
                         ParticipantGroup.__table__.insert(),
                         [
@@ -121,7 +111,6 @@ class Register(Request):
             self._app.logger.warning("Participant registration failed")
             abort(400)
 
-        # 6. Initialise the session.
         self._session['participant_id'] = participant_id
         self._session['group_ids'] = group_ids
         self._session['weight_conf'] = WebsiteControl().get_conf().weight_configuration

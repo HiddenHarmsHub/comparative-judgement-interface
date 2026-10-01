@@ -12,8 +12,7 @@ class ParticipantSchemaFactory:
     """Build a participant write schema from reflected SQLAlchemy columns.
 
     Every reflected participant column is writable by default, except the
-    explicitly named system-managed fields. This suits studies where all
-    config-created participant columns are intended to be registration fields.
+    explicitly named system-managed fields.
     """
 
     SYSTEM_FIELDS = {

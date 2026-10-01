@@ -30,12 +30,6 @@ class RankPostSchema(Schema):
     def normalise_optional_ids(self, data, **kwargs):
         """Convert blank optional HTML ID inputs to None before validation.
 
-        HTML forms submit an empty hidden input as ``""``. Marshmallow's
-        ``allow_none=True`` accepts Python ``None``, not an empty string, so
-        only blank values for known optional ID fields are normalised. Any
-        non-blank, non-integer value remains invalid and is rejected by
-        ``fields.Int``.
-
         Args:
             data (dict): Untrusted form values before field deserialisation.
             **kwargs: Additional Marshmallow hook arguments.
