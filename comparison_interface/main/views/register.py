@@ -67,6 +67,7 @@ class Register(Request):
         #    (group_ids) are preserved, then flatten the remaining single-value
         #    fields for the schema.
         raw_form = request.form.to_dict(flat=False)
+        raw_form.pop('csrf_token', None)
         raw_group_ids = raw_form.pop('group_ids', [])
         form_data = {key: values[0] for key, values in raw_form.items()}
 

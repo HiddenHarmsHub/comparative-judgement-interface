@@ -137,8 +137,10 @@ class Rank(Request):
 
     def post(self, request):
         """Request post handler."""
+        raw_form = request.form.to_dict(flat=True)
+        raw_form.pop('csrf_token', None)
         try:
-            response = RankPostSchema().load(request.form.to_dict(flat=True))
+            response = RankPostSchema().load(raw_form)
         except ValidationError as err:
             self._app.logger.warning("Rejected rank payload: %s", err.messages)
             abort(400)
