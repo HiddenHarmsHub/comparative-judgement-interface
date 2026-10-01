@@ -1,9 +1,23 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 db = SQLAlchemy()
 csrf = CSRFProtect()
 
+
+def enable_sqlite_foreign_keys():
+    """Turn on the foreign key checks for all connections to all binds."""
+
+    @event.listens_for(Engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, _):
+        ac = dbapi_connection.autocommit
+        dbapi_connection.autocommit = True
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+        dbapi_connection.autocommit = ac
 
 def persist(conn, obj):
     """Make an object persistent in the database.

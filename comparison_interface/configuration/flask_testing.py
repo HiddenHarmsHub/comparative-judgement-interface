@@ -3,11 +3,6 @@ class TestSettings(object):
 
     TESTING = True
     SECRET_KEY = 'ydf7ash*sdFdy'
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'connect_args': {
-            'foreign_keys': 1
-        }
-    }
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test_admin_database.db'
     SQLALCHEMY_BINDS = {
         'study_db': 'sqlite:///test_database.db',
