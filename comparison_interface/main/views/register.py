@@ -42,7 +42,6 @@ class Register(Request):
     def post(self, request):
         """Handle participant registration submission.
 
-
         User-facing validation is handled by the front end so that messages can be
         localised. This handler therefore treats any validation failure as a
         malformed or crafted request and aborts with 400.
@@ -101,10 +100,7 @@ class Register(Request):
                 if group_ids:
                     connection.execute(
                         ParticipantGroup.__table__.insert(),
-                        [
-                            {'group_id': group_id, 'participant_id': participant_id}
-                            for group_id in group_ids
-                        ],
+                        [{'group_id': group_id, 'participant_id': participant_id} for group_id in group_ids],
                     )
         except IntegrityError:
             # The transaction has already been rolled back by the context manager.
@@ -235,9 +231,7 @@ class Register(Request):
         table = self._get_participant_table()
         schema_class = ParticipantSchemaFactory.build_from_table(
             table=table,
-            require_ethics_acceptance=WS.get_behaviour_conf(
-                WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app
-            ),
+            require_ethics_acceptance=WS.get_behaviour_conf(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app),
         )
         schema = schema_class()
         self._app._participant_write_schema = schema

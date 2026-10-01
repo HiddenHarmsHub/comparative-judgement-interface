@@ -6,6 +6,7 @@ from sqlalchemy.engine import Engine
 db = SQLAlchemy()
 csrf = CSRFProtect()
 
+
 @event.listens_for(Engine, "connect")
 def enable_sqlite_foreign_keys(dbapi_connection, _):
     """Enable SQLite foreign-key enforcement on every new connection."""

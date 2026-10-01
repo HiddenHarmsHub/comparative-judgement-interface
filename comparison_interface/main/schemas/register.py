@@ -21,7 +21,6 @@ class ParticipantSchemaFactory:
         "completed_cycles": fields.Int(dump_only=True),
     }
 
-
     @classmethod
     def build_from_table(
         cls,
@@ -84,9 +83,7 @@ class ParticipantSchemaFactory:
         if require_ethics_acceptance:
             ethics_column = table.columns.get(ethics_field)
             if ethics_column is None:
-                raise ValueError(
-                    f"Ethics acceptance is required but '{ethics_field}' is not a participant column."
-                )
+                raise ValueError(f"Ethics acceptance is required but '{ethics_field}' is not a participant column.")
 
             def validate_ethics_acceptance(self, data, **kwargs):
                 """Require the configured ethics checkbox to be accepted.
@@ -99,13 +96,9 @@ class ParticipantSchemaFactory:
                     ValidationError: If the ethics checkbox is not truthy.
                 """
                 if not data.get(ethics_field):
-                    raise ValidationError(
-                        {ethics_field: ["Ethics agreement must be accepted to register."]}
-                    )
+                    raise ValidationError({ethics_field: ["Ethics agreement must be accepted to register."]})
 
-            attrs["validate_ethics_acceptance"] = validates_schema(
-                validate_ethics_acceptance
-            )
+            attrs["validate_ethics_acceptance"] = validates_schema(validate_ethics_acceptance)
 
         return type("ParticipantWriteSchema", (Schema,), attrs)
 

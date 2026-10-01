@@ -6,6 +6,7 @@ class RankPostSchema(Schema):
 
     class Meta:
         """Reject any unexpected keys."""
+
         unknown = RAISE
 
     OPTIONAL_ID_FIELDS = {
@@ -57,13 +58,7 @@ class RankPostSchema(Schema):
                 declared ranking action.
         """
         if data["state"] == "skipped" and data.get("selected_item_id") is not None:
-            raise ValidationError(
-                {"selected_item_id": ["selected_item_id must not be set when state is skipped."]}
-            )
+            raise ValidationError({"selected_item_id": ["selected_item_id must not be set when state is skipped."]})
 
-        if data["state"] != "rejudged" and (
-            data.get("item_1_id") is None or data.get("item_2_id") is None
-        ):
-            raise ValidationError(
-                {"item_1_id": ["item_1_id and item_2_id are required for new comparisons."]}
-            )
+        if data["state"] != "rejudged" and (data.get("item_1_id") is None or data.get("item_2_id") is None):
+            raise ValidationError({"item_1_id": ["item_1_id and item_2_id are required for new comparisons."]})
