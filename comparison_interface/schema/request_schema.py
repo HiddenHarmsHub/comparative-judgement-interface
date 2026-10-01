@@ -8,6 +8,7 @@ class RankPostSchema(Schema):
     """Validate POST data submitted by the ranking view."""
 
     class Meta:
+        """Reject any unexpected keys."""
         unknown = RAISE
 
     OPTIONAL_ID_FIELDS = {
