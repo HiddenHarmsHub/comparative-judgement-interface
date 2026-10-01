@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from flask import abort
 from marshmallow import ValidationError
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.expression import func
 
 from comparison_interface.configuration.website import Settings as WS
@@ -141,8 +140,8 @@ class Rank(Request):
         raw_form.pop('csrf_token', None)
         try:
             response = RankPostSchema().load(raw_form)
-        except ValidationError as err:
-            self._app.logger.warning("Rejected rank payload: %s", err.messages)
+        except ValidationError:
+            self._app.logger.warning("Rejected judgement")
             abort(400)
 
         action = response['state']
@@ -173,8 +172,9 @@ class Rank(Request):
                     # Save the comparison for future possible rejudging
                     self._session['previous_comparison_id'] = c.comparison_id
                     self._session['comparison_ids'] = self._session['comparison_ids'] + [c.comparison_id]
-                except SQLAlchemyError as e:
-                    raise RuntimeError(str(e))
+                except Exception:
+                    db.session.rollback()
+                    raise
             else:
                 # Rejudge an existence comparison.
                 query = db.select(Comparison).where(
@@ -194,8 +194,9 @@ class Rank(Request):
                     self._session['previous_comparison_id'] = self._session['comparison_ids'][
                         len(self._session['comparison_ids']) - 1
                     ]
-                except SQLAlchemyError as e:
-                    raise RuntimeError(str(e))
+                except Exception:
+                    db.session.rollback()
+                    raise
 
             return self._redirect('.rank')
         else:

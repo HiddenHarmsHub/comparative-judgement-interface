@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from flask import abort, render_template
 from marshmallow import ValidationError
 from sqlalchemy import MetaData, Table
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
@@ -73,12 +73,11 @@ class Register(Request):
         schema = self._get_participant_write_schema()
         try:
             form_data = schema.load(raw_form)
-        except ValidationError as err:
-            self._app.logger.warning("Rejected registration payload: %s", err.messages)
+        except ValidationError:
+            self._app.logger.warning("Rejected registration")
             abort(400)
 
         raw_group_ids = form_data.pop('group_ids', [])
-        # form_data = {key: values[0] for key, values in form_data.items()}
 
         # 3. Structural check on the group selection only. The front end enforces
         #    "at least one group" in the participant's language; here we only
@@ -86,7 +85,7 @@ class Register(Request):
         try:
             group_ids = [int(gid) for gid in raw_group_ids]
         except (TypeError, ValueError):
-            self._app.logger.warning("Rejected non-integer group_ids: %r", raw_group_ids)
+            self._app.logger.warning("Rejected group_ids")
             abort(400)
 
         # 4. Add server-managed fields. These are dump_only in the schema, so they
@@ -117,11 +116,9 @@ class Register(Request):
                             for group_id in group_ids
                         ],
                     )
-        except SQLAlchemyError as e:
+        except IntegrityError:
             # The transaction has already been rolled back by the context manager.
-            # An IntegrityError here means a crafted request (unknown group id or
-            # a duplicate pair), not a server fault, so 400 rather than 500.
-            self._app.logger.warning("Participant registration failed: %s", e)
+            self._app.logger.warning("Participant registration failed")
             abort(400)
 
         # 6. Initialise the session.

@@ -1,6 +1,5 @@
 from flask import abort
 from marshmallow import ValidationError
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.expression import func
 
 from comparison_interface.configuration.website import Settings as WS
@@ -83,8 +82,8 @@ class ItemsPreference(Request):
         raw_form.pop('csrf_token', None)
         try:
             response = ItemPreferencePostSchema().load(raw_form)
-        except ValidationError as err:
-            self._app.logger.warning("Rejected rank payload: %s", err.messages)
+        except ValidationError:
+            self._app.logger.warning("Rejected preference")
             abort(400)
 
         known = False
@@ -97,7 +96,8 @@ class ItemsPreference(Request):
         try:
             db.session.add(ui)
             db.session.commit()
-        except SQLAlchemyError as e:
-            raise RuntimeError(str(e))
+        except Exception:
+            db.session.rollback()
+            raise
 
         return self._redirect('.item_selection')
