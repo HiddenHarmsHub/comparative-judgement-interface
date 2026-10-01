@@ -53,6 +53,7 @@ def equal_weight_client_api(equal_weight_app_api):
     with equal_weight_app_api.app_context():
         yield equal_weight_app_api.test_client()
 
+
 @pytest.fixture()
 def add_basic_data_equal_api(equal_weight_client_api):
     # add a participant
@@ -89,6 +90,7 @@ def add_basic_data_equal_api(equal_weight_client_api):
     db.session.commit()
 
     yield
+
 
 @pytest.fixture()
 def key_file(equal_weight_app_api):
