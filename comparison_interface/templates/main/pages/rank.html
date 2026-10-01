@@ -19,7 +19,7 @@
     data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" id="weighted_pair_id" name="weighted_pair_id" value="{{weighted_pair_id}}">
+    <input type="hidden" id="weighted_pair_id" name="weighted_pair_id" value="{% if weighted_pair_id %}{{weighted_pair_id}}{% else %}{% endif %}">
     <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
     <input type="hidden" id="comparison_id" name="comparison_id" value="{% if comparison_id %}{{comparison_id}}{% else %}{% endif %}">
     <div class="form-group">

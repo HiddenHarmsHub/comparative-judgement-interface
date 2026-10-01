@@ -46,7 +46,7 @@ class RankPostSchema(Schema):
         """
         normalised = dict(data)
         for field_name in self.OPTIONAL_ID_FIELDS:
-            if normalised.get(field_name) == "" or normalised.get(field_name) == "None":
+            if normalised.get(field_name) == "":
                 normalised[field_name] = None
         return normalised
 
