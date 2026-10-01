@@ -20,11 +20,6 @@ class Settings(object):
         return False
 
     SECRET_KEY = os.getenv('SECRET_KEY')
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'connect_args': {
-            'foreign_keys': 1
-        }
-    }
     SQLALCHEMY_DATABASE_URI = 'sqlite:///admin_database.db'
     SQLALCHEMY_BINDS = {
         'study_db': 'sqlite:///database.db',
