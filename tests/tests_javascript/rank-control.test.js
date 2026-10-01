@@ -15,8 +15,8 @@ describe('unit tests for standalone functions in rank-control.js', () => {
     const item1 = document.getElementById('image-1');
     const item2 = document.getElementById('image-2');
     rankControl.resetAriaChecked(item1, item2);
-    expect (document.getElementById('image-1').getAttribute('aria-checked')).toBe('false');
-    expect (document.getElementById('image-2').getAttribute('aria-checked')).toBe('false');
+    expect(document.getElementById('image-1').getAttribute('aria-checked')).toBe('false');
+    expect(document.getElementById('image-2').getAttribute('aria-checked')).toBe('false');
   });
 
   test('selected_item_id value is set correctly', () => {
@@ -26,90 +26,115 @@ describe('unit tests for standalone functions in rank-control.js', () => {
   });
 
   test('the "selected" visual hint is added correctly', () => {
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER"/>' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL"/>' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED"/>' +
-                              '<img id="left-item"/><img id="right-item"/>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      '>' +
+      '<img id="left-item"/><img id="right-item"/>' +
+      '</form>';
+
     rankControl.addVisualHint('selected-item', document.getElementById('left-item'), 'selected');
-    const expectedHtml = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                         '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                         '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                         '<img id="left-item" class="selected-item">' +
-                         '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
-                         '<span class="fs-1 fw-bold bg-white p-1 border border-success text-success">HIGHER</span>' +
-                         '</div>' + 
-                         '<img id="right-item">';
+    const expectedHtml = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      '>' +
+      '<img id="left-item" class="selected-item">' +
+      '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-success text-success">HIGHER</span>' +
+      '</div>' +
+      '<img id="right-item">' +
+      '</form>';
     expect(document.body.innerHTML).toBe(expectedHtml);
   });
 
   test('the "tied" visual hint is added correctly', () => {
     /* The function being tested here adds the hint to a single item at a time
     It is called twice for the tied case, once for each image. */
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER"/>' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL"/>' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED"/>' +
-                              '<img id="left-item"/><img id="right-item"/>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      '>' +
+      '<img id="left-item"/><img id="right-item"/>' +
+      '</form>';
     rankControl.addVisualHint('selection-tied', document.getElementById('left-item'), 'tied');
     rankControl.addVisualHint('selection-tied', document.getElementById('right-item'), 'tied');
-    const expectedHtml = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                          '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                          '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                          '<img id="left-item" class="selection-tied">' +
-                          '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
-                          '<span class="fs-1 fw-bold bg-white p-1 border border-primary text-primary">EQUAL</span>' +
-                          '</div>' + 
-                          '<img id="right-item" class="selection-tied">' +
-                          '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
-                          '<span class="fs-1 fw-bold bg-white p-1 border border-primary text-primary">EQUAL</span>' +
-                          '</div>';
+    const expectedHtml = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      '>' +
+      '<img id="left-item" class="selection-tied">' +
+      '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-primary text-primary">EQUAL</span>' +
+      '</div>' +
+      '<img id="right-item" class="selection-tied">' +
+      '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-primary text-primary">EQUAL</span>' +
+      '</div>' +
+      '</form>';
     expect(document.body.innerHTML).toBe(expectedHtml);
   });
 
   test('the "skipped" visual hint is added correctly', () => {
     /* The function being tested here adds the hint to a single item at a time
     It is called twice for the skipped case, once for each image. */
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER"/>' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL"/>' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED"/>' +
-                              '<img id="left-item"/><img id="right-item"/>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      '>' +
+      '<img id="left-item"/><img id="right-item"/>' +
+      '</form>';
     rankControl.addVisualHint('selection-skipped', document.getElementById('left-item'), 'skipped');
     rankControl.addVisualHint('selection-skipped', document.getElementById('right-item'), 'skipped');
-    const expectedHtml = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                          '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                          '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                          '<img id="left-item" class="selection-skipped">' +
-                          '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
-                          '<span class="fs-1 fw-bold bg-white p-1 border border-black">SKIPPED</span>' +
-                          '</div>' + 
-                          '<img id="right-item" class="selection-skipped">' +
-                          '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
-                          '<span class="fs-1 fw-bold bg-white p-1 border border-black">SKIPPED</span>' +
-                          '</div>';
+    const expectedHtml = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      '>' +
+      '<img id="left-item" class="selection-skipped">' +
+      '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-black">SKIPPED</span>' +
+      '</div>' +
+      '<img id="right-item" class="selection-skipped">' +
+      '<div class="selected-hint" aria-hidden="true" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-black">SKIPPED</span>' +
+      '</div>' +
+      '</form>';
     expect(document.body.innerHTML).toBe(expectedHtml);
 
   });
 
   test('the visual hint is removed correctly', () => {
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                              '<img id="left-item" class="selection-skipped">' +
-                              '<div class="selected-hint" style="pointer-events:none;">' +
-                              '<span class="fs-1 fw-bold bg-white p-1 border border-black">SKIPPED</span>' +
-                              '</div>' + 
-                              '<img id="right-item" class="selection-skipped">' +
-                              '<div class="selected-hint" style="pointer-events:none;">' +
-                              '<span class="fs-1 fw-bold bg-white p-1 border border-black">SKIPPED</span>' +
-                              '</div>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      '>' +
+      '<img id="left-item" class="selection-skipped">' +
+      '<div class="selected-hint" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-black">SKIPPED</span>' +
+      '</div>' +
+      '<img id="right-item" class="selection-skipped">' +
+      '<div class="selected-hint" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-black">SKIPPED</span>' +
+      '</div>' +
+      '</form>';
     rankControl.cleanVisualHint(
       'selection-skipped',
       document.getElementById('left-item'),
       document.getElementById('right-item')
     );
-    const expectedHtml = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                         '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                         '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                         '<img id="left-item" class=""><img id="right-item" class="">';
+    const expectedHtml = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      '>' +
+      '<img id="left-item" class=""><img id="right-item" class="">' +
+      '</form>';
     expect(document.body.innerHTML).toBe(expectedHtml);
   });
 
@@ -126,15 +151,18 @@ describe('tests for hintItem', () => {
 
   test('hintItem makes the right decision when a single item is clicked', () => {
     /* start with no items selected, select one item */
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                              '<input type="hidden" id="selected_item_id">' +
-                              '<input type="hidden" id="item_1_id" value="1"/>' +
-                              '<input type="hidden" id="item_2_id" value="2"/>' +
-                              '<input type="hidden" id="allow-ties" value="true"/>' +
-                              '<img id="left-item" class="left-item" aria-checked="false"/>' +
-                              '<img id="right-item" class="right-item" aria-checked="false"/>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      ' data-allow-ties="true"' +
+      '>' +
+      '<input type="hidden" id="selected_item_id">' +
+      '<input type="hidden" id="item_1_id" value="1"/>' +
+      '<input type="hidden" id="item_2_id" value="2"/>' +
+      '<img id="left-item" class="left-item" aria-checked="false"/>' +
+      '<img id="right-item" class="right-item" aria-checked="false"/>' +
+      '</form>';
     const clickedItem = $('#left-item');
     rankControl.hintItem(clickedItem);
     expect(document.getElementById('selected_item_id').value).toBe('1');
@@ -148,18 +176,21 @@ describe('tests for hintItem', () => {
 
   test('hintItem makes the right decision when a single item is clicked and one is already selected (ties allowed)', () => {
     /* start with one item selected, select the second item */
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                              '<input type="hidden" id="selected_item_id">' +
-                              '<input type="hidden" id="item_1_id" value="1"/>' +
-                              '<input type="hidden" id="allow-ties" value="true"/>' +
-                              '<div class="selected-hint" style="pointer-events:none;">' +
-                              '<span class="fs-1 fw-bold bg-white p-1 border border-success text-success">HIGHER</span>' +
-                              '</div>' + 
-                              '<input type="hidden" id="item_2_id" value="2"/>' +
-                              '<img id="left-item" class="left-item selected-item" aria-checked="true"/>' +
-                              '<img id="right-item" class="right-item" aria-checked="false"/>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      ' data-allow-ties="true"' +
+      '>' +
+      '<input type="hidden" id="selected_item_id">' +
+      '<input type="hidden" id="item_1_id" value="1"/>' +
+      '<div class="selected-hint" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-success text-success">HIGHER</span>' +
+      '</div>' +
+      '<input type="hidden" id="item_2_id" value="2"/>' +
+      '<img id="left-item" class="left-item selected-item" aria-checked="true"/>' +
+      '<img id="right-item" class="right-item" aria-checked="false"/>' +
+      '</form>';
     const clickedItem = $('#right-item');
     rankControl.hintItem(clickedItem);
     expect(document.getElementById('selected_item_id').value).toBe('');
@@ -173,18 +204,21 @@ describe('tests for hintItem', () => {
 
   test('hintItem makes the right decision when a single item is clicked and one is already selected (no ties allowed)', () => {
     /* start with one item selected, select the second item */
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                              '<input type="hidden" id="selected_item_id">' +
-                              '<input type="hidden" id="item_1_id" value="1"/>' +
-                              '<input type="hidden" id="allow-ties" value="false"/>' +
-                              '<div class="selected-hint" style="pointer-events:none;">' +
-                              '<span class="fs-1 fw-bold bg-white p-1 border border-success text-success">HIGHER</span>' +
-                              '</div>' + 
-                              '<input type="hidden" id="item_2_id" value="2"/>' +
-                              '<img id="left-item" class="left-item selected-item" aria-checked="true"/>' +
-                              '<img id="right-item" class="right-item" aria-checked="false"/>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      ' data-allow-ties="true"' +
+      '>' +
+      '<input type="hidden" id="selected_item_id">' +
+      '<input type="hidden" id="item_1_id" value="1"/>' +
+      '<div class="selected-hint" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-success text-success">HIGHER</span>' +
+      '</div>' +
+      '<input type="hidden" id="item_2_id" value="2"/>' +
+      '<img id="left-item" class="left-item selected-item" aria-checked="true"/>' +
+      '<img id="right-item" class="right-item" aria-checked="false"/>' +
+      '</form>';
     const clickedItem = $('#right-item');
     rankControl.hintItem(clickedItem);
     expect(document.getElementById('selected_item_id').value).toBe('2');
@@ -198,21 +232,24 @@ describe('tests for hintItem', () => {
 
   test('hintItem makes the right decision when a single item is clicked and both are already selected', () => {
     /* start with both items selected, right-item is deselected, left becomes highest */
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                              '<input type="hidden" id="selected_item_id">' +
-                              '<input type="hidden" id="item_1_id" value="1"/>' +
-                              '<input type="hidden" id="item_2_id" value="2"/>' +
-                              '<input type="hidden" id="allow-ties" value="true"/>' +
-                              '<img id="left-item" class="left-item selection-tied" aria-checked="true"/>' +
-                              '<div class="selected-hint" style="pointer-events:none;">' +
-                              '<span class="fs-1 fw-bold bg-white p-1 border border-primary text-primary">EQUAL</span>' +
-                              '</div>' + 
-                              '<img id="right-item" class="right-item selection-tied" aria-checked="true"/>' +
-                              '<div class="selected-hint" style="pointer-events:none;">' +
-                              '<span class="fs-1 fw-bold bg-white p-1 border border-primary text-primary">EQUAL</span>' +
-                              '</div>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      ' data-allow-ties="true"' +
+      '>' +
+      '<input type="hidden" id="selected_item_id">' +
+      '<input type="hidden" id="item_1_id" value="1"/>' +
+      '<input type="hidden" id="item_2_id" value="2"/>' +
+      '<img id="left-item" class="left-item selection-tied" aria-checked="true"/>' +
+      '<div class="selected-hint" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-primary text-primary">EQUAL</span>' +
+      '</div>' +
+      '<img id="right-item" class="right-item selection-tied" aria-checked="true"/>' +
+      '<div class="selected-hint" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-primary text-primary">EQUAL</span>' +
+      '</div>' +
+      '</form>';
     const clickedItem = $('#right-item');
     rankControl.hintItem(clickedItem);
     expect(document.getElementById('selected_item_id').value).toBe('1');
@@ -226,18 +263,21 @@ describe('tests for hintItem', () => {
 
   test('hintItem makes the right decision when the only selected item is deselected', () => {
     /* start with one item selected, that item is deselected */
-    document.body.innerHTML = '<input type="hidden" id="selected_item_indicator" value="HIGHER">' +
-                              '<input type="hidden" id="tied_items_indicator" value="EQUAL">' +
-                              '<input type="hidden" id="skipped_items_indicator" value="SKIPPED">' +
-                              '<input type="hidden" id="selected_item_id">' +
-                              '<input type="hidden" id="item_1_id" value="1"/>' +
-                              '<input type="hidden" id="allow-ties" value="true"/>' +
-                              '<div class="selected-hint" style="pointer-events:none;">' +
-                              '<span class="fs-1 fw-bold bg-white p-1 border border-success text-success">HIGHER</span>' +
-                              '</div>' + 
-                              '<input type="hidden" id="item_2_id" value="2"/>' +
-                              '<img id="left-item" class="left-item selected-item" aria-checked="true"/>' +
-                              '<img id="right-item" class="right-item" aria-checked="false"/>';
+    document.body.innerHTML = '<form id="rank-form"' +
+      ' data-selected-item-indicator="HIGHER"' +
+      ' data-tied-items-indicator="EQUAL"' +
+      ' data-skipped-items-indicator="SKIPPED"' +
+      ' data-allow-ties="true"' +
+      '>' +
+      '<input type="hidden" id="selected_item_id">' +
+      '<input type="hidden" id="item_1_id" value="1"/>' +
+      '<div class="selected-hint" style="pointer-events:none;">' +
+      '<span class="fs-1 fw-bold bg-white p-1 border border-success text-success">HIGHER</span>' +
+      '</div>' +
+      '<input type="hidden" id="item_2_id" value="2"/>' +
+      '<img id="left-item" class="left-item selected-item" aria-checked="true"/>' +
+      '<img id="right-item" class="right-item" aria-checked="false"/>' +
+      '</form>';
     const clickedItem = $('#left-item');
     rankControl.hintItem(clickedItem);
     expect(document.getElementById('selected_item_id').value).toBe('');
