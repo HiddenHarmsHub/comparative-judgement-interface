@@ -13,6 +13,6 @@ class ItemPreferencePostSchema(Schema):
 
     @validates_schema
     def check_action(self, data, **kwargs):
-        """Keep the payload shape explicit and easy to extend later."""
+        """Validate the action types, can be extended if needed."""
         if data["action"] not in {"agree", "disagree"}:
             raise ValidationError({"action": ["Invalid action."]})
