@@ -6,7 +6,6 @@ class ItemPreferencePostSchema(Schema):
 
     class Meta:
         """Reject any unexpected keys."""
-
         unknown = RAISE
 
     action = fields.Str(required=True, validate=validate.OneOf(["agree", "disagree"]))

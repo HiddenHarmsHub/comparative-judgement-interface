@@ -6,7 +6,6 @@ class RankPostSchema(Schema):
 
     class Meta:
         """Reject any unexpected keys."""
-
         unknown = RAISE
 
     OPTIONAL_ID_FIELDS = {
