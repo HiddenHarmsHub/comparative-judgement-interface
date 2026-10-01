@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
-from sqlalchemy.exc import SQLAlchemyError
+from flask import abort
+from marshmallow import ValidationError
 from sqlalchemy.sql.expression import func
 
 from comparison_interface.configuration.website import Settings as WS
@@ -16,6 +17,7 @@ from comparison_interface.db.models import (
     TotalItemPair,
     WebsiteControl,
 )
+from comparison_interface.main.schemas.rank import RankPostSchema
 
 from .request import Request
 
@@ -124,7 +126,7 @@ class Rank(Request):
                 'comparison_id': comparison_id,
                 'initial_state': current_state,
                 'initial_selected_item_id': selected_item_id,
-                'allow_ties': str(allow_ties).lower(),
+                'allow_ties': allow_ties,
                 'allow_skip': allow_skip,
                 'allow_back': allow_back,
                 'additional_screen_reader_instructions': additional_screen_reader_instructions,
@@ -134,7 +136,14 @@ class Rank(Request):
 
     def post(self, request):
         """Request post handler."""
-        response = request.form.to_dict(flat=True)
+        raw_form = request.form.to_dict(flat=True)
+        raw_form.pop('csrf_token', None)
+        try:
+            response = RankPostSchema().load(raw_form)
+        except ValidationError:
+            self._app.logger.warning("Rejected judgement")
+            abort(400)
+
         action = response['state']
         if action != self.REJUDGE:
             # Set the comparison state based on the participant's action
@@ -163,8 +172,9 @@ class Rank(Request):
                     # Save the comparison for future possible rejudging
                     self._session['previous_comparison_id'] = c.comparison_id
                     self._session['comparison_ids'] = self._session['comparison_ids'] + [c.comparison_id]
-                except SQLAlchemyError as e:
-                    raise RuntimeError(str(e))
+                except Exception:
+                    db.session.rollback()
+                    raise
             else:
                 # Rejudge an existence comparison.
                 query = db.select(Comparison).where(
@@ -184,8 +194,9 @@ class Rank(Request):
                     self._session['previous_comparison_id'] = self._session['comparison_ids'][
                         len(self._session['comparison_ids']) - 1
                     ]
-                except SQLAlchemyError as e:
-                    raise RuntimeError(str(e))
+                except Exception:
+                    db.session.rollback()
+                    raise
 
             return self._redirect('.rank')
         else:
@@ -204,7 +215,7 @@ class Rank(Request):
         )
         return res
 
-    def _calculate_comparison_state(self, action: str, response: dict):
+    def _calculate_comparison_state(self, action, response):
         """Get the right comparison parameters based on the participant's action.
 
         Args:
@@ -217,14 +228,13 @@ class Rank(Request):
         """
         state = None
         selected_item_id = None
-        if action == self.CONFIRMED and ('selected_item_id' not in response or response['selected_item_id'] == ""):
-            state = Comparison.TIED
-
-        if action == self.CONFIRMED and 'selected_item_id' in response and response['selected_item_id'] != "":
-            state = Comparison.SELECTED
-            selected_item_id = response['selected_item_id']
-
-        if action == self.SKIPPED:
+        if action == self.CONFIRMED:
+            if response.get('selected_item_id') is not None:
+                state = Comparison.SELECTED
+                selected_item_id = response['selected_item_id']
+            else:
+                state = Comparison.TIED
+        elif action == self.SKIPPED:
             state = Comparison.SKIPPED
 
         return state, selected_item_id

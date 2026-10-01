@@ -288,6 +288,7 @@ def test_rejudging_request_with_an_invalid_comparison_id_raises_error(equal_weig
         )
 
 
+@pytest.mark.usefixtures('add_basic_data_equal')
 def test_requesting_a_previous_comparison_post(equal_weight_app, equal_weight_client):
     """
     GIVEN a flask app configured for testing and equal weights
