@@ -6,18 +6,20 @@ from sqlalchemy.engine import Engine
 db = SQLAlchemy()
 csrf = CSRFProtect()
 
-
-def enable_sqlite_foreign_keys():
-    """Turn on the foreign key checks for all connections to all binds."""
-
-    @event.listens_for(Engine, "connect")
-    def set_sqlite_pragma(dbapi_connection, _):
-        ac = dbapi_connection.autocommit
-        dbapi_connection.autocommit = True
+@event.listens_for(Engine, "connect")
+def enable_sqlite_foreign_keys(dbapi_connection, _):
+    """Enable SQLite foreign-key enforcement on every new connection."""
+    previous_autocommit = dbapi_connection.autocommit
+    dbapi_connection.autocommit = True
+    try:
         cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
-        dbapi_connection.autocommit = ac
+        try:
+            cursor.execute("PRAGMA foreign_keys=ON")
+        finally:
+            cursor.close()
+    finally:
+        dbapi_connection.autocommit = previous_autocommit
+
 
 def persist(conn, obj):
     """Make an object persistent in the database.
