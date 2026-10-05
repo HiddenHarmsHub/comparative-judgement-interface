@@ -61,7 +61,6 @@ class Register(Request):
         raw_form = request.form.to_dict(flat=True)
         raw_form.pop('csrf_token', None)
 
-        # 2. Validate the participant fields.
         schema = self._get_participant_write_schema()
         try:
             form_data = schema.load(raw_form)
