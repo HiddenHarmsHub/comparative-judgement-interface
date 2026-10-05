@@ -1,4 +1,5 @@
-from sqlalchemy.exc import SQLAlchemyError
+from flask import abort
+from marshmallow import ValidationError
 from sqlalchemy.sql.expression import func
 
 from comparison_interface.configuration.website import Settings as WS
@@ -11,6 +12,7 @@ from comparison_interface.db.models import (
     ParticipantItem,
     WebsiteControl,
 )
+from comparison_interface.main.schemas.item_preference import ItemPreferencePostSchema
 
 from .request import Request
 
@@ -76,7 +78,13 @@ class ItemsPreference(Request):
 
     def post(self, request):
         """Request post handler."""
-        response = request.form.to_dict(flat=True)
+        raw_form = request.form.to_dict(flat=True)
+        raw_form.pop('csrf_token', None)
+        try:
+            response = ItemPreferencePostSchema().load(raw_form)
+        except ValidationError:
+            self._app.logger.warning("Rejected preference")
+            abort(400)
 
         known = False
         if response['action'] == 'agree':
@@ -88,7 +96,8 @@ class ItemsPreference(Request):
         try:
             db.session.add(ui)
             db.session.commit()
-        except SQLAlchemyError as e:
-            raise RuntimeError(str(e))
+        except Exception:
+            db.session.rollback()
+            raise
 
         return self._redirect('.item_selection')

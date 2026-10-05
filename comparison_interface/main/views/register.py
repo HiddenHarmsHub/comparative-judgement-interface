@@ -1,12 +1,14 @@
 from datetime import datetime, timezone
 
-from flask import render_template
-from sqlalchemy import MetaData
-from sqlalchemy.exc import SQLAlchemyError
+from flask import abort, render_template
+from marshmallow import ValidationError
+from sqlalchemy import MetaData, Table
+from sqlalchemy.exc import IntegrityError
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Group, Participant, ParticipantGroup, WebsiteControl
+from comparison_interface.db.models import Group, ParticipantGroup, WebsiteControl
+from comparison_interface.main.schemas.register import ParticipantSchemaFactory
 
 from .request import Request
 
@@ -38,55 +40,94 @@ class Register(Request):
         )
 
     def post(self, request):
-        """Request post handler."""
-        # Remove the group id from the request.
-        # This field is not related to the user model
-        dic_user_attr = request.form.to_dict(flat=True)
-        dic_user_attr.pop('group_ids', None)
+        """Handle participant registration submission.
 
-        # Get all groups id selected by the user
-        group_ids = request.form.to_dict(flat=False)['group_ids']
+        User-facing validation is handled by the front end so that messages can be
+        localised. This handler therefore treats any validation failure as a
+        malformed or crafted request and aborts with 400.
 
-        # Register the user in the database.
-        # Some of the user fields were dynamically added so we are using SQLAlchemy
-        # reflection functionality to insert them.
-        db_engine = db.engines['study_db']
-        db_meta = MetaData()
-        db_meta.reflect(bind=db_engine)
-        table = db_meta.tables["participant"]
-        dic_user_attr['created_date'] = datetime.now(timezone.utc)
-        if not WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app):
-            dic_user_attr['completed_cycles'] = None
-        new_user_sql = table.insert().values(**dic_user_attr)
+        Args:
+            request (flask.Request): The incoming Flask request containing the
+                registration form data.
+
+        Returns:
+            werkzeug.wrappers.Response: A redirect to the item selection page on
+                success.
+
+        Raises:
+            werkzeug.exceptions.BadRequest: If the payload is structurally invalid,
+                or if the database rejects it (for example an unknown group id).
+        """
+        raw_form = request.form.to_dict(flat=True)
+        raw_form.pop('csrf_token', None)
+
+        schema = self._get_participant_write_schema()
         try:
-            # Insert the user into the database
-            with db_engine.begin() as connection:
-                result = connection.execute(new_user_sql)
+            form_data = schema.load(raw_form)
+        except ValidationError:
+            self._app.logger.warning("Rejected registration")
+            abort(400)
 
-            # Get last inserted id
-            id = result.lastrowid
-            query = db.select(Participant).where(Participant.participant_id == id)
-            participant = db.session.scalars(query).first()
+        raw_group_ids = form_data.pop('group_ids', [])
 
-            # Save the user's group preferences
-            for id in group_ids:
-                ug = ParticipantGroup()
-                ug.group_id = id
-                ug.participant_id = participant.participant_id
+        # Confirm we have a list of integers we can safely insert.
+        try:
+            group_ids = [int(gid) for gid in raw_group_ids]
+        except (TypeError, ValueError):
+            self._app.logger.warning("Rejected group_ids")
+            abort(400)
 
-                db.session.add(ug)
-                db.session.commit()
+        # Add server-managed fields. These are dump_only in the schema, so they
+        #   can never arrive from the client, but the app is free to set them.
+        form_data['created_date'] = datetime.now(timezone.utc)
+        if not WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app):
+            # Cycles are not tracked for this study configuration.
+            form_data['completed_cycles'] = None
+        else:
+            form_data['completed_cycles'] = 0
 
-            # Save reference to the inserted values in the session
-            self._session['participant_id'] = participant.participant_id
-            self._session['group_ids'] = group_ids
-            self._session['weight_conf'] = WebsiteControl().get_conf().weight_configuration
-            self._session['previous_comparison_id'] = None
-            self._session['comparison_ids'] = []
-        except SQLAlchemyError as e:
-            raise RuntimeError(str(e))
+        # Insert the participant and the group preferences together, on one
+        #    connection and in one transaction, so that a foreign key failure on
+        #    any group id rolls the participant row back too.
+        table = self._get_participant_table()
+
+        try:
+            with db.engines['study_db'].begin() as connection:
+                result = connection.execute(table.insert().values(**form_data))
+                participant_id = result.inserted_primary_key[0]
+
+                if group_ids:
+                    connection.execute(
+                        ParticipantGroup.__table__.insert(),
+                        [{'group_id': group_id, 'participant_id': participant_id} for group_id in group_ids],
+                    )
+        except IntegrityError:
+            # The transaction has already been rolled back by the context manager.
+            self._app.logger.warning("Participant registration failed")
+            abort(400)
+
+        self._session['participant_id'] = participant_id
+        self._session['group_ids'] = group_ids
+        self._session['weight_conf'] = WebsiteControl().get_conf().weight_configuration
+        self._session['previous_comparison_id'] = None
+        self._session['comparison_ids'] = []
 
         return self._redirect('.item_selection')
+
+    def _get_participant_table(self):
+        """Use the cached participant table or reflect a new one."""
+        cached = getattr(self._app, '_participant_table', None)
+        if cached is not None:
+            return cached
+
+        table = Table(
+            'participant',
+            MetaData(),
+            autoload_with=db.engines['study_db'],
+        )
+
+        self._app._participant_table = table
+        return table
 
     def _load_user_component(self, user_components: list):
         """Load custom user fields.
@@ -170,3 +211,27 @@ class Register(Request):
                     },
                 )
             )
+
+    def _get_participant_write_schema(self):
+        """Return the cached participant write schema, building it on first use.
+
+        The schema is derived from the reflected participant table, so it
+        always matches the actual database columns. It is cached on the app
+        because the active study configuration cannot change while the
+        process is running.
+
+        Returns:
+            marshmallow.Schema: Participant write-schema instance.
+        """
+        cached = getattr(self._app, '_participant_write_schema', None)
+        if cached is not None:
+            return cached
+
+        table = self._get_participant_table()
+        schema_class = ParticipantSchemaFactory.build_from_table(
+            table=table,
+            require_ethics_acceptance=WS.get_behaviour_conf(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app),
+        )
+        schema = schema_class()
+        self._app._participant_write_schema = schema
+        return schema
