@@ -11,9 +11,9 @@ tests using playwright which are used to test the admin interface will not run i
 If you are not using the dev container, to run the Python tests you will need to install the dependencies in the `test`
 section of the pyproject.toml.
 
-To run the JavaScript and accessibility tests you need to install Node and then the dependencies in the `package.json`
-file provided. In addition you need to install a Chrome browser for Puppeteer (this is used for the accessibility tests).
-The dependencies can be installed as follows (run from the root of the repository):
+To run the JavaScript and accessibility tests you need to install Node (minimum version 24.9) and then the dependencies
+in the `package.json` file provided. In addition you need to install a Chrome browser for Puppeteer (this is used for
+the accessibility tests). The dependencies can be installed as follows (run from the root of the repository):
 
 ```bash
 npm install
@@ -48,8 +48,10 @@ npx jest -- tests_javascript
 
 ## Accessibility tests
 
-The accessibility tests are written in Jest and use Pa11y. They are more complex to run locally because of the multiple
-configuration options available. The tests are split and need to be run against different configurations.
+The accessibility tests are written in Jest and use Pa11y and Puppeteer which require ECMAScript module (ESM) support.
+`NODE_OPTIONS=--experimental-vm-modules` enables the Node.js VM module support used by Jest to run tests involving ESM
+dependencies. The accessibility tests are more complex to run locally because of the multiple configuration options
+available. The tests are split and need to be run against different configurations.
 
 The Flask application must be setup with the correct configuration file from the `tests/test_configurations` and be
 running at <http://localhost:5001> for these tests to run successfully. Most of the tests run with the
@@ -66,7 +68,7 @@ flask --debug run ---port=5001
 The tests can then be run as follows:
 
 ```bash
-npx jest -- tests_accessibility/accessibility.test.js
+NODE_OPTIONS=--experimental-vm-modules npx jest -- tests_accessibility/accessibility.test.js
 ```
 
 To run the additional study configuration test file:
@@ -79,7 +81,7 @@ flask --debug run ---port=5001
 The tests can then be run as follows:
 
 ```bash
-npx jest -- tests_accessibility/accessibility-item-select.test.js
+NODE_OPTIONS=--experimental-vm-modules npx jest -- tests_accessibility/accessibility-item-select.test.js
 ```
 
 To run the admin interface accessibility tests a different base settings file is needed and a specific admin user needs
@@ -99,7 +101,7 @@ flask --debug run ---port=5001
 The tests can then be run as follows:
 
 ```bash
-npx jest -- tests_accessibility/accessibility-admin.test.js
+NODE_OPTIONS=--experimental-vm-modules npx jest -- tests_accessibility/accessibility-admin.test.js
 ```
 
 The first set of tests will probably be enough for most changes to the system. The second test only tests the item
