@@ -41,4 +41,4 @@ jobs:
         - name: Install dependencies
           run: npm i  jest@^29.7.0 jest-environment-jsdom@^29.7.0
         - name: Run tests
-          run: NODE_OPTIONS=--experimental-vm-modules npx jest -- tests/tests_javascript
+          run: npx jest -- tests/tests_javascript
