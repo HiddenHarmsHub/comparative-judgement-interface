@@ -8,10 +8,6 @@ module.exports = {
 
     "setupFiles": [
         "./jquery_setup.js"
-    ],
-
-    "setupFilesAfterEnv": [
-        "./accessibility_testing_setup.js"
     ]
 
 }
