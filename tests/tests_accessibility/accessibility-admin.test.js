@@ -1,5 +1,6 @@
-/* global test, expect */
+/* global test, expect, require */
 
+require('../../accessibility_testing_setup');
 
 function login() {
   const email = 'test@example.co.uk';
