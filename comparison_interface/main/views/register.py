@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
 from comparison_interface.db.models import Group, ParticipantGroup, StudyControl
+from comparison_interface.main.schemas.register import ParticipantSchemaFactory
 
 from .request import Request
 
