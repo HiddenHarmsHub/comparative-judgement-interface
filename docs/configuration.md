@@ -130,7 +130,7 @@ The keys and their corresponding html keys are listed below.
 + **renderUserInstructionPage** [boolean]
   + **userInstructionHtml** [filepath]
 + **renderEthicsAgreementPage** [boolean]
-  + **userEthicsAgreementHtml** [filepath]
+  + **ethicsAgreementHtml** [filepath]
 + **renderSitePoliciesPage** [boolean]
   + **sitePoliciesHtml** [filepath]
 

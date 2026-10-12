@@ -11,7 +11,7 @@
         "renderUserInstructionPage":  true,
         "userInstructionHtml": "examples/html/instructions.html",
         "renderEthicsAgreementPage":  true,
-        "userEthicsAgreementHtml": "examples/html/ethics-agreement.html",
+        "ethicsAgreementHtml": "examples/html/ethics-agreement.html",
         "renderSitePoliciesPage":  true,
         "sitePoliciesHtml": "examples/html/site-policies.html",
         "renderCookieBanner":  true

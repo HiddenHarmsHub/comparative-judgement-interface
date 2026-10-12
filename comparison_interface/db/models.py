@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from sqlalchemy import JSON
 from sqlalchemy.schema import UniqueConstraint
 
 from .connection import db
@@ -92,8 +93,26 @@ class Participant(db.Model, BaseModel):
     __bind_key__ = "study_db"
 
     participant_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    current_study = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=True)
     # Other user files are added automatically by using the Website configuration file
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
+    # TODO: temporary, we will be moving this to the participant study table when we do multiple studies
+    completed_cycles = db.Column(db.Integer, server_default='0')
+
+
+class ParticipantStudy(db.Model, BaseModel):
+    """Tracks how far through the studies each user is.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'participant_study'
+    __bind_key__ = "study_db"
+
+    study_tracking_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     completed_cycles = db.Column(db.Integer, server_default='0')
 
 
@@ -201,8 +220,28 @@ class ParticipantItem(db.Model, BaseModel):
     __table_args__ = (UniqueConstraint('participant_id', 'item_id', name='_participant_item_uidx'),)
 
 
+class RegistrationQuestions(db.Model, BaseModel):
+    """Table to store details of participant registration questions. This can only be changed on rebuild.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'registration_questions'
+    __bind_key__ = "study_db"
+
+    question_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    question_name = db.Column(db.String(100), nullable=False)
+    question_display = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    min_limit = db.Column(db.Integer, nullable=True)
+    max_limit = db.Column(db.Integer, nullable=True)
+    option = db.Column(JSON)
+    required = db.Column(db.Boolean, nullable=False)
+
+
 class WebsiteControl(db.Model, BaseModel):
-    """Control table to know if the application is in a healthy state.
+    """Control table to store settings which can only be set for the whole website.
 
     Args:
         db (SQLAlchemy): SQLAlchemy connection object
@@ -211,13 +250,18 @@ class WebsiteControl(db.Model, BaseModel):
     __tablename__ = 'website_control'
     __bind_key__ = "study_db"
 
-    # Available weight configuration
-    EQUAL_WEIGHT = 'equal'  # All items weights during the comparison are the same.
-    CUSTOM_WEIGHT = 'manual'  # The weights of the items were manually assigned by the researcher.
-    WEIGHTED_TOTAL = 'weighted-total'  # The weights of the items are calculated by weight and total target judgements.
-
     website_control_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    weight_configuration = db.Column(db.String(20), nullable=False)
+    study_count = db.Column(db.Integer, nullable=False)
+    export_path_location = db.Column(db.String(250), nullable=False)
+    render_user_instruction_page = db.Column(db.Boolean, nullable=False)
+    user_instruction_html = db.Column(db.String(250), nullable=True)
+    render_ethics_agreement_page = db.Column(db.Boolean, nullable=False)
+    ethics_agreement_html = db.Column(db.String(250), nullable=True)
+    render_site_policies_page = db.Column(db.Boolean, nullable=False)
+    site_policies_html = db.Column(db.String(250), nullable=True)
+    render_cookie_banner = db.Column(db.Boolean, nullable=False)
+
+    # these two will need to be removed
     configuration_file = db.Column(db.String(500), nullable=False)
     setup_exec_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
@@ -229,11 +273,72 @@ class WebsiteControl(db.Model, BaseModel):
         """
         return self.query.order_by(WebsiteControl.website_control_id.desc()).first()
 
-    def equal_weight_configuration(self):
-        """Determine if the system is running with an equal weight configuration.
+
+class StudyControl(db.Model, BaseModel):
+    """Table to control the studies running on the website.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'study_control'
+    __bind_key__ = "study_db"
+
+    # Available weight configuration
+    EQUAL_WEIGHT = 'equal'  # All items weights during the comparison are the same.
+    CUSTOM_WEIGHT = 'manual'  # The weights of the items were manually assigned by the researcher.
+    WEIGHTED_TOTAL = 'weighted-total'  # The weights of the items are calculated by weight and total target judgements.
+
+    study_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    study_sequence = db.Column(db.Integer, nullable=False)
+    weight_configuration = db.Column(db.String(20), nullable=False)
+    allow_ties = db.Column(db.Boolean, nullable=False)
+    allow_skip = db.Column(db.Boolean, nullable=False)
+    allow_back = db.Column(db.Boolean, nullable=False)
+    render_user_item_preference_page = db.Column(db.Boolean, nullable=False)
+    offer_escape_route_between_cycles = db.Column(db.Boolean, nullable=False)
+    cycle_length = db.Column(db.Integer, nullable=False)
+    maximum_cycles_per_user = db.Column(db.Integer, nullable=False)
+
+    def get_conf(self):
+        """Get the study control configuration.
+
+        NB: this will need to get the right study once we allow multiple studies
 
         Returns:
-            boolean: True if the configuration is for equal weighted items, False if not
+            StudyControl: Study Control configuration model object
         """
-        c = self.get_conf()
-        return c.weight_configuration == self.EQUAL_WEIGHT
+        return self.query.order_by(StudyControl.study_sequence.desc()).first()
+
+
+class WebsiteText(db.Model, BaseModel):
+    """Table to for all the text strings used on the website.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'website_text'
+    __bind_key__ = "study_db"
+
+    website_text_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    language = db.Column(db.String(3), nullable=False)
+    string_key = db.Column(db.String(500), nullable=False)
+    string_value = db.Column(db.String(500), nullable=False)
+
+
+class StudyText(db.Model, BaseModel):
+    """Table to for all the text strings used on the website.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'study_text'
+    __bind_key__ = "study_db"
+
+    study_text_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
+    language = db.Column(db.String(3), nullable=False)
+    string_key = db.Column(db.String(500), nullable=False)
+    string_value = db.Column(db.String(500), nullable=False)

@@ -65,13 +65,13 @@ def dashboard():
     local_file_edits = True
     if local_file_edits is True:
         edit_instructions = WS.should_render(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE, current_app)
-        if edit_instructions and WS.configuration_has_key(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, current_app):
+        if edit_instructions and WS.get_website_conf(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, current_app) is not None:
             edit_instructions = False
         edit_ethics_agreement = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, current_app)
-        if edit_ethics_agreement and WS.configuration_has_key(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, current_app):
+        if edit_ethics_agreement and WS.get_website_conf(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML, current_app) is not None:
             edit_ethics_agreement = False
         edit_site_policies = WS.should_render(WS.BEHAVIOUR_RENDER_SITE_POLICIES, current_app)
-        if edit_site_policies and WS.configuration_has_key(WS.BEHAVIOUR_SITE_POLICIES_HTML, current_app):
+        if edit_site_policies and WS.get_website_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, current_app) is not None:
             edit_site_policies = False
     if not edit_instructions and not edit_ethics_agreement and not edit_site_policies:
         local_file_edits = False

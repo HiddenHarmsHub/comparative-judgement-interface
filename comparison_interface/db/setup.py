@@ -5,10 +5,22 @@ from math import ceil
 
 from sqlalchemy import create_engine, text
 
+from comparison_interface.configuration.csv_processor import CsvProcessor
+from comparison_interface.configuration.schema import WebsiteTextConfiguration
 from comparison_interface.configuration.website import Settings as WS
 
 from .connection import db, persist
-from .models import CustomItemPair, Group, Item, ItemGroup, TotalItemPair, WebsiteControl
+from .models import (
+    CustomItemPair,
+    Group,
+    Item,
+    ItemGroup,
+    RegistrationQuestions,
+    StudyControl,
+    TotalItemPair,
+    WebsiteControl,
+    WebsiteText,
+)
 
 
 class Setup:
@@ -17,6 +29,7 @@ class Setup:
     def __init__(self, app) -> None:
         """Initialise the Setup with the Flask app."""
         self.app = app
+        self.json_conf = WS.get_configuration(self.app)
 
     def exec(self):
         """Initialise the website database.
@@ -29,7 +42,7 @@ class Setup:
             db.create_all('study_db')
 
             # Remove previous exported database content
-            export_location = WS.get_export_location(self.app)
+            export_location = self._get_config_value(WS.BEHAVIOUR_EXPORT_PATH_LOCATION)
             if os.path.exists(export_location):
                 for file in os.listdir(export_location):
                     try:
@@ -39,7 +52,10 @@ class Setup:
 
             # The session needs be committed after the creation of the groups.
             self._setup_group(db)
-            self._setup_website_control_history(db)
+            self._setup_website_control(db)
+            self._setup_registration_questions(db)
+            self._setup_study_control(db)
+            self._setup_website_text(db)
             db.session.commit()
 
             # The setup of the participant configuration doesn't use SQLAlchemy ORM. The transaction
@@ -47,22 +63,46 @@ class Setup:
             # columns values are dynamically defined so a different process needs to be followed.
             self._setup_participant(db)
 
+    def _get_comparison_conf(self, key):
+        """Get the configuration values related to the comparison behaviour of the website.
+
+        This could come from the config file or from the csv file.
+
+        Args:
+            key (string): configuration key required
+            app (Flask app): Flask application
+
+        Returns:
+            string: Configuration value for the requested key
+        """
+        if "csvFile" in self.json_conf[WS.CONFIGURATION_COMPARISON]:
+            # then we need to get the data from the csv file
+            location = WS.get_configuration_location(self.app)
+            filepath = os.path.join(location, self.json_conf[WS.CONFIGURATION_COMPARISON]["csvFile"])
+            data = CsvProcessor().create_config_from_csv(filepath)
+            return data[key]
+        else:
+            if key not in self.json_conf[WS.CONFIGURATION_COMPARISON]:
+                self.app.logger.critical("Label %s wasn't found in the comparison configuration." % (key))
+                exit()
+        return self.json_conf[WS.CONFIGURATION_COMPARISON][key]
+
     def _setup_group(self, db):
         """Save the group configuration in the database.
 
         Args:
             db (SQLAlchemy): Database connection
         """
-        for g in WS.get_comparison_conf(WS.GROUPS, self.app):
+        for g in self._get_comparison_conf(WS.GROUPS):
             group = Group(name=g[WS.GROUP_NAME], display_name=g[WS.GROUP_DISPLAY_NAME])
             group = persist(db, group)
             # Setup the items and their weights
             items = self._setup_item(db, group, g)
-            weight_conf = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
-            if weight_conf == WebsiteControl.CUSTOM_WEIGHT:
+            weight_conf = self._get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION)
+            if weight_conf == StudyControl.CUSTOM_WEIGHT:
                 self._setup_custom_item_pair(db, items, group, g)
-            if weight_conf == WebsiteControl.WEIGHTED_TOTAL:
-                total_judgements_required = WS.get_comparison_conf(WS.TARGET_COMPARISONS, self.app)
+            if weight_conf == StudyControl.WEIGHTED_TOTAL:
+                total_judgements_required = self._get_comparison_conf(WS.TARGET_COMPARISONS)
                 self._setup_weighted_total_pairs(db, items, group, g, total_judgements_required)
 
     def _setup_custom_item_pair(self, db, items, group, g):
@@ -199,7 +239,7 @@ class Setup:
         Args:
             db (SQLAlchemy): Database connection
         """
-        participant_conf = WS.get_user_conf(self.app)
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
         # Create each of the new participant columns
         os.chdir(self.app.instance_path)
         engine = create_engine(self.app.config["SQLALCHEMY_BINDS"]["study_db"])
@@ -237,23 +277,115 @@ class Setup:
 
             # Add a field to specify if the participant accepted the ethics agreement
             # if this section was configured to be rendered
-            render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
+            render_ethics = self._get_config_value(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE)
             if render_ethics:
                 conn.execute(
                     text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"')
                 )
 
-    def _setup_website_control_history(self, db):
-        """Setup the control history to monitor for changes to the website configuration file.
+    def _get_config_value(self, key):
+        if key not in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            self.app.logger.critical(f"Label {key} wasn't found in the behaviour configuration.")
+            exit()
+        else:
+            return self.json_conf[WS.CONFIGURATION_BEHAVIOUR][key]
 
-        Once the project has been setup no changes are allowed to the website configuration file.
-        if the file is changed the web interface will no longer respond to requests. A reset will be necessary and all
-        information in the current database will be deleted as part of that process.
+    def _setup_registration_questions(self, db):
+        """Load the configuration for the registration questions.
 
         Args:
             db (SQLAlchemy): Database connection,
         """
-        hist = WebsiteControl()
-        hist.weight_configuration = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
-        hist.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
-        db.session.add(hist)
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
+        for question in participant_conf:
+            config = RegistrationQuestions()
+            config.question_name = question[WS.USER_FIELD_NAME]
+            config.question_display = question[WS.USER_FIELD_DISPLAY_NAME]
+            config.type = question[WS.USER_FIELD_TYPE]
+            try:
+                config.max_limit = question[WS.USER_FIELD_MAX_LIMIT]
+            except KeyError:
+                config.max_limit = None
+            try:
+                config.min_limit = question[WS.USER_FIELD_MIN_LIMIT]
+            except KeyError:
+                config.min_limit = None
+            try:
+                config.option = question[WS.USER_FIELD_SELECT_OPTION]
+            except KeyError:
+                config.option = None
+            config.required = question[WS.USER_FIELD_REQUIRED]
+            db.session.add(config)
+
+    def _setup_website_control(self, db):
+        """Load the configuration for the website control.
+
+        Args:
+            db (SQLAlchemy): Database connection,
+        """
+        config = WebsiteControl()
+        config.study_count = 1
+
+        config.export_path_location = self._get_config_value(WS.BEHAVIOUR_EXPORT_PATH_LOCATION)
+        config.render_user_instruction_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE)
+        config.render_ethics_agreement_page = self._get_config_value(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE)
+        config.render_site_policies_page = self._get_config_value(WS.BEHAVIOUR_RENDER_SITE_POLICIES)
+        config.render_cookie_banner = self._get_config_value(WS.BEHAVIOUR_RENDER_COOKIE_BANNER)
+        if WS.BEHAVIOUR_USER_INSTRUCTION_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.instructions_html = self._get_config_value(WS.BEHAVIOUR_USER_INSTRUCTION_HTML)
+        if WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.ethics_html = self._get_config_value(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML)
+        if WS.BEHAVIOUR_SITE_POLICIES_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.site_policies_html = self._get_config_value(WS.BEHAVIOUR_SITE_POLICIES_HTML)
+
+        config.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
+        db.session.add(config)
+
+    def _setup_study_control(self, db):
+        """Load the configuration for the studies.
+
+        Args:
+            db (SQLAlchemy): Database connection,
+        """
+        config = StudyControl()
+        config.study_sequence = 1
+        config.weight_configuration = self._get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION)
+        config.allow_ties = self._get_config_value(WS.BEHAVIOUR_ALLOW_TIES)
+        config.allow_skip = self._get_config_value(WS.BEHAVIOUR_ALLOW_SKIP)
+        config.allow_back = self._get_config_value(WS.BEHAVIOUR_ALLOW_BACK)
+        config.render_user_item_preference_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE)
+        config.offer_escape_route_between_cycles = self._get_config_value(WS.BEHAVIOUR_ESCAPE_ROUTE)
+        config.cycle_length = self._get_config_value(WS.BEHAVIOUR_CYCLE_LENGTH)
+        config.maximum_cycles_per_user = self._get_config_value(WS.BEHAVIOUR_MAX_CYCLES)
+        db.session.add(config)
+
+    def _setup_website_text(self, db):
+
+        keys = vars(WebsiteTextConfiguration())['declared_fields'].keys()
+        for key in keys:
+            config = WebsiteText()
+            config.string_key = key
+            config.language = "en"
+            if key in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT]:
+                config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]
+            elif key in self.app.language_config[WS.CONFIGURATION_WEBSITE_TEXT]:
+                config.string_value = self.app.language_config[WS.CONFIGURATION_WEBSITE_TEXT][key]
+            else:
+                config.string_value = "missing"
+            if isinstance(config.string_value, list):
+                config.string_value = '||'.join(config.string_value)
+            db.session.add(config)
+        # now add the user study data
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
+        for question in participant_conf:
+            config = WebsiteText()
+            config.string_key = f"{question[WS.USER_FIELD_NAME]}_question_text"
+            config.language = "en"
+            config.string_value = question[WS.USER_FIELD_DISPLAY_NAME]
+            db.session.add(config)
+            if "option" in question:
+                config = WebsiteText()
+                config.string_key = f"{question[WS.USER_FIELD_NAME]}_option_text"
+                config.language = "en"
+                config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION])
+                db.session.add(config)

@@ -378,7 +378,8 @@ def test_no_hard_stop_below_max_cycles(equal_weight_client, equal_weight_app):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-    max_cycles = WS.get_behaviour_conf(WS.BEHAVIOUR_MAX_CYCLES, equal_weight_app)
+    # TODO: ungardocde study_id
+    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
     participant = db.session.get(Participant, session['participant_id'])
     participant.completed_cycles = max_cycles - 1
     db.session.commit()
@@ -400,7 +401,8 @@ def test_hard_stop_at_max_cycles(equal_weight_client, equal_weight_app):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-    max_cycles = WS.get_behaviour_conf(WS.BEHAVIOUR_MAX_CYCLES, equal_weight_app)
+    # TODO: unhardcode study id
+    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
     participant = db.session.get(Participant, session['participant_id'])
     participant.completed_cycles = max_cycles
     db.session.commit()
@@ -423,7 +425,8 @@ def test_redirect_at_first_cycle_end(mocker, equal_weight_client, equal_weight_a
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-    cycle_length = WS.get_behaviour_conf(WS.BEHAVIOUR_CYCLE_LENGTH, equal_weight_app)
+    # TODO: unhardcode study id
+    cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, equal_weight_app)
     get_stats = mocker.patch.object(rank.Rank, '_get_comparison_stats')
     get_stats.side_effect = [(cycle_length, 0)]
     participant = db.session.get(Participant, session['participant_id'])
@@ -448,8 +451,9 @@ def test_redirect_after_final_cycle_end(mocker, equal_weight_client, equal_weigh
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-    max_cycles = WS.get_behaviour_conf(WS.BEHAVIOUR_MAX_CYCLES, equal_weight_app)
-    cycle_length = WS.get_behaviour_conf(WS.BEHAVIOUR_CYCLE_LENGTH, equal_weight_app)
+    # TODO: unhardcode study id
+    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
+    cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, equal_weight_app)
     get_stats = mocker.patch.object(rank.Rank, '_get_comparison_stats')
     get_stats.side_effect = [(cycle_length * max_cycles, 0)]
     participant = db.session.get(Participant, session['participant_id'])
@@ -476,7 +480,7 @@ def test_no_escape_route_if_setting_off(mocker, participant_data):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-    cycle_length = WS.get_behaviour_conf(WS.BEHAVIOUR_CYCLE_LENGTH, app)
+    cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, app)
     get_stats = mocker.patch.object(rank.Rank, '_get_comparison_stats')
     get_stats.side_effect = [(cycle_length, 0)]
     response = client.get("/rank", follow_redirects=True)
