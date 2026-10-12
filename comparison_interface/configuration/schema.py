@@ -5,7 +5,7 @@ import re
 from marshmallow import Schema, ValidationError, fields, post_load, validate, validates
 from PIL import Image
 
-from comparison_interface.db.models import WebsiteControl
+from comparison_interface.db.models import StudyControl
 
 from .website import Settings as WS
 
@@ -173,12 +173,12 @@ class ComparisonConfiguration(Schema):
             groups = data['groups']
             item_weight_conf = sum([1 if "weight" in g else 0 for g in groups])
 
-            if item_weight_conf != 0 and weight_conf == WebsiteControl.EQUAL_WEIGHT:
+            if item_weight_conf != 0 and weight_conf == StudyControl.EQUAL_WEIGHT:
                 raise ValidationError(
                     "Custom weight configuration is not allowed when the weight configuration was defined as 'equal'."
                 )
 
-            if item_weight_conf != len(groups) and weight_conf == WebsiteControl.CUSTOM_WEIGHT:
+            if item_weight_conf != len(groups) and weight_conf == StudyControl.CUSTOM_WEIGHT:
                 raise ValidationError(
                     "Custom weight configuration is required for all groups when the "
                     "weight configuration was defined as 'custom'."
@@ -326,7 +326,7 @@ class BehaviourConfiguration(Schema):
     allowSkip = fields.Boolean(required=True)
     allowBack = fields.Boolean(required=True)
     userInstructionHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
-    userEthicsAgreementHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
+    ethicsAgreementHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
     sitePoliciesHtml = fields.Str(required=False, validate=[validate.Length(min=1, max=100)])
 
     @post_load
@@ -368,7 +368,7 @@ class Configuration(Schema):
         if 'weightConfiguration' in data['comparisonConfiguration']:
             # Check that we are not trying to render item preferences it we are using custom weights
             weight_conf = data['comparisonConfiguration']['weightConfiguration']
-            if weight_conf == WebsiteControl.CUSTOM_WEIGHT and render_item_preference:
+            if weight_conf == StudyControl.CUSTOM_WEIGHT and render_item_preference:
                 raise ValidationError(
                     "User item preference section cannot be rendered when defining a manual weight configuration. "
                     "Please change renderUserItemPreferencePage to false"

@@ -13,8 +13,8 @@ class Policies(Request):
 
     def get(self, _):
         """Request get handler."""
-        if WS.configuration_has_key(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app):
-            site_policies_html = WS.get_behaviour_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app)
+        site_policies_html = WS.get_website_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app)
+        if site_policies_html is not None:
             with open(os.path.join(self._app.root_path, site_policies_html)) as input_file:
                 html = input_file.read()
         else:

@@ -25,8 +25,8 @@ class Thankyou(Request):
     def _can_continue(self):
         """Check if this participant can complete another cycle."""
         participant = db.session.get(Participant, self._session['participant_id'])
-        if participant.completed_cycles is None or participant.completed_cycles < WS.get_behaviour_conf(
-            WS.BEHAVIOUR_MAX_CYCLES, self._app
+        if participant.completed_cycles is None or participant.completed_cycles < WS.get_study_conf(
+            WS.BEHAVIOUR_MAX_CYCLES, 1, self._app
         ):
             return True
         return False

@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Group, ParticipantGroup, WebsiteControl
+from comparison_interface.db.models import Group, ParticipantGroup, StudyControl
 from comparison_interface.main.schemas.register import ParticipantSchemaFactory
 
 from .request import Request
@@ -80,7 +80,7 @@ class Register(Request):
         # Add server-managed fields. These are dump_only in the schema, so they
         #   can never arrive from the client, but the app is free to set them.
         form_data['created_date'] = datetime.now(timezone.utc)
-        if not WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app):
+        if not WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, 1, self._app):
             # Cycles are not tracked for this study configuration.
             form_data['completed_cycles'] = None
         else:
@@ -108,7 +108,7 @@ class Register(Request):
 
         self._session['participant_id'] = participant_id
         self._session['group_ids'] = group_ids
-        self._session['weight_conf'] = WebsiteControl().get_conf().weight_configuration
+        self._session['weight_conf'] = StudyControl().get_conf().weight_configuration
         self._session['previous_comparison_id'] = None
         self._session['comparison_ids'] = []
 
@@ -139,7 +139,10 @@ class Register(Request):
         # Add the custom user fields
         for field in user_fields:
             component = 'main/components/{}.html'.format(field[WS.USER_FIELD_TYPE])
-            user_components.append(render_template(component, **field))
+            text = {"question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._app)}
+            if 'option' in field:
+                text['option_text'] = WS.get_text(f"{field[WS.USER_FIELD_NAME]}_option_text", self._app).split("||")
+            user_components.append(render_template(component, **field, **text))
 
     def _load_group_component(self, user_components: list):
         """Load the group selection component.
@@ -149,7 +152,7 @@ class Register(Request):
         """
         # Allow multiple item selection only if the item's weight distribution is "equal"
         multiple_selection = False
-        if WebsiteControl().get_conf().weight_configuration == WebsiteControl.EQUAL_WEIGHT:
+        if StudyControl().get_conf().weight_configuration == StudyControl.EQUAL_WEIGHT:
             multiple_selection = True
 
         groups = db.session.scalars(db.select(Group)).all()
@@ -187,11 +190,11 @@ class Register(Request):
         Args:
             user_components (list): Components render in the user registry view
         """
-        additional_list = WS.get_optional_text(WS.ADDITIONAL_REGISTRATION_TEXT, self._app)
+        additional_list = WS.get_text(WS.ADDITIONAL_REGISTRATION_TEXT, self._app)
         if additional_list is not None:
             if len(additional_list) > 0:
                 user_components.append('<hr/>')
-                for item in additional_list:
+                for item in additional_list.split('||'):
                     user_components.append(render_template('main/components/additional_text.html', **{'text': item}))
 
     def _load_ethics_component(self, user_components: list):
@@ -230,7 +233,7 @@ class Register(Request):
         table = self._get_participant_table()
         schema_class = ParticipantSchemaFactory.build_from_table(
             table=table,
-            require_ethics_acceptance=WS.get_behaviour_conf(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app),
+            require_ethics_acceptance=WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app),
         )
         schema = schema_class()
         self._app._participant_write_schema = schema
