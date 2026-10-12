@@ -93,44 +93,6 @@ def add_basic_data_equal_api(equal_weight_client_api):
 
 
 @pytest.fixture()
-def add_basic_data_equal_api(equal_weight_client_api):
-    # add a participant
-    participant_data = {
-        'name': 'Tester One',
-        'country': 'England',
-        'allergies': 'Yes',
-        'age': '30',
-        'email': 'dummy@test',
-        'accepted_ethics_agreement': '1',
-    }
-    participant_data['created_date'] = datetime.now(timezone.utc)
-    db_engine = db.engines['study_db']
-    db_meta = MetaData()
-    db_meta.reflect(bind=db_engine)
-    table = db_meta.tables["participant"]
-    new_participant_sql = table.insert().values(**participant_data)
-    try:
-        # Insert the participant into the database
-        with db_engine.begin() as connection:
-            result = connection.execute(new_participant_sql)
-        id = result.lastrowid
-    except SQLAlchemyError as e:
-        raise RuntimeError(str(e))
-    db.session.commit
-    # insert the group preferences for the east of england group (assumes groups are always added the same way)
-    participant_group_data = {
-        'participant_id': id,
-        'group_id': 2,
-        'created_date': datetime.now(timezone.utc),
-    }
-    participant_group = ParticipantGroup(**participant_group_data)
-    db.session.add(participant_group)
-    db.session.commit()
-
-    yield
-
-
-@pytest.fixture()
 def key_file(equal_weight_app_api):
     filename = equal_weight_app_api.config['API_KEY_FILE']
     while os.path.exists(filename):

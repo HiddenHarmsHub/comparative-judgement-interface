@@ -365,7 +365,7 @@ class Setup:
         study_keys = [
             "userRegistrationGroupQuestionLabel",
             "userRegistrationGroupSelectionErr",
-            "rankItemInstructionLabel"
+            "rankItemInstructionLabel",
         ]
         for key in study_keys:
             for language in supported_languages:
@@ -380,9 +380,7 @@ class Setup:
                         if language in study_config[key]:
                             config.string_value = study_config[key][language]
                         elif supported_languages[0] in study_config[key]:
-                            config.string_value = study_config[key][
-                                supported_languages[0]
-                            ]
+                            config.string_value = study_config[key][supported_languages[0]]
                         else:
                             config.string_value = "missing"
                 else:
@@ -390,7 +388,6 @@ class Setup:
                 if isinstance(config.string_value, list):
                     config.string_value = '||'.join(config.string_value)
                 db.session.add(config)
-
 
     def _setup_website_text(self, db):
         supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
