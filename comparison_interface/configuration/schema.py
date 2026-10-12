@@ -406,6 +406,7 @@ class BehaviourConfiguration(Schema):
 
 class StudyConfiguration(Schema):
     """The schema for a single study."""
+
     allowTies = fields.Boolean(required=True)
     allowSkip = fields.Boolean(required=True)
     allowBack = fields.Boolean(required=True)
