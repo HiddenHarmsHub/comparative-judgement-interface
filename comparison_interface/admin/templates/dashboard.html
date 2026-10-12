@@ -29,6 +29,18 @@
                                 </form>
                             </div>
                             <hr/>
+                            <div id="export-data" class="p-2">
+                                <h2 class="fs-4">Clear Database</h2>
+                                <p>
+                                    Clear all currently users and judgements from the database. This will remove all of 
+                                    data related to users and judgements but keep the rest of the database the same. It
+                                    can be used after testing to remove the test data before running a study.
+                                </p>
+                                <form id="clear-database" method="POST" action="clear">
+                                    <input type="submit" value="Clear Database"/>
+                                </form>
+                            </div>
+                            <hr/>
                         {% endif %}
                         {% if local_file_edits %}
                         <div id="edit-pages" class="p-2">
@@ -88,4 +100,5 @@
                 </div>
             </div>
         </div>
+        <script src="{{ url_for('admin.static', filename='js/admin.js') }}"></script>
     {% endblock %}

@@ -2,16 +2,17 @@
 
 // on load function to display current state if we are rejudging
 $(function () {
+    const rankForm = document.getElementById("rank-form");
     if (document.getElementById('comparison_id') && document.getElementById('comparison_id').value !== '') {
-        const initialSelectedItemId = document.getElementById('initial_selected_item_id').value;
-        if (document.getElementById('initial_state').value === 'tied') {
+        const initialSelectedItemId = rankForm.dataset.initialSelectedItemId;
+        if (rankForm.dataset.initialState === 'tied') {
             // aria-select both images
             $('#left-item').attr('aria-checked', 'true');
             $('#right-item').attr('aria-checked', 'true');
             //  add equal hint to both images
             addVisualHint('selection-tied', document.getElementById('left-item'), 'tied');
             addVisualHint('selection-tied', document.getElementById('right-item'), 'tied');
-        } else if (document.getElementById('initial_state').value === 'selected') {
+        } else if (rankForm.dataset.initialState === 'selected') {
             // set the previously selected item id
             setSelectedItem(initialSelectedItemId);
 
@@ -25,7 +26,7 @@ $(function () {
                 addVisualHint('selected-item', document.getElementById('right-item'), 'selected');
             }
 
-        } else if (document.getElementById('initial_state').value === 'skipped') {
+        } else if (rankForm.dataset.initialState === 'skipped') {
             addVisualHint('selection-skipped', document.getElementById('left-item'), 'skipped');
             addVisualHint('selection-skipped', document.getElementById('right-item'), 'skipped');
 
@@ -45,6 +46,7 @@ $("img").on('keypress', function (e) {
 
 // called from rank template on form submission
 function checkSelection(event) {
+    const rankForm = document.getElementById('rank-form');
     // validates the ranking form before submission
     // this also handles the double click prevention for the rank form because otherwise the submit triggers too early
     // and if the selection is not accepted it prevents further submission
@@ -57,7 +59,7 @@ function checkSelection(event) {
             $(event.target).data().isSubmitted = true;
             return true;
         }
-        alert(document.getElementById('skip_button_error').value);
+        alert(rankForm.dataset.skipButtonError);
         return false;
 
     } else if (event.submitter.id === 'confirm-button-d') {
@@ -66,7 +68,7 @@ function checkSelection(event) {
             $(event.target).data().isSubmitted = true;
             return true;
         }
-        alert(document.getElementById('confirm_button_error').value);
+        alert(rankForm.dataset.confirmButtonError);
         return false;
     } else {
         // just submit the form
@@ -77,7 +79,8 @@ function checkSelection(event) {
 };
 
 function hintItem(clickedItem) {
-    let itemId, selected, allowTies;
+    let itemId, selected;
+    const rankForm = document.getElementById("rank-form");
     const clickedItem1 = clickedItem.hasClass("left-item");
     const clickedItem2 = clickedItem.hasClass("right-item");
     const item1 = document.getElementById("left-item");
@@ -86,17 +89,12 @@ function hintItem(clickedItem) {
     const isItem2Selected = item2.classList.contains('selected-item') || item2.classList.contains('selection-tied');
     const idItem1 = document.getElementById('item_1_id').value;
     const idItem2 = document.getElementById('item_2_id').value;
-    const allowTiesSetting = document.getElementById('allow-ties').value;
+    const allowTies = rankForm.dataset.allowTies === "true";
 
     // Set the clicked item DOM object
     clickedItem = item1;
     if (clickedItem2) {
         clickedItem = item2;
-    }
-
-    allowTies = true;
-    if (allowTiesSetting == 'false')    {
-        allowTies = false;
     }
 
     // Case 1: No item is already selected. Result: One item is selected
@@ -224,9 +222,10 @@ function cleanVisualHint(itemClass, item1, item2) {
 }
 
 function addVisualHint(itemClass, item, type) {
-    const selectedItemIndicator = document.getElementById('selected_item_indicator').value;
-    const tiedComparisonIndicator = document.getElementById('tied_items_indicator').value;
-    const skippedComparisonIndicator = document.getElementById('skipped_items_indicator').value;
+    const rankForm = document.getElementById("rank-form");
+    const selectedItemIndicator = rankForm.dataset.selectedItemIndicator;
+    const tiedComparisonIndicator = rankForm.dataset.tiedItemsIndicator;
+    const skippedComparisonIndicator = rankForm.dataset.skippedItemsIndicator;
 
     const div = document.createElement('div');
     div.setAttribute('class', 'selected-hint');

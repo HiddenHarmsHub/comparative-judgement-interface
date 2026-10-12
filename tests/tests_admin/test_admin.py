@@ -3,11 +3,11 @@ from datetime import datetime, timezone
 
 from flask import url_for
 from playwright.sync_api import expect
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, select, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison
+from comparison_interface.db.models import Comparison, TotalItemPair
 
 
 def add_data():
@@ -211,3 +211,79 @@ def test_new_study_route_json_and_csv(live_server, page):
     # now we should be on the setup study page with the create new study button available
     expect(page).to_have_url(url_for("admin.setup_study", _external=True))
     expect(page.get_by_role("button", name="Create New Study")).to_be_visible()
+
+
+def test_clear_study_data_confirmed(live_server, page):
+    """
+    GIVEN a flask app configured for testing the weighted-total method and with ADMIN_ACCESS set to True
+    WHEN a logged in user clicks the 'clear data' button and confirms the action
+    THEN then the user data and judgements are removed from the database and the 'judged' column of the TotalItemPair
+        table is set to False
+    """
+    add_data()
+    db_engine = db.engines['study_db']
+    with db_engine.begin() as connection:
+        connection.execute(update(TotalItemPair).values(judged=True))
+    # login (not part of test)
+    page.goto(url_for("security.login", _external=True))
+    page.get_by_label("Email Address").fill("test@example.co.uk")
+    page.get_by_label("Password").fill("password")
+    page.get_by_role("button", name="Login").click()
+    # confirm starting position
+    expect(page.get_by_text("Total Participants: 1")).to_be_visible()
+    expect(page.get_by_text("Total Judgements: 3")).to_be_visible()
+    # check the database is setup to have judged set to true
+    with db_engine.begin() as connection:
+        pairs = connection.execute(select(TotalItemPair))
+        assert all(pair.judged for pair in pairs)
+
+    # there is also a clear database button
+    expect(page.get_by_role("button", name="Clear Database")).to_be_visible()
+    # click the button, pre-confirming the javascript check
+    page.on("dialog", lambda dialog: dialog.accept())
+    with page.expect_navigation():
+        page.get_by_role("button", name="Clear Database").click()
+
+    expect(page.get_by_role("button", name="Clear Database")).not_to_be_visible()
+    expect(page.get_by_text("Total Participants: 0")).to_be_visible()
+    expect(page.get_by_text("Total Judgements: 0")).to_be_visible()
+    # now check we the TotalItemPair judged column to False
+    with db_engine.begin() as connection:
+        pairs = connection.execute(select(TotalItemPair))
+        assert all(not pair.judged for pair in pairs)
+
+
+def test_clear_study_data_dismissed(live_server, page):
+    """
+    GIVEN a flask app configured for testing the weighted-total method and with ADMIN_ACCESS set to True
+    WHEN a logged in user clicks the 'clear data' button and dismisses the action
+    THEN then no data is changed
+    """
+    add_data()
+    db_engine = db.engines['study_db']
+    with db_engine.begin() as connection:
+        connection.execute(update(TotalItemPair).values(judged=True))
+    # login (not part of test)
+    page.goto(url_for("security.login", _external=True))
+    page.get_by_label("Email Address").fill("test@example.co.uk")
+    page.get_by_label("Password").fill("password")
+    page.get_by_role("button", name="Login").click()
+    # confirm starting position
+    expect(page.get_by_text("Total Participants: 1")).to_be_visible()
+    expect(page.get_by_text("Total Judgements: 3")).to_be_visible()
+    # check we the TotalItemPair judged column to False
+    pairs = db.session.scalars(db.select(TotalItemPair)).all()
+    assert all(pair.judged for pair in pairs)
+    # there is also a clear database button
+    expect(page.get_by_role("button", name="Clear Database")).to_be_visible()
+    # click the button, pre-confirming the javascript check
+    page.on("dialog", lambda dialog: dialog.dismiss())
+    page.get_by_role("button", name="Clear Database").click()
+
+    expect(page.get_by_role("button", name="Clear Database")).to_be_visible()
+    expect(page.get_by_text("Total Participants: 1")).to_be_visible()
+    expect(page.get_by_text("Total Judgements: 3")).to_be_visible()
+    # check we didn't reset the TotalItemPair judged column
+    with db_engine.begin() as connection:
+        pairs = connection.execute(select(TotalItemPair))
+        assert all(pair.judged for pair in pairs)

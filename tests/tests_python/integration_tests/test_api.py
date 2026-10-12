@@ -2,12 +2,14 @@ import os
 from datetime import datetime, timezone
 
 import pytest
+from sqlalchemy import MetaData
+from sqlalchemy.exc import SQLAlchemyError
 
 from app import create_app
 from comparison_interface.configuration.validation import Validation as ConfigValidation
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison
+from comparison_interface.db.models import Comparison, ParticipantGroup
 from comparison_interface.db.setup import Setup as DBSetup
 
 
@@ -50,6 +52,44 @@ def equal_weight_client_api(equal_weight_app_api):
     """Return the test client for the equal weight app with the api."""
     with equal_weight_app_api.app_context():
         yield equal_weight_app_api.test_client()
+
+
+@pytest.fixture()
+def add_basic_data_equal_api(equal_weight_client_api):
+    # add a participant
+    participant_data = {
+        'name': 'Tester One',
+        'country': 'England',
+        'allergies': 'Yes',
+        'age': '30',
+        'email': 'dummy@test',
+        'accepted_ethics_agreement': '1',
+    }
+    participant_data['created_date'] = datetime.now(timezone.utc)
+    db_engine = db.engines['study_db']
+    db_meta = MetaData()
+    db_meta.reflect(bind=db_engine)
+    table = db_meta.tables["participant"]
+    new_participant_sql = table.insert().values(**participant_data)
+    try:
+        # Insert the participant into the database
+        with db_engine.begin() as connection:
+            result = connection.execute(new_participant_sql)
+        id = result.lastrowid
+    except SQLAlchemyError as e:
+        raise RuntimeError(str(e))
+    db.session.commit
+    # insert the group preferences for the east of england group (assumes groups are always added the same way)
+    participant_group_data = {
+        'participant_id': id,
+        'group_id': 2,
+        'created_date': datetime.now(timezone.utc),
+    }
+    participant_group = ParticipantGroup(**participant_group_data)
+    db.session.add(participant_group)
+    db.session.commit()
+
+    yield
 
 
 @pytest.fixture()
@@ -103,6 +143,7 @@ def test_api_not_available_when_switched_on_but_no_key_sent(equal_weight_client_
 
 
 @pytest.mark.usefixtures('key_file')
+@pytest.mark.usefixtures('add_basic_data_equal_api')
 def test_judgements_api_available_when_switched_on_if_key_sent(equal_weight_client_api):
     """
     GIVEN a flask app configured for testing, with equal weights, API_ACCESS and a key file
@@ -154,6 +195,7 @@ def test_items_api_available_when_switched_on_if_key_sent(equal_weight_client_ap
 
 
 @pytest.mark.usefixtures('key_file')
+@pytest.mark.usefixtures('add_basic_data_equal_api')
 def test_outcomes_api_available_and_correct_when_switched_on_if_key_sent(equal_weight_client_api):
     """
     GIVEN a flask app configured for testing, with equal weights, API_ACCESS and a key file

@@ -1,5 +1,6 @@
-/* global test, expect */
+/* global test, expect, require */
 
+require('../../accessibility_testing_setup');
 
 test('Test the item selection page', async () => {
     const url = 'http://localhost:5001/selection/items';

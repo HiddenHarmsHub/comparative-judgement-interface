@@ -4,6 +4,7 @@
 <div id="{% if group_columns %}registration-form-group-columns{% else %}registration-form{% endif %}" style="margin: 0 auto;">
     <div class="text-center"><h1>{{title}}</h1></div>
     <form method="POST" onsubmit="return handleData();" aria-label="Registration Form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <fieldset>
         <legend class="visually-hidden">Registration details</legend>
         <div class="form-group p-3">
