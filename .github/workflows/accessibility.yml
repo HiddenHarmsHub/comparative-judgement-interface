@@ -16,7 +16,7 @@ jobs:
         - name: Install node
           uses: actions/setup-node@v4
           with:
-            node-version: '22'
+            node-version: '24.16.0'
         - name: Install python dependencies
           run: |
             python -m venv venv
@@ -35,7 +35,7 @@ jobs:
             mv .env-example .env
             flask --debug setup ../tests/test_configurations/config-equal-item-weights-2.json
             flask --debug run --host=0.0.0.0 --port=5001 & sleep 5
-            npx jest -- tests/tests_accessibility/accessibility.test.js
+            NODE_OPTIONS=--experimental-vm-modules npx jest -- tests/tests_accessibility/accessibility.test.js
 
     accessibility_2:
         permissions:
@@ -50,7 +50,7 @@ jobs:
         - name: Install node
           uses: actions/setup-node@v4
           with:
-            node-version: '22'
+            node-version: '24.16.0'
         - name: Install python dependencies
           run: |
             python -m venv venv
@@ -69,7 +69,7 @@ jobs:
             mv .env-example .env
             flask --debug setup ../tests/test_configurations/config-equal-item-weights.json
             flask --debug run --host=0.0.0.0 --port=5001 & sleep 5
-            npx jest -- tests/tests_accessibility/accessibility-item-select.test.js
+            NODE_OPTIONS=--experimental-vm-modules npx jest -- tests/tests_accessibility/accessibility-item-select.test.js
 
     accessibility_admin:
         permissions:
@@ -84,7 +84,7 @@ jobs:
         - name: Install node
           uses: actions/setup-node@v4
           with:
-            node-version: '22'
+            node-version: '24.16.0'
         - name: Install python dependencies
           run: |
             python -m venv venv
@@ -105,4 +105,4 @@ jobs:
             flask --debug users create test@example.co.uk --password 'password' --active
             flask --debug setup ../tests/test_configurations/config-equal-item-weights.json
             flask --debug run --host=0.0.0.0 --port=5001 & sleep 5
-            npx jest -- tests/tests_accessibility/accessibility-admin.test.js
+            NODE_OPTIONS=--experimental-vm-modules npx jest -- tests/tests_accessibility/accessibility-admin.test.js

@@ -1,5 +1,6 @@
-/* global test, expect */
+/* global test, expect, require */
 
+require('../../accessibility_testing_setup');
 
 test('Test all the simple pages', async () => {
   const urls = [
