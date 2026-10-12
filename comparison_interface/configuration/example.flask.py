@@ -38,6 +38,7 @@ class Settings(object):
     IMAGE_UPLOAD_DIR = 'static/images/'
     HTML_PAGES_DIR = 'pages_html'
     CONFIG_UPLOAD_DIR = 'project_configuration'
+    ADDITIONAL_LANGUAGES_DIR = os.getenv('ADDITIONAL_LANGUAGES_DIR', 'additional_languages')
     MAIL_BACKEND = os.getenv('MAIL_BACKEND', 'console')
     MAIL_SERVER = os.getenv('MAIL_SERVER')
     MAIL_PORT = os.getenv('MAIL_PORT')

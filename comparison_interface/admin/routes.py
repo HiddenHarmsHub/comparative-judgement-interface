@@ -31,12 +31,13 @@ def admin_root():
 @auth_required("session", within=10)
 def dashboard():
     """Show the admin dashboard."""
+    language = "en"  # only English support in admin interface
     form = forms.StartStudyForm()
     if db.session.query(WebsiteControl).count() == 1 and os.path.exists(
         os.path.join(current_app.root_path, db.session.query(WebsiteControl).first().configuration_file)
     ):
         current_app.config[WS.CONFIGURATION_LOCATION] = db.session.query(WebsiteControl).first().configuration_file
-        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
         active_study = True
     else:
         website_title = "No active study"
@@ -98,6 +99,7 @@ def dashboard():
 @blueprint.route("/logged-out", methods=["GET"])
 def logged_out():
     """Display a post log out page."""
+    language = "en"
     current_app.logger.critical("********")
     current_app.logger.critical(WS.CONFIGURATION_LOCATION)
     current_app.logger.critical(current_app.config[WS.CONFIGURATION_LOCATION])
@@ -106,7 +108,7 @@ def logged_out():
     if subdomain == "":
         subdomain = "/"
     if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
-        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
         has_current_study = True
     else:
         website_title = "No active study"
@@ -140,6 +142,7 @@ def new_study():
 @auth_required("session", within=10)
 def setup_study():
     """Set up a new study."""
+    language = "en"
     form = forms.CreateStudyForm()
     form.uploads_complete.data
     if form.uploads_complete.data == "true":
@@ -163,7 +166,7 @@ def setup_study():
     elif len(os.listdir(os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"]))) == 0:
         return redirect(url_for("admin.upload_config"))
     if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
-        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
     else:
         website_title = "No active study"
     data = {
@@ -234,6 +237,7 @@ def current_files():
 @auth_required("session", within=10)
 def upload_images():
     """Image uploading."""
+    language = "en"
     form = forms.ImageUploadForm()
     if request.method == "POST":
         return redirect(url_for("admin.setup_study"))
@@ -243,7 +247,7 @@ def upload_images():
         filepath = os.path.join(current_app.root_path, current_app.config["CONFIG_UPLOAD_DIR"], filename)
         os.unlink(filepath)
     if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
-        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
     else:
         website_title = "No active study"
     data = {
@@ -295,9 +299,10 @@ def process_errors(errors):
 @auth_required("session", within=30)
 def upload_csv():
     """Upload an image csv file."""
+    language = "en"
     form = forms.CsvUploadForm()
     if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
-        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
     else:
         website_title = "No active study"
     data = {
@@ -327,9 +332,10 @@ def upload_csv():
 @auth_required("session", within=30)
 def upload_config():
     """Upload a new config file."""
+    language = "en"
     form = forms.ConfigUploadForm()
     if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
-        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
     else:
         website_title = "No active study"
     data = {
@@ -391,6 +397,7 @@ def edit_page():
     """Edit the markdown behind an html page."""
     form = forms.EditHtmlPageForm()
     folder = current_app.config["HTML_PAGES_DIR"]
+    language = "en"
     if form.md_text.data:
         md_text = form.md_text.data
         html = markdown.markdown(md_text)
@@ -415,13 +422,13 @@ def edit_page():
             form_data["current_text"] = current_text
         form = forms.EditHtmlPageForm(**form_data)
     if WS.CONFIGURATION_LOCATION in current_app.config and current_app.config[WS.CONFIGURATION_LOCATION] is not None:
-        website_title = WS.get_text(WS.WEBSITE_TITLE, current_app)
+        website_title = WS.get_text(WS.WEBSITE_TITLE, language, current_app)
         if filename == "instructions":
-            page_name = WS.get_text(WS.PAGE_TITLE_INTRODUCTION, current_app)
+            page_name = WS.get_text(WS.PAGE_TITLE_INTRODUCTION, language, current_app)
         elif filename == "ethics":
-            page_name = WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, current_app)
+            page_name = WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, language, current_app)
         elif filename == "policies":
-            page_name = WS.get_text(WS.PAGE_TITLE_POLICIES, current_app)
+            page_name = WS.get_text(WS.PAGE_TITLE_POLICIES, language, current_app)
         else:
             page_name = filename
     else:
