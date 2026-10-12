@@ -233,7 +233,7 @@ class Register(Request):
         table = self._get_participant_table()
         schema_class = ParticipantSchemaFactory.build_from_table(
             table=table,
-            require_ethics_acceptance=WS.get_behaviour_conf(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app),
+            require_ethics_acceptance=WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app),
         )
         schema = schema_class()
         self._app._participant_write_schema = schema
