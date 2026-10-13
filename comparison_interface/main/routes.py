@@ -1,6 +1,6 @@
 """Handles all the URL routing."""
 
-from flask import current_app, redirect, request, session
+from flask import current_app, redirect, render_template, request, session
 
 from comparison_interface.main import blueprint
 
@@ -59,6 +59,24 @@ def item_selection():
 def rank():
     """Handle ranking URL."""
     return Request.process(Rank(current_app, session), request)
+
+
+@blueprint.route('/rank1', methods=['GET'])
+def rank1():
+    """Handle ranking URL."""
+    return render_template("main/pages/multi_rank_1.html")
+
+
+@blueprint.route('/rank2', methods=['GET'])
+def rank2():
+    """Handle ranking URL."""
+    return render_template("main/pages/multi_rank_2.html")
+
+
+@blueprint.route('/rank3', methods=['GET'])
+def rank3():
+    """Handle ranking URL."""
+    return render_template("main/pages/multi_rank_3.html")
 
 
 @blueprint.route('/logout', methods=['GET'])

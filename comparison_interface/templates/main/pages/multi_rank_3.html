@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+
+{% block title %}: {{rank_page_title}}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <form
+    id="rank-form"
+    method="POST"
+    aria-labelledby="instructions"
+    onsubmit="return checkSelection(event);"
+    data-allow-ties="false"
+    data-selected-item-indicator=""
+    data-tied-items-indicator=""
+    data-skipped-items-indicator=""
+    data-skip-button-error=""
+    data-confirm-button-error=""
+    data-initial-state=""
+    data-initial-selected-item-id=""
+  >
+    <input type="hidden" name="csrf_token" value="">
+    <input type="hidden" id="weighted_pair_id" name="weighted_pair_id" value="">
+    <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
+    <input type="hidden" id="comparison_id" name="comparison_id" value="">
+    <div class="form-group">
+      <div class="text-center">
+        <p id="instructions" class="judgement-instructions fs-4">For each of the activities in the table below select the region that has the highest incidents of modern slavery, then click the bleu confirm button.</p>
+        <p class="progress-counter fs-5">judged:&nbsp;0;&nbsp;skipped:&nbsp;0</p>
+      </div>
+      <div class="row pl-2 pr-2">
+        <div class="col position-relative">
+          <div class="text-center">
+            <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">Item 1</span>
+            <span class="visually-hidden" id="left-item-description">Item 1</span>
+          </div>
+          <div class="text-center">
+            <input type="hidden" id="item_1_id" name="item_1_id" value="1">
+            <img id="left-item" tabindex="0" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/item_1.png') }}" class="left-item img-fluid img-constraint" alt="">
+          </div>
+          
+          <div class="d-flex gap-2 mt-3  justify-content-center">
+            <input type="radio" class="btn-check" name="agriculture" id="agriculture-left">
+            <label class="btn btn-outline-success" for="agriculture-left">
+                Agriculture
+            </label>
+
+            <input type="radio" class="btn-check" name="manufacturing" id="manufacturing-left">
+            <label class="btn btn-outline-success" for="manufacturing-left">
+                Manufacturing
+            </label>
+
+            <input type="radio" class="btn-check" name="fishing" id="fishing-left">
+            <label class="btn btn-outline-success" for="fishing-left">
+                Fishing
+            </label>
+        </div>
+
+
+
+        </div>
+        <div class="col position-relative">
+          <div class="text-center">
+            <span aria-hidden="true" id="right-item-label" class="fs-3 fw-bold">Item 2</span>
+            <span class="visually-hidden" id="right-item-description">Item 2</span>
+          </div>
+          <div class="text-center">
+            <input type="hidden" id="item_2_id" name="item_2_id" value="1">
+            <img id="right-item" tabindex="0" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/item_2.png') }}" class="right-item img-fluid img-constraint" alt="">
+          </div>
+          <div class="row">
+    
+
+        <div class="d-flex gap-2 mt-3 justify-content-center">
+            <input type="radio" class="btn-check" name="agriculture" id="agriculture-right">
+            <label class="btn btn-outline-success" for="agriculture-right">
+                Agriculture
+            </label>
+
+            <input type="radio" class="btn-check" name="manufacturing" id="manufacturing-right">
+            <label class="btn btn-outline-success" for="manufacturing-right">
+                Manufacturing
+            </label>
+
+            <input type="radio" class="btn-check" name="fishing" id="fishing-right">
+            <label class="btn btn-outline-success" for="fishing-right">
+                Fishing
+            </label>
+        </div>
+
+
+
+</div>
+
+          </div>
+      </div>
+    </div>
+    <div class="row pl-2 pr-2 mt-1">
+      <div class="p-2 text-center col-4">
+          <button id="previous-button" type="submit" name='state' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">Previous</button>
+        </div>
+      <div class="p-2 text-center col-4">
+        <button id="confirm-button-d" type="submit" name='state' value='{{confirmed_value}}' class="col-12 col-lg-6 btn btn-lg btn-primary p-1">Confirm</button>
+      </div>
+      <div class="p-2 text-center col-4">
+          <button id="skip-button" type="submit" name='state' value='{{skipped_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">Skip</button>
+        </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block js %}
+ 
+{% endblock %}
