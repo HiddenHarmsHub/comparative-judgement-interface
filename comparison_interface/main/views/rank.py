@@ -15,6 +15,8 @@ from comparison_interface.db.models import (
     ParticipantGroup,
     ParticipantItem,
     StudyControl,
+    StudySubQuestions,
+    StudyText,
     TotalItemPair,
 )
 from comparison_interface.main.schemas.rank import RankPostSchema
@@ -35,13 +37,13 @@ class Rank(Request):
         if not self._valid_session():
             return self._redirect('.participant_registration')
 
-        allow_ties = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_TIES, 1, self._app)
-        allow_skip = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_SKIP, 1, self._app)
-        allow_back = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_BACK, 1, self._app)
+        allow_ties = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_TIES, self._study_id, self._app)
+        allow_skip = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._study_id, self._app)
+        allow_back = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_BACK, self._study_id, self._app)
 
-        use_escape_route = WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, 1, self._app)
+        use_escape_route = WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._study_id, self._app)
 
-        if use_escape_route and self._get_current_cycle() >= WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, self._app):
+        if use_escape_route and self._get_current_cycle() >= WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, self._study_id, self._app):
             return self._redirect('.thankyou')
 
         comparison_id = None
@@ -65,13 +67,15 @@ class Rank(Request):
                     'error_204_message': WS.get_text(WS.ERROR_204_MESSAGE, self._language, self._app),
                 },
             )
-
         if comparison_id is not None:
             # if we are in a rejudging state get the current state to show to the participant
             current_state, selected_item_id = self._get_current_comparison_state(comparison_id)
+            # TODO: the item ids need to be saved in the sesion 
         else:
             current_state = None
             selected_item_id = None
+            # save the items in the server session so we can validate results later
+            self._session['item_ids'] = [item_1.item_id, item_2.item_id]
 
         # The participant can rejudge comparisons if:
         # - at least one comparison has already been made in the session
@@ -79,39 +83,68 @@ class Rank(Request):
         # this boolean determines whether the previous button is present or not
         can_rejudge = len(self._session['comparison_ids']) > 0 and self._session['previous_comparison_id'] is not None
 
-        compared, skipped = self._get_comparison_stats()
+        multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
 
-        if use_escape_route:
-            # If we have asked for an escape route check the counts and redirect if necessary
-            completed_cycles = self._get_current_cycle()
+        shared_data = {
+            'item_1': item_1,
+            'item_2': item_2,
+            'weighted_pair_id': pair_id,
+            'rejudge_label': WS.get_text(WS.RANK_ITEM_REJUDGE_BUTTON_LABEL, self._language, self._app),
+            'confirmed_label': WS.get_text(WS.RANK_ITEM_CONFIRMED_BUTTON_LABEL, self._language, self._app),
+            'skipped_label': WS.get_text(WS.RANK_ITEM_SKIPPED_BUTTON_LABEL, self._language, self._app),
+            'comparison_instruction_label': WS.get_study_text(
+                WS.RANK_ITEM_INSTRUCTION_LABEL, self._language, self._study_id, self._app
+            ),
+            'rejudge_value': self.REJUDGE,
+            'confirmed_value': self.CONFIRMED,
+            'skipped_value': self.SKIPPED,
+            'can_rejudge': can_rejudge,
+            'comparison_id': comparison_id,
+            'initial_state': current_state,
+            'initial_selected_item_id': selected_item_id,
+            'allow_ties': allow_ties,
+            'allow_skip': allow_skip,
+            'allow_back': allow_back,
+        }
 
-            if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, self._app) * (
-                completed_cycles + 1
-            ):
-                self._increment_cycle_count()
-                return self._redirect('.thankyou')
+        if multiple_questions:
+            questions = self._get_sub_questions()
+            data = {
+                'questions': questions,
+            }
+            data = shared_data | data
+            return self._render_template('main/pages/multi_rank.html', data)
 
-        if allow_ties:
-            additional_screen_reader_instructions = ""
         else:
-            additional_screen_reader_instructions = WS.get_text(
-                WS.ADDITIONAL_RADIO_BUTTON_INSTRUCTIONS, self._language, self._app
-            )
 
-        if allow_skip:
-            confirm_button_error_message = WS.get_text(
-                WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITH_SKIP, self._language, self._app
-            )
-        else:
-            confirm_button_error_message = WS.get_text(
-                WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP, self._language, self._app
-            )
-        return self._render_template(
-            'main/pages/rank.html',
-            {
-                'item_1': item_1,
-                'item_2': item_2,
-                'weighted_pair_id': pair_id,
+            compared, skipped = self._get_comparison_stats()
+
+            if use_escape_route:
+                # If we have asked for an escape route check the counts and redirect if necessary
+                completed_cycles = self._get_current_cycle()
+
+                if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app) * (
+                    completed_cycles + 1
+                ):
+                    self._increment_cycle_count()
+                    return self._redirect('.thankyou')
+
+            if allow_ties:
+                additional_screen_reader_instructions = ""
+            else:
+                additional_screen_reader_instructions = WS.get_text(
+                    WS.ADDITIONAL_RADIO_BUTTON_INSTRUCTIONS, self._language, self._app
+                )
+
+            if allow_skip:
+                confirm_button_error_message = WS.get_text(
+                    WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITH_SKIP, self._language, self._app
+                )
+            else:
+                confirm_button_error_message = WS.get_text(
+                    WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP, self._language, self._app
+                )
+            data = {
                 'selected_item_label': WS.get_text(WS.RANK_ITEM_SELECTED_INDICATOR_LABEL, self._language, self._app),
                 'tied_selection_label': WS.get_text(
                     WS.RANK_ITEM_TIED_SELECTION_INDICATOR_LABEL, self._language, self._app
@@ -119,12 +152,8 @@ class Rank(Request):
                 'skipped_selection_label': WS.get_text(
                     WS.RANK_ITEM_SKIPPED_SELECTION_INDICATOR_LABEL, self._language, self._app
                 ),
-                'rejudge_label': WS.get_text(WS.RANK_ITEM_REJUDGE_BUTTON_LABEL, self._language, self._app),
-                'confirmed_label': WS.get_text(WS.RANK_ITEM_CONFIRMED_BUTTON_LABEL, self._language, self._app),
                 'confirm_button_error_message': confirm_button_error_message,
                 'skip_button_error_message': WS.get_text(WS.SKIP_BUTTON_ERROR_MESSAGE, self._language, self._app),
-                'skipped_label': WS.get_text(WS.RANK_ITEM_SKIPPED_BUTTON_LABEL, self._language, self._app),
-                'comparison_instruction_label': WS.get_text(WS.RANK_ITEM_INSTRUCTION_LABEL, self._language, self._app),
                 'comparison_number_label': WS.get_text(
                     WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._language, self._app
                 ),
@@ -133,20 +162,11 @@ class Rank(Request):
                     WS.RANK_ITEM_SKIPPED_COMPARISON_EXECUTED_LABEL, self._language, self._app
                 ),
                 'skipped_number': skipped,
-                'rejudge_value': self.REJUDGE,
-                'confirmed_value': self.CONFIRMED,
-                'skipped_value': self.SKIPPED,
-                'can_rejudge': can_rejudge,
-                'comparison_id': comparison_id,
-                'initial_state': current_state,
-                'initial_selected_item_id': selected_item_id,
-                'allow_ties': allow_ties,
-                'allow_skip': allow_skip,
-                'allow_back': allow_back,
                 'additional_screen_reader_instructions': additional_screen_reader_instructions,
                 'item_group_selection_label': WS.get_text(WS.ITEM_SELECTION_GROUP_LABEL, self._language, self._app),
-            },
-        )
+            }
+            data = shared_data | data
+            return self._render_template('main/pages/rank.html', data)
 
     def post(self, request):
         """Request post handler."""
@@ -215,6 +235,26 @@ class Rank(Request):
             return self._redirect('.rank')
         else:
             return self._redirect('.rank', comparison_id=self._session['previous_comparison_id'])
+
+    def _get_sub_questions(self):
+        questions = []
+        results = db.session.execute(
+            db.select(
+                StudySubQuestions,
+                StudyText.string_value,
+            )
+            .join(
+                StudyText,
+                (StudySubQuestions.question_text_key == StudyText.string_key)
+                & (StudyText.language == self._language),
+            )
+            .where(StudySubQuestions.study_id == self._study_id)
+        ).all()
+
+        for question, text in results:
+            question.question_text = text
+            questions.append(question)
+        return questions
 
     def _get_current_comparison_state(self, comparison_id):
         """Get the current comparison state and selected item id for the requested comparison id.

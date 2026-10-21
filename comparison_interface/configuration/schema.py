@@ -416,6 +416,7 @@ class StudyConfiguration(Schema):
     maximumCyclesPerUser = fields.Integer(required=False)
     comparisonConfiguration = fields.Nested(ComparisonConfiguration(), required=True)
     rankItemInstructionLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    rankItemSubQuestions = OptionalMultiLangField(required=False, value_type="list", min_length=1, max_length=6)
     userRegistrationGroupQuestionLabel = OptionalMultiLangField(
         required=False, value_type="string", min_length=1, max_length=500
     )

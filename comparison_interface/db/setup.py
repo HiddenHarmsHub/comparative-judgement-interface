@@ -17,6 +17,7 @@ from .models import (
     ItemGroup,
     RegistrationQuestions,
     StudyControl,
+    StudySubQuestions,
     StudyText,
     TotalItemPair,
     WebsiteControl,
@@ -355,10 +356,31 @@ class Setup:
             config.offer_escape_route_between_cycles = study[WS.BEHAVIOUR_ESCAPE_ROUTE]
             config.cycle_length = study[WS.BEHAVIOUR_CYCLE_LENGTH]
             config.maximum_cycles_per_user = study[WS.BEHAVIOUR_MAX_CYCLES]
+            if WS.RANK_ITEM_SUB_QUESTIONS in study:
+                config.multiple_questions = True
+            else:
+                config.multiple_questions = False
             db.session.add(config)
             db.session.flush()
             self._setup_group(db, study, config.study_id)
+            if WS.RANK_ITEM_SUB_QUESTIONS in study:
+                self._setup_sub_questions(db, study, config.study_id)
             self._setup_study_text(db, study, config.study_id)
+
+    def _setup_sub_questions(self, db, study_config, study_id):
+        if not isinstance(study_config[WS.RANK_ITEM_SUB_QUESTIONS], dict):
+            for i, _ in enumerate(study_config[WS.RANK_ITEM_SUB_QUESTIONS]):
+                config = StudySubQuestions()
+                config.study_id = study_id
+                config.question_text_key = f'study{study_id}question{i + 1}'
+                db.session.add(config)
+        else:
+            supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
+            for i, _ in enumerate(study_config[WS.RANK_ITEM_SUB_QUESTIONS][supported_languages[0]]):
+                config = StudySubQuestions()
+                config.study_id = study_id
+                config.question_text_key = f'study{study_id}question{i + 1}'
+                db.session.add(config)
 
     def _setup_study_text(self, db, study_config, study_id):
         supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
@@ -383,11 +405,37 @@ class Setup:
                             config.string_value = study_config[key][supported_languages[0]]
                         else:
                             config.string_value = "missing"
-                else:
-                    config.string_value = "missing"
-                if isinstance(config.string_value, list):
-                    config.string_value = '||'.join(config.string_value)
-                db.session.add(config)
+                    if isinstance(config.string_value, list):
+                        config.string_value = '||'.join(config.string_value)
+                    db.session.add(config)
+        if "rankItemSubQuestions" in study_config:
+            if not isinstance(study_config["rankItemSubQuestions"], dict):
+                for i, question in enumerate(study_config["rankItemSubQuestions"]):
+                    for language in supported_languages:
+                        config = StudyText()
+                        config.study_id = study_id
+                        config.string_key = f'study{study_id}question{i + 1}'
+                        config.language = language
+                        config.string_value = question
+                        db.session.add(config)
+            else:
+                for language in supported_languages:
+                    if language in study_config["rankItemSubQuestions"]:
+                        for i, question in enumerate(study_config["rankItemSubQuestions"][language]):
+                            config = StudyText()
+                            config.study_id = study_id
+                            config.string_key = f'study{study_id}question{i + 1}'
+                            config.language = language
+                            config.string_value = question
+                            db.session.add(config)
+                    else:
+                        for i, question in enumerate(study_config["rankItemSubQuestions"][supported_languages[0]]):
+                            config = StudyText()
+                            config.study_id = study_id
+                            config.string_key = f'study{study_id}question{i + 1}'
+                            config.language = language
+                            config.string_value = question
+                            db.session.add(config)
 
     def _setup_website_text(self, db):
         supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())

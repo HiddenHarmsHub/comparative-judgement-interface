@@ -48,6 +48,7 @@
           {% if render_language_selector %}
             <li class="nav-item">
               <form action="{{ url_for('main.set_language') }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label for="language-selector" class="nav-link ms-3 ps-3 border-start border-secondary">{{ language_select_label }}: 
                   <select id="language-selector" name="language" class="focus-ring" onchange="this.form.submit()">
                     {% for code, language in languages.items() %}
