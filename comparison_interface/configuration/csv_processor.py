@@ -6,10 +6,6 @@ class CsvProcessor:
 
     def create_config_from_csv(self, file):
         """Expand and restructure the data."""
-        print(file)
-        print('^^^^^^^^^')
-        print()
-        print()
         with open(file, mode='r') as csv_input:
             by_group = {}
             image_data = DictReader(csv_input)
@@ -39,7 +35,4 @@ class CsvProcessor:
             groups = []
             for entry in by_group:
                 groups.append(by_group[entry])
-        print(groups)
-        print()
-        print()
         return {"groups": groups, "weightConfiguration": "equal"}
