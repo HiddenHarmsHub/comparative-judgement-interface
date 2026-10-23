@@ -2,6 +2,7 @@
 
 // on load function to display current state if we are rejudging
 $(function () {
+    console.log('happy here')
     const rankForm = document.getElementById("rank-form");
     if (document.getElementById('comparison_id') && document.getElementById('comparison_id').value !== '') {
         const initialSelectedItemId = rankForm.dataset.initialSelectedItemId;
@@ -47,6 +48,7 @@ $("img").on('keypress', function (e) {
 // called from rank template on form submission
 function checkSelection(event) {
     const rankForm = document.getElementById('rank-form');
+    console.log(rankForm)
     // validates the ranking form before submission
     // this also handles the double click prevention for the rank form because otherwise the submit triggers too early
     // and if the selection is not accepted it prevents further submission

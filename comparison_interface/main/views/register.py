@@ -70,15 +70,19 @@ class Register(Request):
 
         raw_group_ids = form_data.pop('group_ids', [])
 
-        # Confirm we have a list of integers we can safely insert.
+        study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence == 1)).first()
+        # Confirm we have a list of integers we can safely insert and that they belong to the right study.
         try:
             group_ids = [int(gid) for gid in raw_group_ids]
         except (TypeError, ValueError):
             self._app.logger.warning("Rejected group_ids")
             abort(400)
+        allowed_groups = db.session.scalars(db.select(Group.group_id).where(Group.study_id == study_id)).all()
+        if not set(group_ids).issubset(allowed_groups):
+            self._app.logger.warning("Rejected group_ids")
+            abort(400)
 
-        # Add server-managed fields. These are dump_only in the schema, so they
-        #   can never arrive from the client, but the app is free to set them.
+        # Add server-managed fields. These are dump_only in the schema, so they can never arrive from the client.
         form_data['created_date'] = datetime.now(timezone.utc)
         if not WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, 1, self._app):
             # Cycles are not tracked for this study configuration.
@@ -86,9 +90,6 @@ class Register(Request):
         else:
             form_data['completed_cycles'] = 0
 
-        # Insert the participant and the group preferences together, on one
-        #    connection and in one transaction, so that a foreign key failure on
-        #    any group id rolls the participant row back too.
         table = self._get_participant_table()
 
         try:
@@ -108,9 +109,11 @@ class Register(Request):
 
         self._session['participant_id'] = participant_id
         self._session['group_ids'] = group_ids
-        self._session['weight_conf'] = StudyControl().get_conf().weight_configuration
+        self._session['weight_conf'] = StudyControl().get_conf(study_id).weight_configuration
         self._session['previous_comparison_id'] = None
         self._session['comparison_ids'] = []
+        self._session['study_id'] = study_id
+        print(self._session)
 
         return self._redirect('.item_selection')
 
@@ -154,15 +157,20 @@ class Register(Request):
         Args:
             user_components (list): Components render in the user registry view
         """
-        # Allow multiple item selection only if the item's weight distribution is "equal"
-        multiple_selection = False
-        if StudyControl().get_conf().weight_configuration == StudyControl.EQUAL_WEIGHT:
-            multiple_selection = True
+        study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence == 1)).first()
 
-        groups = db.session.scalars(db.select(Group)).all()
+        # Allow multiple item selection only if the item's weight distribution in this study is "equal"
+        multiple_selection = False
+        if StudyControl().get_conf(study_id).weight_configuration == StudyControl.EQUAL_WEIGHT:
+            multiple_selection = True
+        groups = db.session.scalars(db.select(Group).where(Group.study_id == study_id)).all()
         if len(groups) > 1:
-            label_text = WS.get_text(WS.USER_REGISTRATION_GROUP_QUESTION_LABEL, self._language, self._app)
-            error_text = WS.get_text(WS.USER_REGISTRATION_GROUP_SELECTION_ERROR, self._language, self._app)
+            label_text = WS.get_study_text(
+                WS.USER_REGISTRATION_GROUP_QUESTION_LABEL, self._language, study_id, self._app
+            )
+            error_text = WS.get_study_text(
+                WS.USER_REGISTRATION_GROUP_SELECTION_ERROR, self._language, study_id, self._app
+            )
         else:
             label_text = ''
             error_text = ''
