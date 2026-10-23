@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 
+{% block css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/multi-rank.css') }}">
+{% endblock %}
+
 {% block title %}: {{rank_page_title}}{% endblock %}
 
 {% block content %}
@@ -31,7 +35,7 @@
           </div>
           <div class="text-center">
             <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
-            <img id="left-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
+            <img id="left-item" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
           </div>
         </div>
         <div class="col position-relative">
@@ -41,7 +45,7 @@
           </div>
           <div class="text-center">
             <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
-            <img id="right-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}" class="right-item img-fluid img-constraint" alt="">
+            <img id="right-item" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}" class="right-item img-fluid img-constraint" alt="">
           </div>
           </div>
       </div>
@@ -49,7 +53,7 @@
     <div class="row mt-5">
       <form
         id="rank-form"
-        class="choice-matrix"
+        class="answer-matrix"
         method="POST"
         aria-labelledby="instructions"
         onsubmit="return checkSelection(event);"
@@ -58,19 +62,19 @@
         data-initial-state="{% if initial_state %}{{initial_state}}{% else %}{% endif %}"
         data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}"
       >
-        <p id="instructions" class="choice-matrix__intro judgement-instructions fs-4">{{comparison_instruction_label}}</p>
-        <div class="choice-matrix__header" aria-hidden="true">
+        <p id="instructions" class="answer-matrix-intro judgement-instructions fs-4">{{comparison_instruction_label}}</p>
+        <div class="answer-matrix-header" aria-hidden="true">
           <span></span><span>{{ item_1.display_name }}</span><span>{{ item_2.display_name }}</span>{% if allow_skip %}<span>{{ skipped_label }}</span>{% endif %}
         </div>
         {% for question in questions %}
-          <fieldset class="choice-matrix__row">
+          <fieldset class="answer-matrix-row">
             <legend class="visually-hidden">{{ question.question_text }}</legend>
-            <div class="choice-matrix__row-content">
-              <div class="choice-matrix__question" aria-hidden="true">{{ question.question_text }}</div>
-              <label class="choice-matrix__choice"><input type="radio" name="question_{{ question.id }}" value="{{ item_1.id }}" required><span class="visually-hidden">{{ item_1.label }}</span></label>
-              <label class="choice-matrix__choice"><input type="radio" name="question_{{ question.id }}" value="{{ item_2.id }}"><span class="visually-hidden">{{ item_2.label }}</span></label>
+            <div class="answer-matrix-row-content">
+              <div class="answer-matrix-question" aria-hidden="true">{{ question.question_text }}</div>
+              <label class="answer-matrix-choice"><input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.id }}" value="{{ item_1.id }}" required><span class="visually-hidden">{{ item_1.label }}</span></label>
+              <label class="answer-matrix-choice"><input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.id }}" value="{{ item_2.id }}"><span class="visually-hidden">{{ item_2.label }}</span></label>
               {% if allow_skip %}
-                <label class="choice-matrix__choice"><input type="radio" name="question_{{ question.id }}" value="none"><span class="visually-hidden">{{ skipped_label }}</span></label>
+                <label class="answer-matrix-choice"><input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.id }}" value="none"><span class="visually-hidden">{{ skipped_label }}</span></label>
               {% endif %}
             </div>
           </fieldset>
@@ -92,5 +96,5 @@
 {% endblock %}
 
 {% block js %}
-  <script src="{{ url_for('static', filename='js/src/rank-control.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/src/multi-rank-control.js') }}"></script>
 {% endblock %}
