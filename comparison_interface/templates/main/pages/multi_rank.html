@@ -51,46 +51,62 @@
       </div>
     </div>
     <div class="row mt-5">
-      <form
-        id="rank-form"
-        class="answer-matrix"
-        method="POST"
-        aria-labelledby="instructions"
-        onsubmit="return checkSelection(event);"
-        data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
-        data-confirm-button-error="{{confirm_button_error_message}}"
-        data-initial-state="{% if initial_state %}{{initial_state}}{% else %}{% endif %}"
-        data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}"
-      >
-        <p id="instructions" class="answer-matrix-intro judgement-instructions fs-4">{{comparison_instruction_label}}</p>
-        <div class="answer-matrix-header" aria-hidden="true">
-          <span></span><span>{{ item_1.display_name }}</span><span>{{ item_2.display_name }}</span>{% if allow_skip %}<span>{{ skipped_label }}</span>{% endif %}
-        </div>
-        {% for question in questions %}
-          <fieldset class="answer-matrix-row">
-            <legend class="visually-hidden">{{ question.question_text }}</legend>
-            <div class="answer-matrix-row-content">
-              <div class="answer-matrix-question" aria-hidden="true">{{ question.question_text }}</div>
-              <label class="answer-matrix-choice"><input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.id }}" value="{{ item_1.id }}" required><span class="visually-hidden">{{ item_1.label }}</span></label>
-              <label class="answer-matrix-choice"><input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.id }}" value="{{ item_2.id }}"><span class="visually-hidden">{{ item_2.label }}</span></label>
-              {% if allow_skip %}
-                <label class="answer-matrix-choice"><input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.id }}" value="none"><span class="visually-hidden">{{ skipped_label }}</span></label>
-              {% endif %}
-            </div>
-          </fieldset>
-        {% endfor %}
-      </form>
+  <form
+    id="rank-form"
+    class="answer-matrix w-100 mx-auto"
+    method="POST"
+    aria-labelledby="instructions"
+    onsubmit="return checkSelection(event);"
+    data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
+    data-confirm-button-error="{{confirm_button_error_message}}"
+    data-initial-state="{% if initial_state %}{{initial_state}}{% else %}{% endif %}"
+    data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}"
+  >
+    <p id="instructions" class="judgement-instructions fw-bold mb-3">{{comparison_instruction_label}}</p>
+
+    <div class="answer-matrix-header d-grid p-3 fw-bold text-center" aria-hidden="true">
+      <span class="text-start"></span>
+      <span>{{ item_1.display_name }}</span>
+      <span>{{ item_2.display_name }}</span>
+      {% if allow_skip %}<span>{{ skipped_label }}</span>{% endif %}
     </div>
-    <div class="row pl-2 pr-2 mt-1">
-      <div class="p-2 text-center col-4">
-        {% if can_rejudge and allow_back %}
-          <button id="previous-button" type="submit" name='state' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
-        {% endif %}
+
+    {% for question in questions %}
+      <fieldset class="answer-matrix-row m-0 p-3 border-0 border-bottom">
+        <legend class="visually-hidden">{{ question.question_text }}</legend>
+        <div class="answer-matrix-row-content d-grid">
+          <div class="answer-matrix-question fw-semibold" aria-hidden="true">{{ question.question_text }}</div>
+          <label class="answer-matrix-choice d-grid">
+            <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.question_id }}" value="{{ item_1.id }}" required>
+            <span class="visually-hidden">{{ item_1.label }}</span>
+          </label>
+          <label class="answer-matrix-choice d-grid">
+            <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.question_id }}" value="{{ item_2.id }}">
+            <span class="visually-hidden">{{ item_2.label }}</span>
+          </label>
+          {% if allow_skip %}
+            <label class="answer-matrix-choice d-grid">
+              <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.question_id }}" value="none">
+              <span class="visually-hidden">{{ skipped_label }}</span>
+            </label>
+          {% endif %}
         </div>
-      <div class="p-2 text-center col-4">
-        <button id="confirm-button-d" type="submit" name='state' value='{{confirmed_value}}' class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
-      </div>
-    </div>
+      </fieldset>
+    {% endfor %}
+  </form>
+</div>
+
+<div class="row px-2 mt-1">
+  <div class="p-2 text-center col-4">
+    {% if can_rejudge and allow_back %}
+      <button id="previous-button" type="submit" name="state" value="{{rejudge_value}}" class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
+    {% endif %}
+  </div>
+  <div class="p-2 text-center col-4">
+    <button id="confirm-button-d" type="submit" name="state" value="{{confirmed_value}}" class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
+  </div>
+</div>
+
   </form>
 </div>
 {% endblock %}
