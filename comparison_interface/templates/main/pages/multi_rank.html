@@ -1,116 +1,116 @@
 {% extends "layout.html" %}
 
 {% block css %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/multi-rank.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/multi-rank.css') }}">
 {% endblock %}
 
 {% block title %}: {{rank_page_title}}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-  <form
-    id="rank-form"
-    method="POST"
-    aria-labelledby="instructions"
-    onsubmit="return checkSelection(event);"
-    data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
+  <form id="rank-form" class="answer-matrix w-100 mx-auto" method="POST" aria-labelledby="instructions"
+    onsubmit="return checkSelection(event);" data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
     data-confirm-button-error="{{confirm_button_error_message}}"
     data-initial-state="{% if initial_state %}{{initial_state}}{% else %}{% endif %}"
-    data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}"
-  >
+    data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" id="weighted_pair_id" name="weighted_pair_id" value="{% if weighted_pair_id %}{{weighted_pair_id}}{% else %}{% endif %}">
+    <input type="hidden" id="weighted_pair_id" name="weighted_pair_id"
+      value="{% if weighted_pair_id %}{{weighted_pair_id}}{% else %}{% endif %}">
     <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
-    <input type="hidden" id="comparison_id" name="comparison_id" value="{% if comparison_id %}{{comparison_id}}{% else %}{% endif %}">
-    <div class="form-group">
-      <div class="text-center">
-        <p class="progress-counter fs-5">{{comparison_number_label}}:&nbsp;{{comparison_number}}</p>
-      </div>
-      <div class="row pl-2 pr-2"  {% if allow_ties == 'false' %}role="radiogroup" {% else %}role="group"{% endif %} aria-label="{{ item_group_selection_label }}">
-        {% if allow_ties == 'false' %}<p id="additional-instructions" class="visually-hidden">{{ additional_screen_reader_instructions }}</p>{% endif %}
-        <div class="col position-relative">
-          <div class="text-center">
-            <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">{{ item_1.display_name }}</span>
-            <span class="visually-hidden" id="left-item-description">{% if item_1.image_description != None %}{{item_1.display_name}}: {{item_1.image_description}}{% else %}{{item_1.display_name}}{% endif %}</span>
-          </div>
-          <div class="text-center">
-            <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
-            <img id="left-item" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
-          </div>
+    <input type="hidden" id="comparison_id" name="comparison_id"
+      value="{% if comparison_id %}{{comparison_id}}{% else %}{% endif %}">
+
+    <div class="text-center">
+      <p class="progress-counter fs-5">{{comparison_number_label}}:&nbsp;{{comparison_number}}</p>
+    </div>
+    <div class="row pl-2 pr-2" {% if allow_ties=='false' %}role="radiogroup" {% else %}role="group" {% endif %}
+      aria-label="{{ item_group_selection_label }}">
+      {% if allow_ties == 'false' %}<p id="additional-instructions" class="visually-hidden">{{
+        additional_screen_reader_instructions }}</p>{% endif %}
+      <div class="col position-relative">
+        <div class="text-center">
+          <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">{{ item_1.display_name }}</span>
+          <span class="visually-hidden" id="left-item-description">{% if item_1.image_description != None
+            %}{{item_1.display_name}}: {{item_1.image_description}}{% else %}{{item_1.display_name}}{% endif %}</span>
         </div>
-        <div class="col position-relative">
-          <div class="text-center">
-            <span aria-hidden="true" id="right-item-label" class="fs-3 fw-bold">{{ item_2.display_name }}</span>
-            <span class="visually-hidden" id="right-item-description">{% if item_2.image_description != None %}{{item_2.display_name}}: {{item_2.image_description}}{% else %}{{item_2.display_name}}{% endif %}</span>
-          </div>
-          <div class="text-center">
-            <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
-            <img id="right-item" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}" class="right-item img-fluid img-constraint" alt="">
-          </div>
-          </div>
+        <div class="text-center">
+          <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
+          <img id="left-item" aria-labelledby="left-item-description"
+            src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}"
+            class="left-item img-fluid img-constraint" alt="">
+        </div>
+      </div>
+      <div class="col position-relative">
+        <div class="text-center">
+          <span aria-hidden="true" id="right-item-label" class="fs-3 fw-bold">{{ item_2.display_name }}</span>
+          <span class="visually-hidden" id="right-item-description">{% if item_2.image_description != None
+            %}{{item_2.display_name}}: {{item_2.image_description}}{% else %}{{item_2.display_name}}{% endif %}</span>
+        </div>
+        <div class="text-center">
+          <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
+          <img id="right-item" aria-labelledby="right-item-description"
+            src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}"
+            class="right-item img-fluid img-constraint" alt="">
+        </div>
       </div>
     </div>
+
     <div class="row mt-5">
-  <form
-    id="rank-form"
-    class="answer-matrix w-100 mx-auto"
-    method="POST"
-    aria-labelledby="instructions"
-    onsubmit="return checkSelection(event);"
-    data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
-    data-confirm-button-error="{{confirm_button_error_message}}"
-    data-initial-state="{% if initial_state %}{{initial_state}}{% else %}{% endif %}"
-    data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}"
-  >
-    <p id="instructions" class="judgement-instructions fw-bold mb-3">{{comparison_instruction_label}}</p>
 
-    <div class="answer-matrix-header d-grid p-3 fw-bold text-center" aria-hidden="true">
-      <span class="text-start"></span>
-      <span>{{ item_1.display_name }}</span>
-      <span>{{ item_2.display_name }}</span>
-      {% if allow_skip %}<span>{{ skipped_label }}</span>{% endif %}
-    </div>
+      <div class="form-group">
+        <p id="instructions" class="judgement-instructions fw-bold mb-3">{{comparison_instruction_label}}</p>
 
-    {% for question in questions %}
-      <fieldset class="answer-matrix-row m-0 p-3 border-0 border-bottom">
-        <legend class="visually-hidden">{{ question.question_text }}</legend>
-        <div class="answer-matrix-row-content d-grid">
-          <div class="answer-matrix-question fw-semibold" aria-hidden="true">{{ question.question_text }}</div>
-          <label class="answer-matrix-choice d-grid">
-            <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.question_id }}" value="{{ item_1.id }}" required>
-            <span class="visually-hidden">{{ item_1.label }}</span>
-          </label>
-          <label class="answer-matrix-choice d-grid">
-            <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.question_id }}" value="{{ item_2.id }}">
-            <span class="visually-hidden">{{ item_2.label }}</span>
-          </label>
-          {% if allow_skip %}
+        <div class="answer-matrix-header d-grid p-3 fw-bold text-center" aria-hidden="true">
+          <span class="text-start"></span>
+          <span>{{ item_1.display_name }}</span>
+          <span>{{ item_2.display_name }}</span>
+          {% if allow_skip %}<span>{{ skipped_label }}</span>{% endif %}
+        </div>
+
+        {% for question in questions %}
+        <fieldset class="answer-matrix-row m-0 p-3 border-0 border-bottom">
+          <legend class="visually-hidden">{{ question.question_text }}</legend>
+          <div class="answer-matrix-row-content d-grid">
+            <div class="answer-matrix-question fw-semibold" aria-hidden="true">{{ question.question_text }}</div>
             <label class="answer-matrix-choice d-grid">
-              <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}" name="question_{{ question.question_id }}" value="none">
+              <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
+                name="question_{{ question.question_id }}" value="{{ item_1.id }}" required>
+              <span class="visually-hidden">{{ item_1.label }}</span>
+            </label>
+            <label class="answer-matrix-choice d-grid">
+              <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
+                name="question_{{ question.question_id }}" value="{{ item_2.id }}">
+              <span class="visually-hidden">{{ item_2.label }}</span>
+            </label>
+            {% if allow_skip %}
+            <label class="answer-matrix-choice d-grid">
+              <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
+                name="question_{{ question.question_id }}" value="none">
               <span class="visually-hidden">{{ skipped_label }}</span>
             </label>
+            {% endif %}
+          </div>
+        </fieldset>
+        {% endfor %}
+      </div>
+
+      <div class="row px-2 mt-1">
+        <div class="p-2 text-center col-4">
+          {% if can_rejudge and allow_back %}
+          <button id="previous-button" type="submit" name="state" value="{{rejudge_value}}"
+            class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
           {% endif %}
         </div>
-      </fieldset>
-    {% endfor %}
-  </form>
-</div>
-
-<div class="row px-2 mt-1">
-  <div class="p-2 text-center col-4">
-    {% if can_rejudge and allow_back %}
-      <button id="previous-button" type="submit" name="state" value="{{rejudge_value}}" class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
-    {% endif %}
-  </div>
-  <div class="p-2 text-center col-4">
-    <button id="confirm-button-d" type="submit" name="state" value="{{confirmed_value}}" class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
-  </div>
-</div>
+        <div class="p-2 text-center col-4">
+          <button id="confirm-button-d" type="submit" name="state" value="{{confirmed_value}}"
+            class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
+        </div>
+      </div>
 
   </form>
 </div>
 {% endblock %}
 
 {% block js %}
-  <script src="{{ url_for('static', filename='js/src/multi-rank-control.js') }}"></script>
+<script src="{{ url_for('static', filename='js/src/multi-rank-control.js') }}"></script>
 {% endblock %}
