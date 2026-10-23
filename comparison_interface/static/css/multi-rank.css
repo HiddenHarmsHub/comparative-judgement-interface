@@ -39,7 +39,6 @@
 }
 
 @media (width <= 576px) {
-
     .judgement-instructions {
         font-size: 1rem;
     }
