@@ -30,7 +30,6 @@
 .answer-matrix-choice {
     place-items: center;
     min-block-size: 2.75rem;
-
 }
 
 .answer-matrix-choice:focus-within {
@@ -39,9 +38,8 @@
     border-radius: 0.2rem;
 }
 
-@media (max-width: 576px) {
+@media (width <= 576px) {
 
-    /* equal to bootstrap's sm */
     .judgement-instructions {
         font-size: 1rem;
     }
