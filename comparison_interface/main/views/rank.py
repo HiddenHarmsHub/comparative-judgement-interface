@@ -43,7 +43,9 @@ class Rank(Request):
 
         use_escape_route = WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._study_id, self._app)
 
-        if use_escape_route and self._get_current_cycle() >= WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, self._study_id, self._app):
+        if use_escape_route and self._get_current_cycle() >= WS.get_study_conf(
+            WS.BEHAVIOUR_MAX_CYCLES, self._study_id, self._app
+        ):
             return self._redirect('.thankyou')
 
         comparison_id = None
@@ -70,7 +72,7 @@ class Rank(Request):
         if comparison_id is not None:
             # if we are in a rejudging state get the current state to show to the participant
             current_state, selected_item_id = self._get_current_comparison_state(comparison_id)
-            # TODO: the item ids need to be saved in the sesion 
+            # TODO: the item ids need to be saved in the sesion
         else:
             current_state = None
             selected_item_id = None
@@ -116,7 +118,6 @@ class Rank(Request):
             return self._render_template('main/pages/multi_rank.html', data)
 
         else:
-
             compared, skipped = self._get_comparison_stats()
 
             if use_escape_route:
@@ -245,8 +246,7 @@ class Rank(Request):
             )
             .join(
                 StudyText,
-                (StudySubQuestions.question_text_key == StudyText.string_key)
-                & (StudyText.language == self._language),
+                (StudySubQuestions.question_text_key == StudyText.string_key) & (StudyText.language == self._language),
             )
             .where(StudySubQuestions.study_id == self._study_id)
         ).all()

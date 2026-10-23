@@ -70,14 +70,14 @@ class Register(Request):
 
         raw_group_ids = form_data.pop('group_ids', [])
 
-        study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence==1)).first()
+        study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence == 1)).first()
         # Confirm we have a list of integers we can safely insert and that they belong to the right study.
         try:
             group_ids = [int(gid) for gid in raw_group_ids]
         except (TypeError, ValueError):
             self._app.logger.warning("Rejected group_ids")
             abort(400)
-        allowed_groups = db.session.scalars(db.select(Group.group_id).where(Group.study_id==study_id)).all()
+        allowed_groups = db.session.scalars(db.select(Group.group_id).where(Group.study_id == study_id)).all()
         if not set(group_ids).issubset(allowed_groups):
             self._app.logger.warning("Rejected group_ids")
             abort(400)
@@ -157,13 +157,13 @@ class Register(Request):
         Args:
             user_components (list): Components render in the user registry view
         """
-        study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence==1)).first()
+        study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence == 1)).first()
 
         # Allow multiple item selection only if the item's weight distribution in this study is "equal"
         multiple_selection = False
         if StudyControl().get_conf(study_id).weight_configuration == StudyControl.EQUAL_WEIGHT:
             multiple_selection = True
-        groups = db.session.scalars(db.select(Group).where(Group.study_id==study_id)).all()
+        groups = db.session.scalars(db.select(Group).where(Group.study_id == study_id)).all()
         if len(groups) > 1:
             label_text = WS.get_study_text(
                 WS.USER_REGISTRATION_GROUP_QUESTION_LABEL, self._language, study_id, self._app
