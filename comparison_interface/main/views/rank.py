@@ -107,6 +107,7 @@ class Rank(Request):
             'allow_ties': allow_ties,
             'allow_skip': allow_skip,
             'allow_back': allow_back,
+            'study_id': self._study_id,
         }
 
         if multiple_questions:
@@ -173,69 +174,109 @@ class Rank(Request):
         """Request post handler."""
         raw_form = request.form.to_dict(flat=True)
         raw_form.pop('csrf_token', None)
+        multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
+        expected_item_ids = self._session['item_ids']
+        if multiple_questions:
+            allow_skip = db.session.get(StudyControl, self._study_id).allow_skip
+            questions = self._get_sub_questions()
+            rank_schema = RankPostSchema(
+                study_id=self._study_id,
+                expected_item_ids=expected_item_ids,
+                questions=questions,
+                none_allowed=allow_skip
+            )
+        else:
+            rank_schema = RankPostSchema(study_id=self._study_id, expected_item_ids=expected_item_ids)
         try:
-            response = RankPostSchema().load(raw_form)
+            response = rank_schema.load(raw_form)
         except ValidationError:
             self._app.logger.warning("Rejected judgement")
             abort(400)
 
-        action = response['state']
-        if action != self.REJUDGE:
-            # Set the comparison state based on the participant's action
-            state, selected_item_id = self._calculate_comparison_state(action, response)
-
-            # Verify if the participant want to rejudge an item
-            comparison_id = None
-            if 'comparison_id' in response and response['comparison_id'] != "":
-                comparison_id = response['comparison_id']
-
-            if comparison_id is None:
-                # Save the new participant comparison in the database.
-                c = Comparison(
-                    participant_id=self._session['participant_id'],
-                    item_1_id=response['item_1_id'],
-                    item_2_id=response['item_2_id'],
-                    state=state,
-                    selected_item_id=selected_item_id,
-                )
-                try:
-                    db.session.add(c)
-                    if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and state != self.SKIPPED:
-                        pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
-                        pair.judged = True
-                    db.session.commit()
-                    # Save the comparison for future possible rejudging
-                    self._session['previous_comparison_id'] = c.comparison_id
-                    self._session['comparison_ids'] = self._session['comparison_ids'] + [c.comparison_id]
-                except Exception:
-                    db.session.rollback()
-                    raise
-            else:
-                # Rejudge an existence comparison.
-                query = db.select(Comparison).where(
-                    Comparison.comparison_id == comparison_id,
-                    Comparison.participant_id == self._session['participant_id'],
-                )
-                comparison = db.session.scalars(query).first()
-
-                if comparison is None:
-                    raise RuntimeError("Invalid comparison id provided")
-                try:
-                    comparison.selected_item_id = selected_item_id
-                    comparison.state = state
-                    comparison.updated = datetime.now(timezone.utc)
-                    db.session.commit()
-                    # Return the pointer to the last comparison made as the participant will be given a new one next
-                    self._session['previous_comparison_id'] = self._session['comparison_ids'][
-                        len(self._session['comparison_ids']) - 1
-                    ]
-                except Exception:
-                    db.session.rollback()
-                    raise
-
-            return self._redirect('.rank')
-        else:
+        if response['action'] == self.REJUDGE:
             return self._redirect('.rank', comparison_id=self._session['previous_comparison_id'])
+        else:
+            if multiple_questions:
+                self._save_multiple_comparisons(response)
+            else:
+                self._save_single_comparison(response)
+            return self._redirect('.rank')
+
+    def _save_multiple_comparisons(self, response):
+        questions = [x for x in response.keys() if x.startswith('question_')]
+        print(questions)
+        comparisons = []
+        for question in questions:
+            if response[question] is None:
+                state = Comparison.SKIPPED
+            else:
+                state = Comparison.SELECTED
+            c = Comparison(
+                participant_id=self._session['participant_id'],
+                study_id=self._study_id,
+                item_1_id=response['item_1_id'],
+                item_2_id=response['item_2_id'],
+                state=state,
+                sub_question_id=question.replace('question_', ''),
+                selected_item_id=response[question],
+            )
+            comparisons.append(c)
+        db.session.add_all(comparisons)
+        db.session.commit()
+
+    def _save_single_comparison(self, response):
+        # Set the comparison state based on the participant's action
+        state, selected_item_id = self._calculate_comparison_state(response)
+
+        # Verify if the participant is rejudging an item
+        comparison_id = None
+        if 'comparison_id' in response and response['comparison_id'] != "":
+            comparison_id = response['comparison_id']
+
+        if comparison_id is None:
+            # Save the new participant comparison in the database.
+            c = Comparison(
+                participant_id=self._session['participant_id'],
+                study_id=self._study_id,
+                item_1_id=response['item_1_id'],
+                item_2_id=response['item_2_id'],
+                state=state,
+                selected_item_id=selected_item_id,
+            )
+            try:
+                db.session.add(c)
+                if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and state != self.SKIPPED:
+                    pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
+                    pair.judged = True
+                db.session.commit()
+                # Save the comparison for future possible rejudging
+                self._session['previous_comparison_id'] = c.comparison_id
+                self._session['comparison_ids'] = self._session['comparison_ids'] + [c.comparison_id]
+            except Exception:
+                db.session.rollback()
+                raise
+        else:
+            # Rejudge an existence comparison.
+            query = db.select(Comparison).where(
+                Comparison.comparison_id == comparison_id,
+                Comparison.participant_id == self._session['participant_id'],
+            )
+            comparison = db.session.scalars(query).first()
+
+            if comparison is None:
+                raise RuntimeError("Invalid comparison id provided")
+            try:
+                comparison.selected_item_id = selected_item_id
+                comparison.state = state
+                comparison.updated = datetime.now(timezone.utc)
+                db.session.commit()
+                # Return the pointer to the last comparison made as the participant will be given a new one next
+                self._session['previous_comparison_id'] = self._session['comparison_ids'][
+                    len(self._session['comparison_ids']) - 1
+                ]
+            except Exception:
+                db.session.rollback()
+                raise
 
     def _get_sub_questions(self):
         questions = []
@@ -269,11 +310,10 @@ class Rank(Request):
         )
         return res
 
-    def _calculate_comparison_state(self, action, response):
+    def _calculate_comparison_state(self, response):
         """Get the right comparison parameters based on the participant's action.
 
         Args:
-            action (str): Action triggered by the participant
             response (dict): POST from response
 
         Returns:
@@ -282,13 +322,13 @@ class Rank(Request):
         """
         state = None
         selected_item_id = None
-        if action == self.CONFIRMED:
+        if response['action'] == self.CONFIRMED:
             if response.get('selected_item_id') is not None:
                 state = Comparison.SELECTED
                 selected_item_id = response['selected_item_id']
             else:
                 state = Comparison.TIED
-        elif action == self.SKIPPED:
+        elif response['action'] == self.SKIPPED:
             state = Comparison.SKIPPED
 
         return state, selected_item_id

@@ -54,15 +54,15 @@
     <div class="row pl-2 pr-2 mt-1">
       <div class="p-2 text-center col-4">
         {% if can_rejudge and allow_back %}
-          <button id="previous-button" type="submit" name='state' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
+          <button id="previous-button" type="submit" name='action' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
         {% endif %}
         </div>
       <div class="p-2 text-center col-4">
-        <button id="confirm-button-d" type="submit" name='state' value='{{confirmed_value}}' class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
+        <button id="confirm-button-d" type="submit" name='action' value='{{confirmed_value}}' class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
       </div>
       <div class="p-2 text-center col-4">
         {% if allow_skip %}
-          <button id="skip-button" type="submit" name='state' value='{{skipped_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{skipped_label}}</button>
+          <button id="skip-button" type="submit" name='action' value='{{skipped_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{skipped_label}}</button>
         {% endif %}
         </div>
     </div>
