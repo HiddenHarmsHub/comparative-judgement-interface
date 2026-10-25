@@ -15,6 +15,7 @@ class Request:
         """
         self._app = app
         self._session = session
+        print(self._session)
         try:
             self._language = session['language']
         except Exception:

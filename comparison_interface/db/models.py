@@ -152,6 +152,8 @@ class Comparison(db.Model, BaseModel):
 
     comparison_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
+    sub_question_id = db.Column(db.Integer, db.ForeignKey('study_sub_questions.question_id'), nullable=True)
     item_1_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
     item_2_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
     selected_item_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=True)
