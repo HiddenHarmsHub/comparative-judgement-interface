@@ -76,19 +76,34 @@
             <div class="answer-matrix-row-content d-grid">
               <div class="answer-matrix-question fw-semibold" aria-hidden="true">{{ question.question_text }}</div>
               <label class="answer-matrix-choice d-grid">
-                <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
-                  name="question_{{ question.question_id }}" value="{{ item_1.item_id }}" required>
+                <input
+                  type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
+                  name="question_{{ question.question_id }}"
+                  value="{{ item_1.item_id }}"
+                  {% if question.initial_selected_item_id==item_1.item_id %}checked="checked"{% endif %}
+                  {% if question.initial_state=='tied' %}checked="checked"{% endif %}
+                  {% if not allow_ties %}required{% endif %}
+                >
                 <span class="visually-hidden">{{ item_1.label }}</span>
               </label>
               <label class="answer-matrix-choice d-grid">
-                <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
-                  name="question_{{ question.question_id }}" value="{{ item_2.item_id }}">
+                <input
+                  type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
+                  name="question_{{ question.question_id }}"
+                  value="{{ item_2.item_id }}"
+                  {% if question.initial_selected_item_id==item_2.item_id %}checked="checked"{% endif %}
+                  {% if question.initial_state=='tied' %}checked="checked"{% endif %}
+                >
                 <span class="visually-hidden">{{ item_2.label }}</span>
               </label>
               {% if allow_skip %}
               <label class="answer-matrix-choice d-grid">
-                <input type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
-                  name="question_{{ question.question_id }}" value="">
+                <input
+                  type="{% if allow_ties %}checkbox{% else %}radio{% endif %}"
+                  name="question_{{ question.question_id }}"
+                  value=""
+                  {% if question.initial_state=='skipped' %}checked="checked"{% endif %}
+                >
                 <span class="visually-hidden">{{ skipped_label }}</span>
               </label>
               {% endif %}
