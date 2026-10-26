@@ -17,7 +17,7 @@
             "offerEscapeRouteBetweenCycles": true,
             "cycleLength": 10,
             "maximumCyclesPerUser": 3,
-            "allowTies": false,
+            "allowTies": true,
             "allowSkip": true,
             "allowBack": true,
             "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
