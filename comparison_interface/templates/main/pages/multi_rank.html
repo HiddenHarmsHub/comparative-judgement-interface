@@ -11,6 +11,7 @@
   <form 
     id="rank-form"
     method="POST"
+    action="{{ url_for('.rank') }}"
     aria-labelledby="instructions"
     data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
     data-confirm-button-error="{{confirm_button_error_message}}"
@@ -19,11 +20,8 @@
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" id="weighted_pair_id" name="weighted_pair_id"
-      value="{% if weighted_pair_id %}{{weighted_pair_id}}{% else %}{% endif %}">
+      value="{% if weighted_pair_id %}{{ weighted_pair_id }}{% else %}{% endif %}">
     <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
-    <input type="hidden" id="study_id" name="study_id" value="{{ study_id }}">
-    <input type="hidden" id="comparison_id" name="comparison_id"
-      value="{% if comparison_id %}{{comparison_id}}{% else %}{% endif %}">
 
     <div class="text-center">
       <p class="progress-counter fs-5">{{comparison_number_label}}:&nbsp;{{comparison_number}}</p>
@@ -82,7 +80,6 @@
                   value="{{ item_1.item_id }}"
                   {% if question.initial_selected_item_id==item_1.item_id %}checked="checked"{% endif %}
                   {% if question.initial_state=='tied' %}checked="checked"{% endif %}
-                  {% if not allow_ties %}required{% endif %}
                 >
                 <span class="visually-hidden">{{ item_1.label }}</span>
               </label>

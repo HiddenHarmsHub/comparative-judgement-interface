@@ -54,6 +54,10 @@ def item_selection():
     """Handle item selection URL (pre-ranking)."""
     return Request.process(ItemsPreference(current_app, session), request)
 
+@blueprint.route('/rank/previous', methods=['GET'])
+def previous():
+    """Handle ranking URL."""
+    return Request.process(Rank(current_app, session, previous=True), request)
 
 @blueprint.route('/rank', methods=['GET', 'POST'])
 def rank():
