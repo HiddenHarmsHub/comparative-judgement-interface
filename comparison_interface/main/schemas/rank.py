@@ -13,9 +13,12 @@ class RankPostSchema(Schema):
         for question_id in question_ids:
             field_name = f"question_{question_id}"
             self.none_allowed_fields.add(field_name)
-            question_field = fields.Int(
+
+            question_field = fields.List(
+                fields.Int(required=False, allow_none=True),
                 required=True,
-                allow_none=none_allowed,
+                allow_none=True,
+                # allow_none=none_allowed,
             )
             self.fields[field_name] = question_field
             self.load_fields[field_name] = question_field
@@ -26,7 +29,6 @@ class RankPostSchema(Schema):
         unknown = RAISE
 
     OPTIONAL_ID_FIELDS = {
-        "comparison_id",
         "selected_item_id",
         "item_1_id",
         "item_2_id",
@@ -37,8 +39,6 @@ class RankPostSchema(Schema):
         required=True,
         validate=validate.OneOf(["rejudged", "confirmed", "skipped"]),
     )
-    study_id = fields.Int(required=True, allow_none=False)
-    comparison_id = fields.Int(required=False, allow_none=True)
     selected_item_id = fields.Int(required=False, allow_none=True)
     item_1_id = fields.Int(required=False, allow_none=True)
     item_2_id = fields.Int(required=False, allow_none=True)
@@ -76,9 +76,6 @@ class RankPostSchema(Schema):
         """
         if data["item_1_id"] not in self.expected_item_ids or data["item_2_id"] not in self.expected_item_ids:
             raise ValidationError("the item ids returned were not the expected item ids.")
-
-        if data["study_id"] != self.study_id:
-            raise ValidationError("the study id returned was not correct.")
 
         if data["action"] == "skipped" and data.get("selected_item_id") is not None:
             raise ValidationError({"selected_item_id": ["selected_item_id must not be set when state is skipped."]})

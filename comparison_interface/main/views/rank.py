@@ -27,6 +27,10 @@ from .request import Request
 class Rank(Request):
     """Page to rank each of the items being compared."""
 
+    def __init__(self, app, session, previous=False):
+        super().__init__(app, session)
+        self.previous = previous
+
     # Available rank actions
     REJUDGE = 'rejudged'
     CONFIRMED = 'confirmed'
@@ -48,20 +52,14 @@ class Rank(Request):
         ):
             return self._redirect('.thankyou')
 
-        comparison_id = None
-        args = request.args.to_dict(flat=True)
-        print(args)
-        multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
-        if 'comparison_id' in args:
-            comparison_id = args['comparison_id']
-            if '|' in comparison_id:
-                comparison_id = comparison_id.split('|')[0]
-
+        # get the items to compare, either a new pair or the previous pair as appropriate
+        previous_id = None
+        if self.previous:
+            previous_id = self._session['previous_comparison_id']
+            if isinstance(previous_id, list):
+                previous_id = previous_id[0]  # the pairs are all the same so just get the first one
         pair_id = None
-        if multiple_questions:
-            item_data = self._get_items_to_compare(comparison_id)
-        else:
-            item_data = self._get_items_to_compare(comparison_id)
+        item_data = self._get_items_to_compare(previous_id)
 
         if len(item_data) == 2:
             item_1, item_2 = item_data
@@ -77,15 +75,29 @@ class Rank(Request):
                 },
             )
 
-        if comparison_id is not None:
-            print('GETTING COMPARISON')
+        if previous_id is not None:
             # if we are in a rejudging state get the current state to show to the participant:
-            comparison_states = self._get_current_comparison_state(comparison_id, multiple_questions)
-            # TODO: the item ids need to be saved in the sesion
+            comparison_states = self._get_current_comparison_state()
+            self._session['current_comparison'] = self._session['previous_comparison_id']
+            # reset the session information
+            try:
+                comparison_id_index = self._session['comparison_ids'].index(int(previous_id))
+            except ValueError:  # this one handles multiple readings
+                comparison_id_index = next(
+                    (i for i, inner in enumerate(self._session['comparison_ids']) if int(previous_id) in inner),
+                    None
+                )
+            if comparison_id_index == 0:
+                self._session['previous_comparison_id'] = None
+            else:
+                self._session['previous_comparison_id'] = self._session['comparison_ids'][comparison_id_index - 1]
+
         else:
             comparison_states = None
             # save the items in the server session so we can validate results later
-            self._session['item_ids'] = [item_1.item_id, item_2.item_id]
+        self._session['item_ids'] = [item_1.item_id, item_2.item_id]
+        print(comparison_states)
+        print(self._session)
 
         # The participant can rejudge comparisons if:
         # - at least one comparison has already been made in the session
@@ -107,20 +119,18 @@ class Rank(Request):
             'confirmed_value': self.CONFIRMED,
             'skipped_value': self.SKIPPED,
             'can_rejudge': can_rejudge,
-            'comparison_id': comparison_id,
             'allow_ties': allow_ties,
             'allow_skip': allow_skip,
             'allow_back': allow_back,
             'study_id': self._study_id,
         }
-
+        multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
         if multiple_questions:
             questions = self._get_sub_questions()
-            if len(comparison_states) == len(questions):
+            if comparison_states and len(comparison_states) == len(questions):
                 for i, question in enumerate(questions):
                     question.initial_state = comparison_states[i][0]
                     question.initial_selected_item_id = comparison_states[i][1]
-                    print(question.initial_selected_item_id)
             data = {
                 'questions': questions,
             }
@@ -129,7 +139,6 @@ class Rank(Request):
 
         else:
             compared, skipped = self._get_comparison_stats()
-
 
             if use_escape_route:
                 # If we have asked for an escape route check the counts and redirect if necessary
@@ -157,6 +166,7 @@ class Rank(Request):
                     WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP, self._language, self._app
                 )
             data = {
+                'comparison_id': previous_id,
                 'selected_item_label': WS.get_text(WS.RANK_ITEM_SELECTED_INDICATOR_LABEL, self._language, self._app),
                 'tied_selection_label': WS.get_text(
                     WS.RANK_ITEM_TIED_SELECTION_INDICATOR_LABEL, self._language, self._app
@@ -187,39 +197,46 @@ class Rank(Request):
 
     def post(self, request):
         """Request post handler."""
-        raw_form = request.form.to_dict(flat=True)
-        if raw_form['action'] == self.REJUDGE:
-            return self._redirect('.rank', comparison_id=self._session['previous_comparison_id'])
-        else:
-            raw_form = request.form.to_dict(flat=True)
-            raw_form.pop('csrf_token', None)
-            multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
-            expected_item_ids = self._session['item_ids']
-            if multiple_questions:
-                allow_skip = db.session.get(StudyControl, self._study_id).allow_skip
-                questions = self._get_sub_questions()
-                rank_schema = RankPostSchema(
-                    study_id=self._study_id,
-                    expected_item_ids=expected_item_ids,
-                    questions=questions,
-                    none_allowed=allow_skip
-                )
-            else:
-                rank_schema = RankPostSchema(study_id=self._study_id, expected_item_ids=expected_item_ids)
-            try:
-                response = rank_schema.load(raw_form)
-            except ValidationError as error:
-                print(error.messages)
-                self._app.logger.warning("Rejected judgement")
-                abort(400)
+        if request.form.get('action') == self.REJUDGE:
+            return self._redirect('.previous')
 
-            if multiple_questions:
-                self._save_multiple_comparisons(response)
-            else:
-                self._save_single_comparison(response)
-            return self._redirect('.rank')
+        raw_form = request.form.to_dict(flat=True)
+        questions = [x for x in raw_form if x.startswith('question_')]
+        for question in questions:
+            raw_form[question] = request.form.getlist(question)
+        raw_form.pop('csrf_token', None)
+        print(raw_form)
+        print('===========')
+        print('===========')
+        multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
+        expected_item_ids = self._session['item_ids']
+        if multiple_questions:
+            allow_skip = db.session.get(StudyControl, self._study_id).allow_skip
+            questions = self._get_sub_questions()
+            rank_schema = RankPostSchema(
+                study_id=self._study_id,
+                expected_item_ids=expected_item_ids,
+                questions=questions,
+                none_allowed=allow_skip
+            )
+        else:
+            rank_schema = RankPostSchema(study_id=self._study_id, expected_item_ids=expected_item_ids)
+        try:
+            response = rank_schema.load(raw_form)
+        except ValidationError as error:
+            print(error.messages)
+            self._app.logger.warning("Rejected judgement")
+            abort(400)
+
+        if multiple_questions:
+            self._save_multiple_comparisons(response)
+        else:
+            self._save_single_comparison(response)
+        return self._redirect('.rank')
 
     def _save_multiple_comparisons(self, response):
+        print(response)
+        print('~~~~~~~~~~~~')
         questions = [x for x in response.keys() if x.startswith('question_')]
         questions.sort(key=lambda x: int(x.rsplit("_", 1)[1]))
         comparisons = []
@@ -239,24 +256,46 @@ class Rank(Request):
             )
             comparisons.append(c)
 
-        # Verify if the participant is rejudging an item
-        comparison_id = None
-        if 'comparison_id' in response and response['comparison_id'] != "":
-            comparison_id = response['comparison_id']
-
-        if comparison_id is None:
+        # Check if the participant is rejudging an item
+        if 'current_comparison' not in self._session:
             try:
                 db.session.add_all(comparisons)
                 db.session.commit()
                 comparison_ids = [comparison.comparison_id for comparison in comparisons]
-                self._session['previous_comparison_id'] = '|'.join([str(x) for x in comparison_ids])
+                self._session['previous_comparison_id'] = comparison_ids
                 self._session['comparison_ids'] = self._session['comparison_ids'] + [comparison_ids]
             except Exception:
                 db.session.rollback()
                 raise
         else:
             # we are rejudging
-            print(comparison_id)
+            # need to be careful that we are saving the right ones in the right place
+            query = db.select(Comparison).filter(
+                Comparison.comparison_id.in_(self._session['current_comparison']),
+                Comparison.participant_id == self._session['participant_id'],
+                Comparison.study_id == self._study_id
+            )
+            comparisons = db.session.scalars(query).all()
+            try:
+                for comparison in comparisons:
+                    current_question = f'question_{comparison.sub_question_id}'
+                    if response[current_question] is None:
+                        state = Comparison.SKIPPED
+                    else:
+                        state = Comparison.SELECTED
+                    comparison.selected_item_id = response[current_question]
+                    comparison.state = state
+                    comparison.updated = datetime.now(timezone.utc)
+                db.session.commit()
+                # Return the pointer to the last comparison made as the participant will be given a new one next
+                self._session['previous_comparison_id'] = self._session['comparison_ids'][
+                    len(self._session['comparison_ids']) - 1
+                ]
+                self._session.pop('current_comparison')
+            except Exception:
+                db.session.rollback()
+                self._session.pop('current_comparison')
+                raise
 
     def _save_single_comparison(self, response):
         # Set the comparison state based on the participant's action
@@ -331,30 +370,21 @@ class Rank(Request):
             questions.append(question)
         return questions
 
-    def _get_current_comparison_state(self, comparison_id, multiple_questions):
-        """Get the current comparison state and selected item id for the requested comparison id.
-
-        Args:
-            comparison_id (int): The primary key of the comparison to retrieve
-            multiple_questions (bool): Whether or not we are dealing with multiple questions
+    def _get_current_comparison_state(self):
+        """Get the current comparison state and selected item id for the previous comparison.
 
         Returns:
             list: A list of tuples containing the state and selected id.
         """
-        if multiple_questions:
-            res = (
-                db.session.query(Comparison.state, Comparison.selected_item_id)
-                .filter(Comparison.comparison_id.in_(comparison_id.split("|")))
-                .all()
-            )
-            return res
-        else:
-            res = (
-                db.session.query(Comparison.state, Comparison.selected_item_id)
-                .where(Comparison.comparison_id == comparison_id)
-                .first()
-            )
-            return [res]
+        previous_comparison = self._session['previous_comparison_id']
+        if not isinstance(previous_comparison, list):
+            previous_comparison = [previous_comparison]
+        res = (
+            db.session.query(Comparison.state, Comparison.selected_item_id)
+            .filter(Comparison.comparison_id.in_(previous_comparison))
+            .all()
+        )
+        return res
 
     def _calculate_comparison_state(self, response):
         """Get the right comparison parameters based on the participant's action.
@@ -436,10 +466,8 @@ class Rank(Request):
             Item: Model Item | None
             Item: Model Item | None
         """
-        print('=====================')
-        print(comparison_id)
         # TODO: change hard coded study id from 1 to the current study
-        render_item_prefer = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, 1, self._app)
+        render_item_prefer = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._study_id, self._app)
 
         # Case 1: Returns the items related to a particular comparison.
         if comparison_id is not None:
@@ -488,19 +516,10 @@ class Rank(Request):
         if comparison is None:
             raise RuntimeError("Invalid comparison id provided")
 
-        # 2. Get the items information)
+        # 2. Get the individual item information
         query = db.select(Item).where(Item.item_id.in_([comparison.item_1_id, comparison.item_2_id]))
         items = db.session.scalars(query).all()
 
-        # 3. Update the session parameters
-        try:
-            comparison_id_index = self._session['comparison_ids'].index(int(comparison_id))
-        except ValueError:  # this one handles multiple readings
-            comparison_id_index = self._session['comparison_ids'][0].index(int(comparison_id))
-        if comparison_id_index == 0:
-            self._session['previous_comparison_id'] = None
-        else:
-            self._session['previous_comparison_id'] = self._session['comparison_ids'][comparison_id_index - 1]
         # return them in the order they were originally displayed
         if items[0].item_id == comparison.item_1_id:
             return items[0], items[1]
