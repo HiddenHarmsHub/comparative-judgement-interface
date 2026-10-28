@@ -2,36 +2,39 @@
 
 // on load function to display current state if we are rejudging
 $(function () {
-    const rankForm = document.getElementById("rank-form");
-    if (document.getElementById('comparison_id') && document.getElementById('comparison_id').value !== '') {
-        const initialSelectedItemId = rankForm.dataset.initialSelectedItemId;
-        if (rankForm.dataset.initialState === 'tied') {
+    const rankForm = $('#rank-form');
+    const allowTies = rankForm.data('allow-ties');
+    if (rankForm.data('initial-state') != '') {
+        const initialState = rankForm.data('initial-state');
+        const initialSelectedItemId = rankForm.data('initial-selected-item-id');
+        const item1Id = rankForm.data('item-1-id');
+        const item2Id = rankForm.data('item-2-id');
+        if (initialState === 'tied') {
             // aria-select both images
             $('#left-item').attr('aria-checked', 'true');
             $('#right-item').attr('aria-checked', 'true');
             //  add equal hint to both images
             addVisualHint('selection-tied', document.getElementById('left-item'), 'tied');
             addVisualHint('selection-tied', document.getElementById('right-item'), 'tied');
-        } else if (rankForm.dataset.initialState === 'selected') {
+        } else if (initialState === 'selected') {
             // set the previously selected item id
             setSelectedItem(initialSelectedItemId);
 
             // find the correct image and select it and add the hint
-            if (document.getElementById('item_1_id').value === initialSelectedItemId) {
+            if (item1Id === initialSelectedItemId) {
                 $('#left-item').attr('aria-checked', 'true');
                 addVisualHint('selected-item', document.getElementById('left-item'), 'selected');
 
-            } else if (document.getElementById('item_2_id').value === initialSelectedItemId) {
+            } else if (item2Id === initialSelectedItemId) {
                 $('#right-item').attr('aria-checked', 'true');
                 addVisualHint('selected-item', document.getElementById('right-item'), 'selected');
             }
-
-        } else if (rankForm.dataset.initialState === 'skipped') {
+        } else if (initialState === 'skipped') {
             addVisualHint('selection-skipped', document.getElementById('left-item'), 'skipped');
             addVisualHint('selection-skipped', document.getElementById('right-item'), 'skipped');
-
         }
     }
+    $('#rank-form').on('submit', checkSelection);
 });
 
 $("img").on('click', function () {
@@ -53,7 +56,7 @@ function checkSelection(event) {
     if ($(event.target).data().isSubmitted) {
         return false;
     }
-    if (event.submitter.id === 'skip-button') {
+    if (event.originalEvent.submitter.id === 'skip-button') {
         // then we need to check nothing has been selected
         if ($('#left-item').attr('aria-checked') === 'false' && $('#right-item').attr('aria-checked') === 'false') {
             $(event.target).data().isSubmitted = true;
@@ -62,7 +65,7 @@ function checkSelection(event) {
         alert(rankForm.dataset.skipButtonError);
         return false;
 
-    } else if (event.submitter.id === 'confirm-button-d') {
+    } else if (event.originalEvent.submitter.id === 'confirm-button-d') {
         // then we need to ensure something has been selected
         if ($('#left-item').attr('aria-checked') === 'true' || $('#right-item').attr('aria-checked') === 'true') {
             $(event.target).data().isSubmitted = true;

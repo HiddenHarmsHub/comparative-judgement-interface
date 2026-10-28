@@ -7,8 +7,10 @@
   <form
     id="rank-form"
     method="POST"
+    action="{{ url_for('.rank') }}"
     aria-labelledby="instructions"
-    onsubmit="return checkSelection(event);"
+    data-item-1-id="{{ item_1.item_id }}"
+    data-item-2-id="{{ item_2.item_id }}"
     data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
     data-selected-item-indicator="{{selected_item_label}}"
     data-tied-items-indicator="{{tied_selection_label}}"
@@ -21,7 +23,6 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" id="weighted_pair_id" name="weighted_pair_id" value="{% if weighted_pair_id %}{{weighted_pair_id}}{% else %}{% endif %}">
     <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
-    <input type="hidden" id="comparison_id" name="comparison_id" value="{% if comparison_id %}{{comparison_id}}{% else %}{% endif %}">
     <div class="form-group">
       <div class="text-center">
         <p id="instructions" class="judgement-instructions fs-4">{{comparison_instruction_label}}</p>
@@ -54,7 +55,7 @@
     <div class="row pl-2 pr-2 mt-1">
       <div class="p-2 text-center col-4">
         {% if can_rejudge and allow_back %}
-          <button id="previous-button" type="submit" name='action' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
+          <button id="previous-button" formaction="{{ url_for('.previous') }}" type="submit" name='action' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
         {% endif %}
         </div>
       <div class="p-2 text-center col-4">

@@ -3,8 +3,6 @@ $(function () {
 });
 
 function checkSelection(event) {
-    console.log(event)
-    console.log(event.originalEvent.submitter)
     // prevent double submission
     if ($(event.target).data().isSubmitted) {
         return false;
