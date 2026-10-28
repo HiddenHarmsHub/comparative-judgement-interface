@@ -28,6 +28,7 @@ class Rank(Request):
     """Page to rank each of the items being compared."""
 
     def __init__(self, app, session, previous=False):
+        """Initialise rank with a flag to say if we are rejudging or making a new comparison."""
         super().__init__(app, session)
         self.previous = previous
 
@@ -84,8 +85,7 @@ class Rank(Request):
                 comparison_id_index = self._session['comparison_ids'].index(int(previous_id))
             except ValueError:  # this one handles multiple readings
                 comparison_id_index = next(
-                    (i for i, inner in enumerate(self._session['comparison_ids']) if int(previous_id) in inner),
-                    None
+                    (i for i, inner in enumerate(self._session['comparison_ids']) if int(previous_id) in inner), None
                 )
             if comparison_id_index == 0:
                 self._session['previous_comparison_id'] = None
@@ -96,8 +96,6 @@ class Rank(Request):
             comparison_states = None
             # save the items in the server session so we can validate results later
         self._session['item_ids'] = [item_1.item_id, item_2.item_id]
-        print(comparison_states)
-        print(self._session)
 
         # The participant can rejudge comparisons if:
         # - at least one comparison has already been made in the session
@@ -190,37 +188,36 @@ class Rank(Request):
                 'initial_selected_item_id': None,
             }
             if comparison_states is not None:
-                data['initial_state'] = comparison_states[0][0],
-                data['initial_selected_item_id'] = comparison_states[0][1],
+                data['initial_state'] = comparison_states[0][0]
+                data['initial_selected_item_id'] = comparison_states[0][1]
             data = shared_data | data
             return self._render_template('main/pages/rank.html', data)
 
     def post(self, request):
         """Request post handler."""
-        if request.form.get('action') == self.REJUDGE:
-            return self._redirect('.previous')
+        if self.previous:
+            return self.get(request)
 
         raw_form = request.form.to_dict(flat=True)
         questions = [x for x in raw_form if x.startswith('question_')]
         for question in questions:
             raw_form[question] = request.form.getlist(question)
         raw_form.pop('csrf_token', None)
-        print(raw_form)
-        print('===========')
-        print('===========')
         multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
         expected_item_ids = self._session['item_ids']
         if multiple_questions:
             allow_skip = db.session.get(StudyControl, self._study_id).allow_skip
+            allow_ties = db.session.get(StudyControl, self._study_id).allow_ties
             questions = self._get_sub_questions()
             rank_schema = RankPostSchema(
-                study_id=self._study_id,
                 expected_item_ids=expected_item_ids,
                 questions=questions,
-                none_allowed=allow_skip
+                none_allowed=allow_skip,
+                ties_allowed=allow_ties,
             )
         else:
-            rank_schema = RankPostSchema(study_id=self._study_id, expected_item_ids=expected_item_ids)
+            allow_ties = db.session.get(StudyControl, self._study_id).allow_ties
+            rank_schema = RankPostSchema(expected_item_ids=expected_item_ids, ties_allowed=allow_ties)
         try:
             response = rank_schema.load(raw_form)
         except ValidationError as error:
@@ -235,16 +232,20 @@ class Rank(Request):
         return self._redirect('.rank')
 
     def _save_multiple_comparisons(self, response):
-        print(response)
-        print('~~~~~~~~~~~~')
         questions = [x for x in response.keys() if x.startswith('question_')]
         questions.sort(key=lambda x: int(x.rsplit("_", 1)[1]))
         comparisons = []
         for question in questions:
-            if response[question] is None:
+            if len(response[question]) == 0:
                 state = Comparison.SKIPPED
-            else:
+                selected_id = None
+            elif len(response[question]) == 1:
                 state = Comparison.SELECTED
+                selected_id = response[question][0]
+            elif len(response[question]) == 2:
+                state = Comparison.TIED
+                selected_id = None
+
             c = Comparison(
                 participant_id=self._session['participant_id'],
                 study_id=self._study_id,
@@ -252,7 +253,7 @@ class Rank(Request):
                 item_2_id=response['item_2_id'],
                 state=state,
                 sub_question_id=question.replace('question_', ''),
-                selected_item_id=response[question],
+                selected_item_id=selected_id,
             )
             comparisons.append(c)
 
@@ -273,24 +274,20 @@ class Rank(Request):
             query = db.select(Comparison).filter(
                 Comparison.comparison_id.in_(self._session['current_comparison']),
                 Comparison.participant_id == self._session['participant_id'],
-                Comparison.study_id == self._study_id
+                Comparison.study_id == self._study_id,
             )
-            comparisons = db.session.scalars(query).all()
+            existing_comparisons = db.session.scalars(query).all()
+            # make a look up for the new data then merge it
+            new_by_id = {c.comparison_id: c for c in comparisons}
             try:
-                for comparison in comparisons:
-                    current_question = f'question_{comparison.sub_question_id}'
-                    if response[current_question] is None:
-                        state = Comparison.SKIPPED
-                    else:
-                        state = Comparison.SELECTED
-                    comparison.selected_item_id = response[current_question]
-                    comparison.state = state
-                    comparison.updated = datetime.now(timezone.utc)
+                for existing_comparison in existing_comparisons:
+                    new_data = new_by_id[existing_comparison.comparison_id]
+                    existing_comparison.selected_item_id = new_data.selected_item_id
+                    existing_comparison.state = new_data.state
+                    existing_comparison.updated = datetime.now(timezone.utc)
                 db.session.commit()
                 # Return the pointer to the last comparison made as the participant will be given a new one next
-                self._session['previous_comparison_id'] = self._session['comparison_ids'][
-                    len(self._session['comparison_ids']) - 1
-                ]
+                self._session['previous_comparison_id'] = self._session['comparison_ids'][-1]
                 self._session.pop('current_comparison')
             except Exception:
                 db.session.rollback()
@@ -302,11 +299,7 @@ class Rank(Request):
         state, selected_item_id = self._calculate_comparison_state(response)
 
         # Verify if the participant is rejudging an item
-        comparison_id = None
-        if 'comparison_id' in response and response['comparison_id'] != "":
-            comparison_id = response['comparison_id']
-
-        if comparison_id is None:
+        if 'current_comparison' not in self._session:
             # Save the new participant comparison in the database.
             c = Comparison(
                 participant_id=self._session['participant_id'],
@@ -331,7 +324,7 @@ class Rank(Request):
         else:
             # Rejudge an existence comparison.
             query = db.select(Comparison).where(
-                Comparison.comparison_id == comparison_id,
+                Comparison.comparison_id == self._session['current_comparison'],
                 Comparison.participant_id == self._session['participant_id'],
             )
             comparison = db.session.scalars(query).first()
@@ -344,9 +337,7 @@ class Rank(Request):
                 comparison.updated = datetime.now(timezone.utc)
                 db.session.commit()
                 # Return the pointer to the last comparison made as the participant will be given a new one next
-                self._session['previous_comparison_id'] = self._session['comparison_ids'][
-                    len(self._session['comparison_ids']) - 1
-                ]
+                self._session['previous_comparison_id'] = self._session['comparison_ids'][-1]
             except Exception:
                 db.session.rollback()
                 raise

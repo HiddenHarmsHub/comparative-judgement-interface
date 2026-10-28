@@ -21,7 +21,6 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" id="weighted_pair_id" name="weighted_pair_id"
       value="{% if weighted_pair_id %}{{ weighted_pair_id }}{% else %}{% endif %}">
-    <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
 
     <div class="text-center">
       <p class="progress-counter fs-5">{{comparison_number_label}}:&nbsp;{{comparison_number}}</p>
