@@ -32,6 +32,7 @@ def test_render_rank_comparison_item_choice(equal_weight_client):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     response = equal_weight_client.get("/rank")
     assert response.status_code == 200
     assert b'You must be familiar with at least two of the items to continue with the comparisons.' in response.data
@@ -61,12 +62,18 @@ def test_register_selected_rank_comparison(equal_weight_client, equal_weight_app
     """
     with equal_weight_client:
         equal_weight_client.post("/register", data=participant_data)
+        with equal_weight_client.session_transaction() as session:
+                session['participant_id'] = 2
+                session['group_ids'] = [1]
+                session['weight_conf'] = 'equal'
+                session['previous_comparison_id'] = None
+                session['comparison_ids'] = []
+                session['study_id'] = 1
+                session['item_ids'] = [1, 2]
         response = equal_weight_client.post(
             "/rank",
             data={
-                'state': 'confirmed',
-                'item_1_id': '1',
-                'item_2_id': '2',
+                'action': 'confirmed',
                 'selected_item_id': '1',
             },
         )
@@ -301,6 +308,7 @@ def test_requesting_a_previous_comparison_post(equal_weight_app, equal_weight_cl
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     # first add a comparison
     response = equal_weight_client.post(
         "/rank",
@@ -339,6 +347,7 @@ def test_requesting_a_previous_comparison_get(equal_weight_app, equal_weight_cli
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     # first add a comparison to retrieve later
     response = equal_weight_client.post(
         "/rank",
@@ -379,6 +388,7 @@ def test_no_hard_stop_below_max_cycles(equal_weight_client, equal_weight_app):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     # TODO: ungardocde study_id
     max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
     participant = db.session.get(Participant, session['participant_id'])
@@ -402,6 +412,7 @@ def test_hard_stop_at_max_cycles(equal_weight_client, equal_weight_app):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     # TODO: unhardcode study id
     max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
     participant = db.session.get(Participant, session['participant_id'])
@@ -426,6 +437,7 @@ def test_redirect_at_first_cycle_end(mocker, equal_weight_client, equal_weight_a
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     # TODO: unhardcode study id
     cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, equal_weight_app)
     get_stats = mocker.patch.object(rank.Rank, '_get_comparison_stats')
@@ -452,6 +464,7 @@ def test_redirect_after_final_cycle_end(mocker, equal_weight_client, equal_weigh
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     # TODO: unhardcode study id
     max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
     cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, equal_weight_app)
@@ -481,6 +494,7 @@ def test_no_escape_route_if_setting_off(mocker, participant_data):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, app)
     get_stats = mocker.patch.object(rank.Rank, '_get_comparison_stats')
     get_stats.side_effect = [(cycle_length, 0)]
@@ -503,6 +517,7 @@ def test_skip_button_if_setting_true(equal_weight_client):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
+        session['study_id'] = 1
     response = equal_weight_client.get("/rank", follow_redirects=True)
     assert response.status_code == 200
     assert b'Comparison Software: Items Rank' in response.data
@@ -540,6 +555,7 @@ def test_previous_button_if_setting_true(equal_weight_client):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = 2
         session['comparison_ids'] = [1, 2]
+        session['study_id'] = 1
     response = equal_weight_client.get("/rank", follow_redirects=True)
     assert response.status_code == 200
     assert b'Comparison Software: Items Rank' in response.data
@@ -563,6 +579,7 @@ def test_no_previous_button_if_setting_false(participant_data):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = 2
         session['comparison_ids'] = [1, 2]
+        session['study_id'] = 1
     response = client.get("/rank", follow_redirects=True)
     assert response.status_code == 200
     assert b'Comparison Software: Items Rank' in response.data

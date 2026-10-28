@@ -249,9 +249,6 @@ class WebsiteTextConfiguration(Schema):
     userRegistrationEthicsAgreementLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=500
     )
-    itemSelectionQuestionLabel = OptionalMultiLangField(
-        required=False, value_type="string", min_length=1, max_length=500
-    )
     itemSelectionYesButtonLabel = OptionalMultiLangField(
         required=False, value_type="string", min_length=1, max_length=50
     )
@@ -417,6 +414,7 @@ class StudyConfiguration(Schema):
     comparisonConfiguration = fields.Nested(ComparisonConfiguration(), required=True)
     rankItemInstructionLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
     rankItemSubQuestions = OptionalMultiLangField(required=False, value_type="list", min_length=1, max_length=6)
+    itemSelectionQuestionLabel = OptionalMultiLangField(required=False, value_type="string", min_length=1, max_length=500)
     userRegistrationGroupQuestionLabel = OptionalMultiLangField(
         required=False, value_type="string", min_length=1, max_length=500
     )

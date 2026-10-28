@@ -82,7 +82,7 @@ class Setup:
             data = CsvProcessor().create_config_from_csv(filepath)
             return data[key]
         else:
-            if key not in self.json_conf[WS.CONFIGURATION_COMPARISON]:
+            if key not in study_config[WS.CONFIGURATION_COMPARISON]:
                 self.app.logger.critical("Label %s wasn't found in the comparison configuration." % (key))
                 exit()
         return study_config[WS.CONFIGURATION_COMPARISON][key]
