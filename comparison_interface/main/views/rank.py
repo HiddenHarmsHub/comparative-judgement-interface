@@ -278,10 +278,10 @@ class Rank(Request):
             )
             existing_comparisons = db.session.scalars(query).all()
             # make a look up for the new data then merge it
-            new_by_id = {c.comparison_id: c for c in comparisons}
+            new_by_id = {c.sub_question_id: c for c in comparisons}
             try:
                 for existing_comparison in existing_comparisons:
-                    new_data = new_by_id[existing_comparison.comparison_id]
+                    new_data = new_by_id[str(existing_comparison.sub_question_id)]
                     existing_comparison.selected_item_id = new_data.selected_item_id
                     existing_comparison.state = new_data.state
                     existing_comparison.updated = datetime.now(timezone.utc)
