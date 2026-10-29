@@ -25,6 +25,7 @@
                                 <h2 class="fs-4">Export data</h2>
                                 <p>Export the database from the current study (the data will also stay on the server).</p>
                                 <form method="POST" action="export">
+                                    {{ form.csrf_token }} 
                                     <input type="submit" value="Export Data"/>
                                 </form>
                             </div>
@@ -37,6 +38,7 @@
                                     can be used after testing to remove the test data before running a study.
                                 </p>
                                 <form id="clear-database" method="POST" action="clear">
+                                    {{ form.csrf_token }}
                                     <input type="submit" value="Clear Database"/>
                                 </form>
                             </div>
@@ -48,6 +50,7 @@
                             {% if edit_instructions %}
                                 <div class="pb-2 pt-2">
                                     <form method="POST" action="edit-page">
+                                        {{ form.csrf_token }} 
                                         <input type="hidden" name="page_type" value="instructions"/>
                                         <input class="btn btn-secondary" type="submit" value="Edit Instructions"/>
                                     </form>
@@ -56,6 +59,7 @@
                             {% if edit_ethics_agreement %}
                                 <div  class="pb-2 pt-2">
                                     <form method="POST" action="edit-page">
+                                        {{ form.csrf_token }} 
                                         <input type="hidden" name="page_type" value="ethics"/>
                                         <input class="btn btn-secondary" type="submit" value="Edit Ethics Agreement"/>
                                     </form>
@@ -64,6 +68,7 @@
                             {% if edit_site_policies %}
                                 <div  class="pb-2 pt-2">
                                     <form method="POST" action="edit-page">
+                                        {{ form.csrf_token }} 
                                         <input type="hidden" name="page_type" value="policies"/>
                                         <input class="btn btn-secondary"  type="submit" value="Edit Site Policies"/>
                                     </form>
