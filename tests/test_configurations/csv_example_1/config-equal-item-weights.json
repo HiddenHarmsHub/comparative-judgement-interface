@@ -21,6 +21,7 @@
             "allowBack": true,
             "rankItemInstructionLabel": "Click the region that has the higher rate of deprivation, then click on the blue confirm button.",
             "comparisonConfiguration" : {
+                "weightConfiguration": "equal",
                 "csvFile": "example_1.csv"
             }
         }
