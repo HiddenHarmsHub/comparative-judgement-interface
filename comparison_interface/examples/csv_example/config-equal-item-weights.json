@@ -17,10 +17,18 @@
             "offerEscapeRouteBetweenCycles": true,
             "cycleLength": 10,
             "maximumCyclesPerUser": 3,
-            "allowTies": true,
+            "allowTies": false,
             "allowSkip": true,
             "allowBack": true,
-            "rankItemInstructionLabel": "This is the study 2 question?",
+            "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
+            "userRegistrationGroupSelectionErr": "Please select at least one region.",
+            "rankItemInstructionLabel": "Which municipality has the highest prevalence of the following types of violence?",
+            "rankItemSubQuestions": [
+                "Physical violence against women",
+                "Physical violence against children",
+                "Sexual violence against women",
+                "Sexual violence against children"
+            ],
             "comparisonConfiguration": {
                 "weightConfiguration": "equal",
                 "csvFile": "example.csv"
@@ -34,15 +42,7 @@
             "allowTies": true,
             "allowSkip": true,
             "allowBack": true,
-            "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
-            "userRegistrationGroupSelectionErr": "Please select at least one region.",
-            "rankItemInstructionLabel": "Which municipality has the highest prevalence of the following types of violence?",
-            "rankItemSubQuestions": [
-                "Physical violence against women",
-                "Physical violence against children",
-                "Sexual violence against women",
-                "Sexual violence against children"
-            ],
+            "rankItemInstructionLabel": "This is the study 2 question?",
             "comparisonConfiguration": {
                 "weightConfiguration": "equal",
                 "csvFile": "example.csv"
