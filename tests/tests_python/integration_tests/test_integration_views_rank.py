@@ -1,5 +1,4 @@
 import pytest
-from flask import session
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
