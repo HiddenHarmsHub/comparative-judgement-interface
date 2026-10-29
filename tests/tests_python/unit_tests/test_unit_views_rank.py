@@ -41,6 +41,7 @@ def test_item_retrieval_function_choice_with_id(mocker, equal_weight_app):
     """
     request = Request(equal_weight_app, {})
     request._session['participant_id'] = 1
+    request._session['study_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -62,6 +63,7 @@ def test_item_retrieval_function_choice_with_custom_weights(mocker, custom_weigh
     """
     request = Request(custom_weight_app, {})
     request._session['participant_id'] = 1
+    request._session['study_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'manual'
     request._session['previous_comparison_id'] = None
@@ -83,6 +85,7 @@ def test_item_retrieval_function_choice_with_preference(mocker, equal_weight_app
     """
     request = Request(equal_weight_app, {})
     request._session['participant_id'] = 1
+    request._session['study_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -104,6 +107,7 @@ def test_item_retrieval_function_choice_without_preference(mocker, equal_weight_
     """
     request = Request(equal_weight_app, {})
     request._session['participant_id'] = 1
+    request._session['study_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = None
@@ -125,6 +129,7 @@ def test_item_retrieval_function_choice_with_unrecognised_setting(mocker, equal_
     """
     request = Request(equal_weight_app, {})
     request._session['participant_id'] = 1
+    request._session['study_id'] = 1
     request._session['group_ids'] = [1]
     request._session['weight_conf'] = 'wrong_setting'
     request._session['previous_comparison_id'] = None
@@ -148,6 +153,7 @@ def test_get_comparison_items_normal_order(equal_weight_app):
     comparison_data_list = [
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -157,6 +163,7 @@ def test_get_comparison_items_normal_order(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -193,6 +200,7 @@ def test_get_comparison_items_different_order(equal_weight_app):
     comparison_data_list = [
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -202,6 +210,7 @@ def test_get_comparison_items_different_order(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -239,6 +248,7 @@ def test_get_comparison_items_invalid_id(equal_weight_app):
     comparison_data_list = [
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -248,6 +258,7 @@ def test_get_comparison_items_invalid_id(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -287,8 +298,8 @@ def test_calculate_comparison_state_tied(equal_weight_app):
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
     ranker._app = request._app
-    response = {}
-    result = ranker._calculate_comparison_state('confirmed', response)
+    response = {'action': 'confirmed'}
+    result = ranker._calculate_comparison_state(response)
     assert result[0] == 'tied'
     assert result[1] is None
 
@@ -307,8 +318,8 @@ def test_calculate_comparison_state_selected(equal_weight_app):
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
     ranker._app = request._app
-    response = {'selected_item_id': 1}
-    result = ranker._calculate_comparison_state('confirmed', response)
+    response = {'selected_item_id': 1, 'action': 'confirmed'}
+    result = ranker._calculate_comparison_state(response)
     assert result[0] == 'selected'
     assert result[1] == 1
 
@@ -327,8 +338,8 @@ def test_calculate_comparison_state_skipped(equal_weight_app):
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
     ranker._app = request._app
-    response = {}
-    result = ranker._calculate_comparison_state('skipped', response)
+    response = {'action': 'skipped'}
+    result = ranker._calculate_comparison_state(response)
     assert result[0] == 'skipped'
     assert result[1] is None
 
@@ -368,6 +379,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
     comparison_data_list = [
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -377,6 +389,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -386,6 +399,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -395,6 +409,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 3,
             'selected_item_id': 3,
@@ -404,6 +419,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 2,
             'item_2_id': 4,
             'selected_item_id': 2,
@@ -413,6 +429,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -422,6 +439,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -431,6 +449,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 2,
             'item_2_id': 7,
             'selected_item_id': 2,
@@ -440,6 +459,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': 3,
@@ -449,6 +469,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -458,6 +479,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 6,
             'selected_item_id': None,
@@ -474,6 +496,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
     request = Request(equal_weight_app, {})
     request._session['participant_id'] = 1
     request._session['group_ids'] = [1]
+    request._session['study_id'] = 1
     request._session['weight_conf'] = 'equal'
     request._session['previous_comparison_id'] = 1
     request._session['comparison_ids'] = [1, 2]
@@ -699,6 +722,7 @@ def test_random_item_retrieval_only_one_item(equal_weight_app):
     group_data = {
         'name': 'test_group',
         'display_name': 'Test Group',
+        'study_id': 1,
         'created_date': datetime.now(timezone.utc),
     }
     group = Group(**group_data)

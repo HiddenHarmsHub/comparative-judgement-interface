@@ -344,6 +344,7 @@ def test_requesting_a_previous_comparison_get(equal_weight_app, equal_weight_cli
     with equal_weight_client.session_transaction() as session:
         session['participant_id'] = 1
         session['group_ids'] = [1]
+        session['item_ids'] = [1, 2]
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
@@ -389,7 +390,8 @@ def test_no_hard_stop_below_max_cycles(equal_weight_client, equal_weight_app):
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
         session['study_id'] = 1
-    # TODO: ungardocde study_id
+        session['item_ids'] = [1, 2]
+    # TODO: unhardocde study_id
     max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
     participant = db.session.get(Participant, session['participant_id'])
     participant.completed_cycles = max_cycles - 1
@@ -413,6 +415,7 @@ def test_hard_stop_at_max_cycles(equal_weight_client, equal_weight_app):
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
         session['study_id'] = 1
+        session['item_ids'] = [1, 2]
     # TODO: unhardcode study id
     max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
     participant = db.session.get(Participant, session['participant_id'])

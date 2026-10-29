@@ -153,6 +153,7 @@ def test_judgements_api_available_when_switched_on_if_key_sent(equal_weight_clie
     comparison_data_list = [
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -162,6 +163,7 @@ def test_judgements_api_available_when_switched_on_if_key_sent(equal_weight_clie
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -205,6 +207,7 @@ def test_outcomes_api_available_and_correct_when_switched_on_if_key_sent(equal_w
     comparison_data_list = [
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 2,
             'selected_item_id': 1,
@@ -214,6 +217,7 @@ def test_outcomes_api_available_and_correct_when_switched_on_if_key_sent(equal_w
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 4,
             'item_2_id': 3,
             'selected_item_id': None,
@@ -223,6 +227,7 @@ def test_outcomes_api_available_and_correct_when_switched_on_if_key_sent(equal_w
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 3,
             'item_2_id': 4,
             'selected_item_id': 4,
@@ -232,6 +237,7 @@ def test_outcomes_api_available_and_correct_when_switched_on_if_key_sent(equal_w
         },
         {
             'participant_id': 1,
+            'study_id': 1,
             'item_1_id': 1,
             'item_2_id': 3,
             'selected_item_id': None,
