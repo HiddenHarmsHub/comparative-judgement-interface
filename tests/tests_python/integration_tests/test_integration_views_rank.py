@@ -267,6 +267,7 @@ def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, c
             assert pair[0].custom_item_pair_id == data['weighted_pair_id']
             assert pair[0].judged is False
 
+
 # TODO: this workflow has changed in the new code and this needs rewriting
 # def test_rejudging_a_comparison(equal_weight_client, equal_weight_app, participant_data):
 #     """
@@ -301,7 +302,7 @@ def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, c
 #         with equal_weight_client.session_transaction() as session:
 #             session_previous_comparison_id = session['previous_comparison_id']
 #             session_participant_id = session['participant_id']
-#             # session['previous_comparison_id'] = 
+#             # session['previous_comparison_id'] =
 
 #         with equal_weight_app.app_context():
 #             query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
@@ -362,6 +363,7 @@ def test_rejudging_request_with_an_invalid_comparison_id_raises_error(equal_weig
                 'selected_item_id': '1',
             },
         )
+
 
 # TODO: the next two tests need rewriting because the new code does this in a different way
 # @pytest.mark.usefixtures('add_basic_data_equal')
