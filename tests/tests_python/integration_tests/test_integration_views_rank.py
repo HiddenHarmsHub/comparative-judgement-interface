@@ -63,13 +63,13 @@ def test_register_selected_rank_comparison(equal_weight_client, equal_weight_app
     with equal_weight_client:
         equal_weight_client.post("/register", data=participant_data)
         with equal_weight_client.session_transaction() as session:
-                session['participant_id'] = 2
-                session['group_ids'] = [1]
-                session['weight_conf'] = 'equal'
-                session['previous_comparison_id'] = None
-                session['comparison_ids'] = []
-                session['study_id'] = 1
-                session['item_ids'] = [1, 2]
+            session['participant_id'] = 2
+            session['group_ids'] = [1]
+            session['weight_conf'] = 'equal'
+            session['previous_comparison_id'] = None
+            session['comparison_ids'] = []
+            session['study_id'] = 1
+            session['item_ids'] = [1, 2]
         response = equal_weight_client.post(
             "/rank",
             data={
