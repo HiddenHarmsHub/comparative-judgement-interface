@@ -31,6 +31,8 @@ class Ethics(Request):
             {
                 'fragment': fragment,
                 'html_string': html,
-                'ethics_agreement_back_button': WS.get_text(WS.ETHICS_AGREEMENT_BACK_BUTTON_LABEL, self._app),
+                'ethics_agreement_back_button': WS.get_text(
+                    WS.ETHICS_AGREEMENT_BACK_BUTTON_LABEL, self._language, self._app
+                ),
             },
         )

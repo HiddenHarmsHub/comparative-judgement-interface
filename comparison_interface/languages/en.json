@@ -2,6 +2,7 @@
     "websiteTextConfiguration": {
         "skipToMainContent": "Skip to main content",
         "websiteTitle": "Comparison Software",
+        "languageSelectLabel": "Language",
         "pageTitleLogout": "Log Out",
         "pageTitleUserRegistration": "User Registration",
         "pageTitleEthicsAgreement": "Ethics Agreement",

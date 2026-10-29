@@ -21,6 +21,7 @@ class Settings:
     CONFIGURATION_USER_FIELDS = "userFieldsConfiguration"
     CONFIGURATION_WEBSITE_TEXT = "websiteTextConfiguration"
     # Website behaviour configuration keys
+    BEHAVIOUR_SUPPORTED_LANGUAGES = "supportedLanguages"
     BEHAVIOUR_EXPORT_PATH_LOCATION = "exportPathLocation"
     BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE = "renderUserItemPreferencePage"
     BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE = "renderUserInstructionPage"
@@ -67,6 +68,7 @@ class Settings:
     # Website labels
     SKIP_TO_MAIN_CONTENT = "skipToMainContent"
     WEBSITE_TITLE = "websiteTitle"
+    LANGUAGE_SELECT_LABEL = "languageSelectLabel"
     PAGE_TITLE_LOGOUT = "pageTitleLogout"
     PAGE_TITLE_USER_REGISTRATION = "pageTitleUserRegistration"
     PAGE_TITLE_ETHICS_AGREEMENT = "pageTitleEthicsAgreement"
@@ -168,11 +170,12 @@ class Settings:
         return cls.configuration
 
     @classmethod
-    def get_text(cls, label, app):
+    def get_text(cls, label, language, app):
         """Get the text to render for a specific label of the website.
 
         Args:
             label (string): Label text required
+            language (string): The language code required for the text string
             app (Flask app): Flask application
 
         Returns:
@@ -180,7 +183,7 @@ class Settings:
         """
         with app.app_context():
             query = db.select(WebsiteText.string_value).where(
-                WebsiteText.language == "en",
+                WebsiteText.language == language,
                 WebsiteText.string_key == label,
             )
             return db.session.scalars(query).first()
