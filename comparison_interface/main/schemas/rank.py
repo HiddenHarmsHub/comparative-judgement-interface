@@ -91,7 +91,9 @@ class RankPostSchema(Schema):
             ValidationError: If the submitted fields are incompatible with the
                 declared ranking action.
         """
-        if data["item_1_id"] not in self.expected_item_ids or data["item_2_id"] not in self.expected_item_ids:
+        if ("item_1_id" in data and data["item_1_id"] not in self.expected_item_ids) or (
+            "item_2_id" in data and data["item_2_id"] not in self.expected_item_ids
+        ):
             raise ValidationError("the item ids returned were not the expected item ids.")
 
         if data["action"] == "skipped" and data.get("selected_item_id") is not None:
