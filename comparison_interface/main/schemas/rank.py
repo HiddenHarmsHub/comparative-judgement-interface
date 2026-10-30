@@ -99,7 +99,11 @@ class RankPostSchema(Schema):
         if data["action"] == "skipped" and data.get("selected_item_id") is not None:
             raise ValidationError({"selected_item_id": ["selected_item_id must not be set when state is skipped."]})
 
-        if "selected_item_id" in data and data["selected_item_id"] is not None and data["selected_item_id"] not in self.expected_item_ids:
+        if (
+            "selected_item_id" in data
+            and data["selected_item_id"] is not None
+            and data["selected_item_id"] not in self.expected_item_ids
+        ):
             raise ValidationError("the selected item id is not one of the items shown.")
 
         for question_id in self.question_ids:
