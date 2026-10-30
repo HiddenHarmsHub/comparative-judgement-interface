@@ -267,84 +267,6 @@ def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, c
             assert pair[0].judged is False
 
 
-# TODO: this workflow has changed in the new code and this needs rewriting
-# def test_rejudging_a_comparison(equal_weight_client, equal_weight_app, participant_data):
-#     """
-#     GIVEN a flask app configured for testing and with equal weights
-#     WHEN a 'skipped' ranking decision is posted to the rank url and is then rejudged
-#     THEN the data is overwritten in the database and no new decision is added
-#     """
-#     with equal_weight_client:
-#         equal_weight_client.post("/register", data=participant_data)
-#         participant_id = 1
-#         with equal_weight_client.session_transaction() as session:
-#             session['participant_id'] = participant_id
-#             session['group_ids'] = [1]
-#             session['weight_conf'] = 'equal'
-#             session['previous_comparison_id'] = None
-#             session['comparison_ids'] = []
-#             session['study_id'] = 1
-#             session['item_ids'] = [1, 2]
-
-#         response = equal_weight_client.post(
-#             "/rank",
-#             data={
-#                 'action': 'skipped',
-#                 'item_1_id': '1',
-#                 'item_2_id': '2',
-#                 'selected_item_id': '',
-#             },
-#         )
-#         assert response.status_code == 302
-#         assert b'href="/rank"' in response.data
-
-#         with equal_weight_client.session_transaction() as session:
-#             session_previous_comparison_id = session['previous_comparison_id']
-#             session_participant_id = session['participant_id']
-#             # session['previous_comparison_id'] =
-
-#         with equal_weight_app.app_context():
-#             query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
-#             comparisons = db.session.scalars(query).all()
-#             assert len(comparisons) == 1
-#             comp = comparisons[0]
-#             assert comp.comparison_id == session_previous_comparison_id
-#             assert comp.participant_id == session_participant_id
-#             assert comp.selected_item_id is None
-#             assert comp.state == 'skipped'
-#             assert comp.item_1_id == 1
-#             assert comp.item_2_id == 2
-
-#         response = equal_weight_client.post(
-#             "/rank/",
-#             data={
-#                 'action': 'confirmed',
-#                 'item_1_id': '1',
-#                 'item_2_id': '2',
-#                 'selected_item_id': '1',
-#             },
-#         )
-#         assert response.status_code == 302
-#         assert b'href="/rank"' in response.data
-
-#         with equal_weight_client.session_transaction() as session:
-#             session_previous_comparison_id = session['previous_comparison_id']
-#             session_participant_id = session['participant_id']
-
-#         with equal_weight_app.app_context():
-#             query = db.select(Comparison).where(Comparison.participant_id == participant_id)
-#             comparisons = db.session.scalars(query).all()
-#             assert len(comparisons) == 1
-#             comp = comparisons[0]
-#             assert comp.comparison_id == session_previous_comparison_id
-#             assert comp.comparison_id == 1
-#             assert comp.participant_id == session_participant_id
-#             assert comp.selected_item_id == 1
-#             assert comp.state == 'selected'
-#             assert comp.item_1_id == 1
-#             assert comp.item_2_id == 2
-
-
 def test_rejudging_request_with_an_invalid_comparison_id_raises_error(equal_weight_client, participant_data):
     """
     GIVEN a flask app configured for testing and with equal weights
@@ -364,87 +286,148 @@ def test_rejudging_request_with_an_invalid_comparison_id_raises_error(equal_weig
         )
 
 
-# TODO: the next two tests need rewriting because the new code does this in a different way
-# @pytest.mark.usefixtures('add_basic_data_equal')
-# def test_requesting_a_previous_comparison_post(equal_weight_app, equal_weight_client):
-#     """
-#     GIVEN a flask app configured for testing and equal weights
-#     WHEN a logged in participant requests to rejudge a comparison by post (trigged by the previous button)
-#     THEN they are redirected to the page for the requested comparison id
-#     """
-#     with equal_weight_client.session_transaction() as session:
-#         session['participant_id'] = 1
-#         session['group_ids'] = [1]
-#         session['weight_conf'] = 'equal'
-#         session['previous_comparison_id'] = None
-#         session['comparison_ids'] = []
-#         session['study_id'] = 1
-#         session['item_ids'] = [1, 2]
-#     # first add a comparison
-#     response = equal_weight_client.post(
-#         "/rank",
-#         data={
-#             'action': 'confirmed',
-#             'item_1_id': '1',
-#             'item_2_id': '2',
-#             'selected_item_id': '1',
-#         },
-#     )
-#     assert response.status_code == 302
-#     assert b'href="/rank"' in response.data
-#     # get the is added
-#     with equal_weight_app.app_context():
-#         query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
-#         comparisons = db.session.scalars(query).all()
-#         assert len(comparisons) == 1
-#         comparison_id = comparisons[0].comparison_id
-#     # check the redirect
-#     response = equal_weight_client.post("/rank", data={'comparison_id': comparison_id, 'action': 'rejudged'})
-#     assert response.status_code == 302
-#     test_string = f'href="/rank?comparison_id={comparison_id}"'.encode('utf-8')
-#     assert test_string in response.data
+@pytest.mark.usefixtures('add_basic_data_equal')
+def test_requesting_a_previous_comparison_get(equal_weight_app, equal_weight_client):
+    """
+    GIVEN a flask app configured for testing and equal weights with basic data added
+    WHEN a logged in participant has been redirected from the post request to rejudge a comparison
+    THEN they see the requested comparison
+    """
+    selected_item_id = 1
+    with equal_weight_client.session_transaction() as session:
+        session['participant_id'] = 1
+        session['group_ids'] = [1]
+        session['item_ids'] = [1, 2]
+        session['weight_conf'] = 'equal'
+        session['previous_comparison_id'] = None
+        session['comparison_ids'] = []
+        session['study_id'] = 1
+    # first add a comparison to retrieve later
+    response = equal_weight_client.post(
+        "/rank",
+        data={
+            'action': 'confirmed',
+            'item_1_id': '1',
+            'item_2_id': '2',
+            'selected_item_id': selected_item_id,
+        },
+    )
+    assert response.status_code == 302
+    assert b'href="/rank"' in response.data
+    # check the comparison has been added
+    with equal_weight_app.app_context():
+        query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
+        comparisons = db.session.scalars(query).all()
+        assert len(comparisons) == 1
+    # check the previous item is loaded
+    response = equal_weight_client.post('/rank/previous')
+    assert response.status_code == 200
+    test_string_1 = 'data-initial-state="selected"'.encode('utf-8')
+    test_string_2 = f'data-initial-selected-item-id="{selected_item_id}"'.encode('utf-8')
+    assert test_string_1 in response.data
+    assert test_string_2 in response.data
+    # check the session has recorded the id correctly
+    with equal_weight_client.session_transaction() as session:
+        assert session['current_comparison'] == selected_item_id
 
 
-# @pytest.mark.usefixtures('add_basic_data_equal')
-# def test_requesting_a_previous_comparison_get(equal_weight_app, equal_weight_client):
-#     """
-#     GIVEN a flask app configured for testing and equal weights with basic data added
-#     WHEN a logged in participant has been redirected from the post request to rejudge a comparison
-#     THEN they see the requested comparison
-#     """
-#     with equal_weight_client.session_transaction() as session:
-#         session['participant_id'] = 1
-#         session['group_ids'] = [1]
-#         session['item_ids'] = [1, 2]
-#         session['weight_conf'] = 'equal'
-#         session['previous_comparison_id'] = None
-#         session['comparison_ids'] = []
-#         session['study_id'] = 1
-#     # first add a comparison to retrieve later
-#     response = equal_weight_client.post(
-#         "/rank",
-#         data={
-#             'action': 'confirmed',
-#             'item_1_id': '1',
-#             'item_2_id': '2',
-#             'selected_item_id': '1',
-#         },
-#     )
-#     assert response.status_code == 302
-#     assert b'href="/rank"' in response.data
-#     # check the comparison has been added
-#     with equal_weight_app.app_context():
-#         query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
-#         comparisons = db.session.scalars(query).all()
-#         assert len(comparisons) == 1
-#         comparison_id = comparisons[0].comparison_id
-#     # check the redirect - this is the actual test
-#     response = equal_weight_client.get(f'/rank?comparison_id={comparison_id}')
-#     assert response.status_code == 200
-#     test_string = f'<input type="hidden" id="comparison_id" name="comparison_id" value="{comparison_id}">'.encode(
-#         'utf-8'
-#     )  # NoQA
-#     assert test_string in response.data
+@pytest.mark.usefixtures('add_basic_data_equal')
+def test_requesting_a_previous_comparison_post(equal_weight_app, equal_weight_client):
+    """
+    GIVEN a flask app configured for testing and equal weights
+    WHEN a logged in participant requests to rejudge a comparison and posts a changed decision
+    THEN that decision is correctly saved to the database
+    """
+    selected_item_id = 1
+    with equal_weight_client.session_transaction() as session:
+        session['participant_id'] = 1
+        session['group_ids'] = [1]
+        session['weight_conf'] = 'equal'
+        session['previous_comparison_id'] = None
+        session['comparison_ids'] = []
+        session['study_id'] = 1
+        session['item_ids'] = [1, 2]
+    # first add a comparison
+    response = equal_weight_client.post(
+        "/rank",
+        data={
+            'action': 'confirmed',
+            'item_1_id': '1',
+            'item_2_id': '2',
+            'selected_item_id': selected_item_id,
+        },
+    )
+    assert response.status_code == 302
+    assert b'href="/rank"' in response.data
+    # get the id added
+    with equal_weight_app.app_context():
+        query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
+        comparisons = db.session.scalars(query).all()
+        assert len(comparisons) == 1
+        assert comparisons[0].selected_item_id == selected_item_id
+        comparison_id = comparisons[0].comparison_id
+    # set up the session so that it looks like we are rejudging
+    with equal_weight_client.session_transaction() as session:
+        session['current_comparison'] = comparison_id
+
+    new_selected_item_id = 2
+    # check the post saved to the current comparison
+    response = equal_weight_client.post("/rank", data={'action': 'confirmed', 'selected_item_id': new_selected_item_id})
+    with equal_weight_app.app_context():
+        query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
+        comparisons = db.session.scalars(query).all()
+        assert len(comparisons) == 1
+        assert comparisons[0].selected_item_id == new_selected_item_id 
+        assert comparisons[0].comparison_id == comparison_id
+
+
+@pytest.mark.usefixtures('add_basic_data_equal')
+def test_get_to_previous_url_is_redirected(equal_weight_app, equal_weight_client):
+    """
+    GIVEN a flask app configured for testing and equal weights
+    WHEN a logged in participant reloads a page using /rank/previous (a GET)
+    THEN then they are redirected to the /rank url and a new comparison
+    """
+    selected_item_id = 1
+    with equal_weight_client.session_transaction() as session:
+        session['participant_id'] = 1
+        session['group_ids'] = [1]
+        session['weight_conf'] = 'equal'
+        session['previous_comparison_id'] = None
+        session['comparison_ids'] = []
+        session['study_id'] = 1
+        session['item_ids'] = [1, 2]
+    # first add a comparison
+    equal_weight_client.post(
+        "/rank",
+        data={
+            'action': 'confirmed',
+            'item_1_id': '1',
+            'item_2_id': '2',
+            'selected_item_id': selected_item_id,
+        },
+    )
+    # get the id added
+    with equal_weight_app.app_context():
+        query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
+        comparisons = db.session.scalars(query).all()
+        assert len(comparisons) == 1
+        assert comparisons[0].selected_item_id == selected_item_id
+        comparison_id = comparisons[0].comparison_id
+    # set up the session so that it looks like we are rejudging
+    with equal_weight_client.session_transaction() as session:
+        session['current_comparison'] = comparison_id
+    # load the page with the post as expected
+    response = equal_weight_client.post('/rank/previous')
+    assert response.status_code == 200
+    test_string_1 = 'data-initial-state="selected"'.encode('utf-8')
+    test_string_2 = f'data-initial-selected-item-id="{selected_item_id}"'.encode('utf-8')
+    assert test_string_1 in response.data
+    assert test_string_2 in response.data
+    # now mimic reload with a get
+    response = equal_weight_client.get('/rank/previous')
+    assert response.status_code == 302
+    assert '<a href="/rank">'.encode('utf-8') in response.data
 
 
 @pytest.mark.usefixtures('add_basic_data_equal')
