@@ -10,7 +10,7 @@ from comparison_interface.db.models import (
     Participant,
     ParticipantGroup,
     ParticipantItem,
-    WebsiteControl,
+    StudyControl,
 )
 from comparison_interface.main.schemas.item_preference import ItemPreferencePostSchema
 
@@ -31,8 +31,9 @@ class ItemsPreference(Request):
         # The item selection won't be allow if either:
         # 1. Manual weights were defined.
         # 2. The participant explicitly configured the website to not render this section.
-        render_item_preference = WS.should_render(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._app)
-        equal_weight_conf = self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT
+        # TODO change hardcoded study id from 1 ro the current study
+        render_item_preference = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, 1, self._app)
+        equal_weight_conf = self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT
         if not equal_weight_conf or not render_item_preference:
             return self._redirect('.rank')
 
@@ -70,9 +71,9 @@ class ItemsPreference(Request):
             'main/pages/item_preference.html',
             {
                 'item': item,
-                'item_selection_question': WS.get_text(WS.ITEM_SELECTION_QUESTION_LABEL, self._app),
-                'item_selection_answer_no': WS.get_text(WS.ITEM_SELECTION_NO_BUTTON_LABEL, self._app),
-                'item_selection_answer_yes': WS.get_text(WS.ITEM_SELECTION_YES_BUTTON_LABEL, self._app),
+                'item_selection_question': WS.get_text(WS.ITEM_SELECTION_QUESTION_LABEL, self._language, self._app),
+                'item_selection_answer_no': WS.get_text(WS.ITEM_SELECTION_NO_BUTTON_LABEL, self._language, self._app),
+                'item_selection_answer_yes': WS.get_text(WS.ITEM_SELECTION_YES_BUTTON_LABEL, self._language, self._app),
             },
         )
 

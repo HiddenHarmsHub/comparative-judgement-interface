@@ -1,6 +1,6 @@
 """Handles all the URL routing."""
 
-from flask import current_app, request, session
+from flask import current_app, redirect, request, session
 
 from comparison_interface.main import blueprint
 
@@ -13,6 +13,15 @@ from .views.rank import Rank
 from .views.register import Register
 from .views.request import Request
 from .views.thankyou import Thankyou
+
+
+@blueprint.route('/set-language', methods=['POST'])
+def set_language():
+    """Set the user's language preference."""
+    language = request.form.get('language')
+    # if statement to test against supported languages
+    session['language'] = language
+    return redirect(request.referrer or '/')
 
 
 @blueprint.route('/introduction', methods=['GET'])

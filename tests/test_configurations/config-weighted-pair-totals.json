@@ -1,5 +1,6 @@
 {
     "behaviourConfiguration": {
+        "supportedLanguages": {"en": "English"},
         "exportPathLocation": "../exports",
         "renderUserItemPreferencePage": false,
         "offerEscapeRouteBetweenCycles": true,
@@ -10,6 +11,7 @@
         "allowBack": true,
         "renderUserInstructionPage":  true,     
         "renderEthicsAgreementPage":  true,
+        "ethicsAgreementHtml": "examples/html/ethics-agreement.html",
         "renderSitePoliciesPage":  true,
         "sitePoliciesHtml": "examples/html/site-policies.html",
         "renderCookieBanner":  true

@@ -12,6 +12,7 @@ def test_load_user_component(mocker, equal_weight_app):
         user_components = []
         request = Request(equal_weight_app, {})
         reg = register.Register(request, request._session)
+        reg._app = request._app
         get_user_conf = mocker.patch.object(register.WS, 'get_user_conf')
         get_user_conf.side_effect = [
             [
