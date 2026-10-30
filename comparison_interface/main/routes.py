@@ -19,8 +19,10 @@ from .views.thankyou import Thankyou
 def set_language():
     """Set the user's language preference."""
     language = request.form.get('language')
-    # if statement to test against supported languages
-    session['language'] = language
+    if language not in current_app["SUPPORTED_LANGUAGES"]:
+        session['language'] = language
+    else:
+        session['language'] = current_app["SUPPORTED_LANGUAGES"][0]
     return redirect(request.referrer or '/')
 
 
@@ -53,6 +55,16 @@ def participant_registration():
 def item_selection():
     """Handle item selection URL (pre-ranking)."""
     return Request.process(ItemsPreference(current_app, session), request)
+
+
+@blueprint.route('/rank/previous', methods=['GET', 'POST'])
+def previous():
+    """Handle ranking URL."""
+    if request.method == 'GET':
+        # reset to the most recent comparison so the previous button still works
+        session['previous_comparison_id'] = session['comparison_ids'][-1]
+        return redirect('/rank')
+    return Request.process(Rank(current_app, session, previous=True), request)
 
 
 @blueprint.route('/rank', methods=['GET', 'POST'])
