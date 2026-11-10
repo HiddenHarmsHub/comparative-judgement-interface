@@ -35,7 +35,7 @@ class ItemsPreference(Request):
         equal_weight_conf = self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT
         if not equal_weight_conf or not render_item_preference:
             return self._redirect('.rank')
-        print(self._session)
+
         # Get all items preferences not specified for the participant yet.
         query = (
             db.select(Participant, ParticipantGroup, ItemGroup, Item, ParticipantItem)
