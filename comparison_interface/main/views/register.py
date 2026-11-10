@@ -113,7 +113,6 @@ class Register(Request):
         self._session['previous_comparison_id'] = None
         self._session['comparison_ids'] = []
         self._session['study_id'] = study_id
-        print(self._session)
 
         return self._redirect('.item_selection')
 
