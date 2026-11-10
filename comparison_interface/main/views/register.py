@@ -60,6 +60,7 @@ class Register(Request):
         """
         raw_form = request.form.to_dict(flat=True)
         raw_form.pop('csrf_token', None)
+        raw_form.pop('group_ids', None)
 
         schema = self._get_participant_write_schema()
         try:
@@ -67,8 +68,7 @@ class Register(Request):
         except ValidationError:
             self._app.logger.warning("Rejected registration")
             abort(400)
-
-        raw_group_ids = form_data.pop('group_ids', [])
+        raw_group_ids = request.form.getlist("group_ids")
 
         study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence == 1)).first()
         # Confirm we have a list of integers we can safely insert and that they belong to the right study.
@@ -113,7 +113,6 @@ class Register(Request):
         self._session['previous_comparison_id'] = None
         self._session['comparison_ids'] = []
         self._session['study_id'] = study_id
-        print(self._session)
 
         return self._redirect('.item_selection')
 
