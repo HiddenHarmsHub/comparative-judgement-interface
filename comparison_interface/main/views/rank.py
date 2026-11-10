@@ -123,6 +123,17 @@ class Rank(Request):
             'study_id': self._study_id,
         }
         multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
+        compared, skipped = self._get_comparison_stats(multiple_questions)
+        if use_escape_route:
+            # If we have asked for an escape route check the counts and redirect if necessary
+            completed_cycles = self._get_current_cycle()
+
+            if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app) * (
+                completed_cycles + 1
+            ):
+                self._increment_cycle_count()
+                return self._redirect('.thankyou')
+
         if multiple_questions:
             questions = self._get_sub_questions()
             if comparison_states and len(comparison_states) == len(questions):
@@ -131,22 +142,15 @@ class Rank(Request):
                     question.initial_selected_item_id = comparison_states[i][1]
             data = {
                 'questions': questions,
+                'comparison_number_label': WS.get_text(
+                    WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._language, self._app
+                ),
+                'comparison_number': compared,
             }
             data = shared_data | data
             return self._render_template('main/pages/multi_rank.html', data)
 
         else:
-            compared, skipped = self._get_comparison_stats()
-
-            if use_escape_route:
-                # If we have asked for an escape route check the counts and redirect if necessary
-                completed_cycles = self._get_current_cycle()
-
-                if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app) * (
-                    completed_cycles + 1
-                ):
-                    self._increment_cycle_count()
-                    return self._redirect('.thankyou')
 
             if allow_ties:
                 additional_screen_reader_instructions = ""
@@ -417,13 +421,26 @@ class Rank(Request):
         participant.completed_cycles = participant.completed_cycles + 1
         db.session.commit()
 
-    def _get_comparison_stats(self):
+    def _get_comparison_stats(self, multiple_studies):
         """Get summary statistics about the comparison made.
+
+        Args:
+            multiple_studies (bool): Whether or not we are running in mutliple studies mode or not.
 
         Returns:
             compared: Number of comparisons made
             skipped: Number of comparisons skipped
         """
+        if multiple_studies:
+            skipped = 0
+            query = (
+                db.select(func.count(Comparison.comparison_id))
+                .where(Comparison.participant_id == self._session['participant_id'], Comparison.sub_question_id == 1)
+            )
+            counts = db.session.execute(query).all()
+            compared = counts[0][0]
+            return compared, skipped
+
         compared = 0
         skipped = 0
 
