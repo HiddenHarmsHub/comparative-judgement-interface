@@ -41,7 +41,7 @@ class Rank(Request):
         """Request get handler."""
         if not self._valid_session():
             return self._redirect('.participant_registration')
-
+        print(self._session)
         allow_ties = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_TIES, self._study_id, self._app)
         allow_skip = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._study_id, self._app)
         allow_back = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_BACK, self._study_id, self._app)
@@ -122,6 +122,7 @@ class Rank(Request):
             'allow_back': allow_back,
             'study_id': self._study_id,
         }
+
         multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
         compared, skipped = self._get_comparison_stats(multiple_questions)
         if use_escape_route:
@@ -187,7 +188,6 @@ class Rank(Request):
                 ),
                 'skipped_number': skipped,
                 'additional_screen_reader_instructions': additional_screen_reader_instructions,
-                'item_group_selection_label': WS.get_text(WS.ITEM_SELECTION_GROUP_LABEL, self._language, self._app),
                 'initial_state': None,
                 'initial_selected_item_id': None,
             }
@@ -239,9 +239,11 @@ class Rank(Request):
         questions = [x for x in response.keys() if x.startswith('question_')]
         questions.sort(key=lambda x: int(x.rsplit("_", 1)[1]))
         comparisons = []
+        total_skipped = 0
         for question in questions:
             if len(response[question]) == 0:
                 state = Comparison.SKIPPED
+                total_skipped += 1
                 selected_id = None
             elif len(response[question]) == 1:
                 state = Comparison.SELECTED
@@ -265,6 +267,11 @@ class Rank(Request):
         if 'current_comparison' not in self._session:
             try:
                 db.session.add_all(comparisons)
+                # mark the pair as judged only if at least one question was answered
+                # TODO: check this logic with Rowland
+                if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and total_skipped > 0:
+                    pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
+                    pair.judged = True
                 db.session.commit()
                 comparison_ids = [comparison.comparison_id for comparison in comparisons]
                 self._session['previous_comparison_id'] = comparison_ids
