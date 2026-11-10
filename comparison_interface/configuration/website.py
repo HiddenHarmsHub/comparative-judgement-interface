@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import StudyControl, WebsiteControl, WebsiteText
+from comparison_interface.db.models import StudyControl, StudyText, WebsiteControl, WebsiteText
 
 
 class Settings:
@@ -20,6 +20,7 @@ class Settings:
     CONFIGURATION_COMPARISON = "comparisonConfiguration"
     CONFIGURATION_USER_FIELDS = "userFieldsConfiguration"
     CONFIGURATION_WEBSITE_TEXT = "websiteTextConfiguration"
+    CONFIGURATION_STUDY = "studyConfiguration"
     # Website behaviour configuration keys
     BEHAVIOUR_SUPPORTED_LANGUAGES = "supportedLanguages"
     BEHAVIOUR_EXPORT_PATH_LOCATION = "exportPathLocation"
@@ -89,6 +90,7 @@ class Settings:
     RANK_ITEM_TIED_SELECTION_INDICATOR_LABEL = "rankItemTiedSelectionIndicatorLabel"
     RANK_ITEM_SKIPPED_SELECTION_INDICATOR_LABEL = "rankItemSkippedIndicatorLabel"
     RANK_ITEM_INSTRUCTION_LABEL = "rankItemInstructionLabel"
+    RANK_ITEM_SUB_QUESTIONS = "rankItemSubQuestions"
     RANK_ITEM_COMPARISON_EXECUTED_LABEL = "rankItemComparisonExecutedLabel"
     RANK_ITEM_SKIPPED_COMPARISON_EXECUTED_LABEL = "rankItemSkippedComparisonExecutedLabel"
     RANK_ITEM_REJUDGE_BUTTON_LABEL = "rankItemItemRejudgeButtonLabel"
@@ -185,6 +187,27 @@ class Settings:
             query = db.select(WebsiteText.string_value).where(
                 WebsiteText.language == language,
                 WebsiteText.string_key == label,
+            )
+            return db.session.scalars(query).first()
+
+    @classmethod
+    def get_study_text(cls, label, language, study_id, app):
+        """Get the text to render for a specific study related label of the website.
+
+        Args:
+            label (string): Label text required
+            language (string): The language code required for the text string
+            study (int): The id of the current study
+            app (Flask app): Flask application
+
+        Returns:
+            string: Text configuration for the specified label
+        """
+        with app.app_context():
+            query = db.select(StudyText.string_value).where(
+                StudyText.language == language,
+                StudyText.study_id == study_id,
+                StudyText.string_key == label,
             )
             return db.session.scalars(query).first()
 

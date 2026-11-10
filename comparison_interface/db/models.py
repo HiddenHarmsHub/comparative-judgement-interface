@@ -36,10 +36,11 @@ class Group(db.Model, BaseModel):
 
     group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
     display_name = db.Column(db.String(255), nullable=False)
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
-    __table_args__ = (UniqueConstraint('name', name='_group_name_uidx'),)
+    __table_args__ = (UniqueConstraint('name', 'study_id', name='_group_study_name_uidx'),)
 
 
 class Item(db.Model, BaseModel):
@@ -151,6 +152,8 @@ class Comparison(db.Model, BaseModel):
 
     comparison_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
+    sub_question_id = db.Column(db.Integer, db.ForeignKey('study_sub_questions.question_id'), nullable=True)
     item_1_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
     item_2_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
     selected_item_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=True)
@@ -296,20 +299,34 @@ class StudyControl(db.Model, BaseModel):
     allow_ties = db.Column(db.Boolean, nullable=False)
     allow_skip = db.Column(db.Boolean, nullable=False)
     allow_back = db.Column(db.Boolean, nullable=False)
+    multiple_questions = db.Column(db.Boolean, nullable=False)
     render_user_item_preference_page = db.Column(db.Boolean, nullable=False)
     offer_escape_route_between_cycles = db.Column(db.Boolean, nullable=False)
     cycle_length = db.Column(db.Integer, nullable=False)
     maximum_cycles_per_user = db.Column(db.Integer, nullable=False)
 
-    def get_conf(self):
+    def get_conf(self, study_id):
         """Get the study control configuration.
-
-        NB: this will need to get the right study once we allow multiple studies
 
         Returns:
             StudyControl: Study Control configuration model object
         """
-        return self.query.order_by(StudyControl.study_sequence.desc()).first()
+        return db.session.get(StudyControl, study_id)
+
+
+class StudySubQuestions(db.Model, BaseModel):
+    """The sub-questions for a study.
+
+    Args:
+        db (SQLAlchemy): SQLAlchemy connection object
+    """
+
+    __tablename__ = 'study_sub_questions'
+    __bind_key__ = "study_db"
+
+    question_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
+    question_text_key = db.Column(db.String(500), nullable=False)
 
 
 class WebsiteText(db.Model, BaseModel):

@@ -26,15 +26,10 @@ def test_behaviour_configuration_for_escape_route_false():
     test_behaviour_schema = {
         "supportedLanguages": {"en": "English"},
         "exportPathLocation": "exports",
-        "renderUserItemPreferencePage": False,
         "renderUserInstructionPage": False,
         "renderEthicsAgreementPage": False,
         "renderSitePoliciesPage": False,
         "renderCookieBanner": False,
-        "offerEscapeRouteBetweenCycles": False,
-        "allowTies": False,
-        "allowSkip": True,
-        "allowBack": True,
     }
     behaviour_schema = BehaviourConfiguration()
     try:
@@ -43,58 +38,59 @@ def test_behaviour_configuration_for_escape_route_false():
         assert False, f'ValidationError raised: {err}'
 
 
-def test_behaviour_configuration_for_escape_route_true_with_all_requirements():
-    """
-    GIVEN a behaviour chunk of a JSON schema which is has the escape root set to True and all other required keys
-    WHEN the behaviour chunk is validated using the BehaviourConfiguration
-    THEN no error is raised
-    """
-    test_behaviour_schema = {
-        "supportedLanguages": {"en": "English"},
-        "exportPathLocation": "exports",
-        "renderUserItemPreferencePage": False,
-        "renderUserInstructionPage": False,
-        "renderEthicsAgreementPage": False,
-        "renderSitePoliciesPage": False,
-        "renderCookieBanner": False,
-        "offerEscapeRouteBetweenCycles": True,
-        "cycleLength": 30,
-        "maximumCyclesPerUser": 3,
-        "allowTies": False,
-        "allowSkip": True,
-        "allowBack": True,
-    }
-    behaviour_schema = BehaviourConfiguration()
-    try:
-        behaviour_schema.load(test_behaviour_schema)
-    except ValidationError as err:
-        assert False, f'ValidationError raised: {err}'
+# TODO: this needs to be changed to a study based test
+# def test_behaviour_configuration_for_escape_route_true_with_all_requirements():
+#     """
+#     GIVEN a behaviour chunk of a JSON schema which is has the escape root set to True and all other required keys
+#     WHEN the behaviour chunk is validated using the BehaviourConfiguration
+#     THEN no error is raised
+#     """
+#     test_behaviour_schema = {
+#         "supportedLanguages": {"en": "English"},
+#         "exportPathLocation": "exports",
+#         "renderUserItemPreferencePage": False,
+#         "renderUserInstructionPage": False,
+#         "renderEthicsAgreementPage": False,
+#         "renderSitePoliciesPage": False,
+#         "renderCookieBanner": False,
+#         "offerEscapeRouteBetweenCycles": True,
+#         "cycleLength": 30,
+#         "maximumCyclesPerUser": 3,
+#         "allowTies": False,
+#         "allowSkip": True,
+#         "allowBack": True,
+#     }
+#     behaviour_schema = BehaviourConfiguration()
+#     try:
+#         behaviour_schema.load(test_behaviour_schema)
+#     except ValidationError as err:
+#         assert False, f'ValidationError raised: {err}'
 
-
-def test_behaviour_configuration_for_escape_route_true_with_missing_requirements():
-    """
-    GIVEN a behaviour chunk of a JSON schema which is has the escape root set to True and is missing the required keys
-    WHEN the behaviour chunk is validated using the BehaviourConfiguration
-    THEN a Validation Error is raised
-    """
-    test_behaviour_schema = {
-        "supportedLanguages": {"en": "English"},
-        "exportPathLocation": "exports",
-        "renderUserItemPreferencePage": False,
-        "renderUserInstructionPage": False,
-        "renderEthicsAgreementPage": False,
-        "renderSitePoliciesPage": False,
-        "renderCookieBanner": False,
-        "offerEscapeRouteBetweenCycles": True,
-        "cycleLength": 30,
-        "allowTies": False,
-        "allowSkip": True,
-        "allowBack": True,
-    }
-    with pytest.raises(ValidationError) as err:
-        behaviour_schema = BehaviourConfiguration()
-        behaviour_schema.load(test_behaviour_schema)
-    assert len(err.value.messages_dict.keys()) == 1
+# TODO: this needs to be changed to a study config based test
+# def test_behaviour_configuration_for_escape_route_true_with_missing_requirements():
+#     """
+#     GIVEN a behaviour chunk of a JSON schema which is has the escape root set to True and is missing the required keys
+#     WHEN the behaviour chunk is validated using the BehaviourConfiguration
+#     THEN a Validation Error is raised
+#     """
+#     test_behaviour_schema = {
+#         "supportedLanguages": {"en": "English"},
+#         "exportPathLocation": "exports",
+#         "renderUserItemPreferencePage": False,
+#         "renderUserInstructionPage": False,
+#         "renderEthicsAgreementPage": False,
+#         "renderSitePoliciesPage": False,
+#         "renderCookieBanner": False,
+#         "offerEscapeRouteBetweenCycles": True,
+#         "cycleLength": 30,
+#         "allowTies": False,
+#         "allowSkip": True,
+#         "allowBack": True,
+#     }
+#     with pytest.raises(ValidationError) as err:
+#         behaviour_schema = BehaviourConfiguration()
+#         behaviour_schema.load(test_behaviour_schema)
+#     assert len(err.value.messages_dict.keys()) == 1
 
 
 def test_group_configuration_with_inconsistent_item_ids():

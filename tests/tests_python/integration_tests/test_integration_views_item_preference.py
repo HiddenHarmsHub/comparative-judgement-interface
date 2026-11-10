@@ -94,6 +94,7 @@ def test_redirect_to_rank_page_when_all_preferences_specified(equal_weight_clien
     db.session.commit()
     with equal_weight_client.session_transaction() as session:
         session['participant_id'] = participant_id
+        session['study_id'] = 1
         session['group_ids'] = [1]
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
