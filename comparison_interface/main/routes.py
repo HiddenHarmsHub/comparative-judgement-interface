@@ -19,10 +19,10 @@ from .views.thankyou import Thankyou
 def set_language():
     """Set the user's language preference."""
     language = request.form.get('language')
-    if language not in current_app["SUPPORTED_LANGUAGES"]:
+    if language not in current_app.config["SUPPORTED_LANGUAGES"]:
         session['language'] = language
     else:
-        session['language'] = current_app["SUPPORTED_LANGUAGES"][0]
+        session['language'] = current_app.config["SUPPORTED_LANGUAGES"][0]
     return redirect(request.referrer or '/')
 
 
