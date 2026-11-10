@@ -388,6 +388,7 @@ class Setup:
             "userRegistrationGroupQuestionLabel",
             "userRegistrationGroupSelectionErr",
             "rankItemInstructionLabel",
+            "itemSelectionQuestionLabel",
         ]
         for key in study_keys:
             for language in supported_languages:
