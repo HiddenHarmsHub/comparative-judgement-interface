@@ -377,7 +377,7 @@ def test_requesting_a_previous_comparison_post(equal_weight_app, equal_weight_cl
         query = db.select(Comparison).where(Comparison.participant_id == session['participant_id'])
         comparisons = db.session.scalars(query).all()
         assert len(comparisons) == 1
-        assert comparisons[0].selected_item_id == new_selected_item_id 
+        assert comparisons[0].selected_item_id == new_selected_item_id
         assert comparisons[0].comparison_id == comparison_id
 
 
