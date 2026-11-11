@@ -152,7 +152,6 @@ class Rank(Request):
             return self._render_template('main/pages/multi_rank.html', data)
 
         else:
-
             if allow_ties:
                 additional_screen_reader_instructions = ""
             else:
@@ -440,9 +439,8 @@ class Rank(Request):
         """
         if multiple_studies:
             skipped = 0
-            query = (
-                db.select(func.count(Comparison.comparison_id))
-                .where(Comparison.participant_id == self._session['participant_id'], Comparison.sub_question_id == 1)
+            query = db.select(func.count(Comparison.comparison_id)).where(
+                Comparison.participant_id == self._session['participant_id'], Comparison.sub_question_id == 1
             )
             counts = db.session.execute(query).all()
             compared = counts[0][0]
