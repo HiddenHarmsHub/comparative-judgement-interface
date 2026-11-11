@@ -159,6 +159,7 @@ def test_register_selected_rank_comparison_weighted_totals(custom_totals_client,
     with custom_totals_client:
         custom_totals_client.post("/register", data=participant_data)
         participant_id = 1
+        weighted_pair_id = 1
         with custom_totals_client.session_transaction() as session:
             session['participant_id'] = participant_id
             session['group_ids'] = [1]
@@ -167,18 +168,18 @@ def test_register_selected_rank_comparison_weighted_totals(custom_totals_client,
             session['comparison_ids'] = []
             session['study_id'] = 1
             session['item_ids'] = [1, 2]
+            session['weighted_pair_id'] = weighted_pair_id
         data = {
             'action': 'confirmed',
             'item_1_id': '1',
             'item_2_id': '2',
             'selected_item_id': '1',
-            'weighted_pair_id': 1,
         }
         # check the pair is set to false
         with custom_totals_app.app_context():
-            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
+            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == weighted_pair_id)
             pair = db.session.scalars(query).all()
-            assert pair[0].custom_item_pair_id == data['weighted_pair_id']
+            assert pair[0].custom_item_pair_id == weighted_pair_id
             assert pair[0].judged is False
 
         response = custom_totals_client.post("/rank", data=data)
@@ -201,9 +202,9 @@ def test_register_selected_rank_comparison_weighted_totals(custom_totals_client,
             assert comp.item_1_id == 1
             assert comp.item_2_id == 2
             # now check we set it to true
-            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
+            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == weighted_pair_id)
             pair = db.session.scalars(query).all()
-            assert pair[0].custom_item_pair_id == data['weighted_pair_id']
+            assert pair[0].custom_item_pair_id == weighted_pair_id
             assert pair[0].judged is True
 
 
@@ -218,6 +219,7 @@ def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, c
     with custom_totals_client:
         custom_totals_client.post("/register", data=participant_data)
         participant_id = 1
+        weighted_pair_id = 1
         with custom_totals_client.session_transaction() as session:
             session['participant_id'] = participant_id
             session['group_ids'] = [1]
@@ -226,19 +228,19 @@ def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, c
             session['comparison_ids'] = []
             session['study_id'] = 1
             session['item_ids'] = [1, 2]
+            session['weighted_pair_id'] = weighted_pair_id
         data = {
             'action': 'skipped',
             'item_1_id': '1',
             'item_2_id': '2',
-            'weighted_pair_id': 1,
             'selected_item_id': '',
         }
 
         # check the pair is set to false
         with custom_totals_app.app_context():
-            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
+            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == weighted_pair_id)
             pair = db.session.scalars(query).all()
-            assert pair[0].custom_item_pair_id == data['weighted_pair_id']
+            assert pair[0].custom_item_pair_id == weighted_pair_id
             assert pair[0].judged is False
 
         response = custom_totals_client.post("/rank", data=data)
@@ -261,9 +263,9 @@ def test_register_skipped_rank_comparison_weighted_total(custom_totals_client, c
             assert comp.item_1_id == 1
             assert comp.item_2_id == 2
             # now check it is still to false
-            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == data['weighted_pair_id'])
+            query = db.select(TotalItemPair).where(TotalItemPair.custom_item_pair_id == weighted_pair_id)
             pair = db.session.scalars(query).all()
-            assert pair[0].custom_item_pair_id == data['weighted_pair_id']
+            assert pair[0].custom_item_pair_id == weighted_pair_id
             assert pair[0].judged is False
 
 

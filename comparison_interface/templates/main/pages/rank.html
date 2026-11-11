@@ -21,7 +21,8 @@
     data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" id="weighted_pair_id" name="weighted_pair_id" value="{% if weighted_pair_id %}{{weighted_pair_id}}{% else %}{% endif %}">
+    <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
+    <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
     <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
     <div class="form-group">
       <div class="text-center">
@@ -36,7 +37,6 @@
             <span class="visually-hidden" id="left-item-description">{% if item_1.image_description != None %}{{item_1.display_name}}: {{item_1.image_description}}{% else %}{{item_1.display_name}}{% endif %}</span>
           </div>
           <div class="text-center">
-            <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
             <img id="left-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
           </div>
         </div>
@@ -46,7 +46,6 @@
             <span class="visually-hidden" id="right-item-description">{% if item_2.image_description != None %}{{item_2.display_name}}: {{item_2.image_description}}{% else %}{{item_2.display_name}}{% endif %}</span>
           </div>
           <div class="text-center">
-            <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
             <img id="right-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}" class="right-item img-fluid img-constraint" alt="">
           </div>
           </div>
