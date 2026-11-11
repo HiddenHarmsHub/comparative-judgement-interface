@@ -32,7 +32,6 @@ class RankPostSchema(Schema):
         "selected_item_id",
         "item_1_id",
         "item_2_id",
-        "weighted_pair_id",
     }
 
     action = fields.Str(
@@ -42,7 +41,6 @@ class RankPostSchema(Schema):
     selected_item_id = fields.Int(required=False, allow_none=True)
     item_1_id = fields.Int(required=False, allow_none=True)
     item_2_id = fields.Int(required=False, allow_none=True)
-    weighted_pair_id = fields.Int(required=False, allow_none=True)
 
     @pre_load
     def normalise_question_responses(self, data, **kwargs):
