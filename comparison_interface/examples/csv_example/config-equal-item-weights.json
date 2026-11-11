@@ -16,7 +16,7 @@
             "renderUserItemPreferencePage": false,
             "offerEscapeRouteBetweenCycles": true,
             "cycleLength": 10,
-            "maximumCyclesPerUser": 3,
+            "maximumCyclesPerUser": 1,
             "allowTies": false,
             "allowSkip": true,
             "allowBack": true,
