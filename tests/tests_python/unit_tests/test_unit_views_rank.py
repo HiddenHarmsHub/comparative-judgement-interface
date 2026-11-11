@@ -502,7 +502,7 @@ def test_comparison_stats_retrieval(equal_weight_app):
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
     ranker._app = request._app
-    counts = ranker._get_comparison_stats()
+    counts = ranker._get_comparison_stats(False)
     assert counts[0] == 8
     assert counts[1] == 3
 
@@ -522,7 +522,7 @@ def test_comparison_stats_retrieval_no_data(equal_weight_app):
     request._session['comparison_ids'] = [1, 2]
     ranker = rank.Rank(request, request._session)
     ranker._app = request._app
-    counts = ranker._get_comparison_stats()
+    counts = ranker._get_comparison_stats(False)
     assert counts[0] == 0
     assert counts[1] == 0
 
