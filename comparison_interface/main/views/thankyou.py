@@ -1,6 +1,6 @@
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Participant
+from comparison_interface.db.models import Participant, ParticipantStudy, StudyControl
 
 from .request import Request
 
@@ -20,13 +20,38 @@ class Thankyou(Request):
         }
         if self._can_continue():
             data['continue'] = True
+        next_study = self._get_next_study()
+        if next_study is not None:
+            data['next'] = True
+            print(next_study.study_id)
+            data['next_id'] = next_study.study_id
+        else:
+            data['next'] = False
+        print(data)
         return self._render_template('main/pages/thankyou.html', data)
 
     def _can_continue(self):
-        """Check if this participant can complete another cycle."""
-        participant = db.session.get(Participant, self._session['participant_id'])
-        if participant.completed_cycles is None or participant.completed_cycles < WS.get_study_conf(
-            WS.BEHAVIOUR_MAX_CYCLES, 1, self._app
+        """Check if this participant can complete another cycle for this study."""
+        query = db.select(ParticipantStudy).where(
+            ParticipantStudy.participant_id == self._session['participant_id'],
+            ParticipantStudy.study_id == self._session['study_id'],
+        )
+        current_study = db.session.scalars(query).one_or_none()
+        if current_study.completed_cycles is None or current_study.completed_cycles < WS.get_study_conf(
+            WS.BEHAVIOUR_MAX_CYCLES, self._session['study_id'], self._app
         ):
             return True
         return False
+
+    def _get_next_study(self):
+        """Check if there is another study for this participant to complete."""
+        participant = db.session.get(Participant, self._session['participant_id'])
+        current_study = db.session.get(StudyControl, participant.current_study_id)
+        print(current_study)
+        current_study_sequence = current_study.study_sequence
+        next_study_sequence = current_study_sequence + 1
+        query = db.select(StudyControl).where(
+            StudyControl.study_sequence == next_study_sequence
+        )
+        next_study = db.session.scalars(query).one_or_none()
+        return next_study

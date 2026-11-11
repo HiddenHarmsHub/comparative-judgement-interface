@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Group, ParticipantGroup, StudyControl
+from comparison_interface.db.models import Group, ParticipantGroup, ParticipantStudy, StudyControl
 from comparison_interface.main.schemas.register import ParticipantSchemaFactory
 
 from .request import Request
@@ -84,26 +84,36 @@ class Register(Request):
 
         # Add server-managed fields. These are dump_only in the schema, so they can never arrive from the client.
         form_data['created_date'] = datetime.now(timezone.utc)
-        if not WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, 1, self._app):
+        form_data['current_study_id'] = study_id
+
+        study_tracking = {
+            'study_id': study_id,
+        }
+
+        if not WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, study_id, self._app):
             # Cycles are not tracked for this study configuration.
-            form_data['completed_cycles'] = None
+            study_tracking['completed_cycles'] = None
         else:
-            form_data['completed_cycles'] = 0
+            study_tracking['completed_cycles'] = 0
 
         table = self._get_participant_table()
 
         try:
-            with db.engines['study_db'].begin() as connection:
-                result = connection.execute(table.insert().values(**form_data))
-                participant_id = result.inserted_primary_key[0]
-
-                if group_ids:
-                    connection.execute(
-                        ParticipantGroup.__table__.insert(),
-                        [{'group_id': group_id, 'participant_id': participant_id} for group_id in group_ids],
-                    )
-        except IntegrityError:
-            # The transaction has already been rolled back by the context manager.
+            engine = db.engines['study_db']
+            connection = db.session.connection(bind_arguments={'bind': engine})
+            result = connection.execute(table.insert().values(**form_data))
+            participant_id = result.inserted_primary_key[0]
+            # now add the study tracking
+            participant_study = ParticipantStudy(participant_id=participant_id, **study_tracking)
+            db.session.add(participant_study)
+            # now add the group ids
+            if group_ids:
+                db.session.add_all(
+                    [ParticipantGroup(group_id=group_id, participant_id=participant_id) for group_id in group_ids]
+                )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
             self._app.logger.warning("Participant registration failed")
             abort(400)
 

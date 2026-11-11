@@ -94,12 +94,9 @@ class Participant(db.Model, BaseModel):
     __bind_key__ = "study_db"
 
     participant_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    current_study = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=True)
+    current_study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=True)
     # Other user files are added automatically by using the Website configuration file
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
-    # TODO: temporary, we will be moving this to the participant study table when we do multiple studies
-    completed_cycles = db.Column(db.Integer, server_default='0')
-
 
 class ParticipantStudy(db.Model, BaseModel):
     """Tracks how far through the studies each user is.
@@ -115,6 +112,8 @@ class ParticipantStudy(db.Model, BaseModel):
     study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
     participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     completed_cycles = db.Column(db.Integer, server_default='0')
+
+    __table_args__ = (UniqueConstraint('study_id', 'participant_id', name='_study_by_participant_uidx'),)
 
 
 class ParticipantGroup(db.Model, BaseModel):
