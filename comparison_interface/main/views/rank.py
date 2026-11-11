@@ -41,7 +41,7 @@ class Rank(Request):
         """Request get handler."""
         if not self._valid_session():
             return self._redirect('.participant_registration')
-        print(self._session)
+
         allow_ties = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_TIES, self._study_id, self._app)
         allow_skip = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._study_id, self._app)
         allow_back = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_BACK, self._study_id, self._app)
