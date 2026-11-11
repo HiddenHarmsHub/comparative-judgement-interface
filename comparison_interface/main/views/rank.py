@@ -122,7 +122,6 @@ class Rank(Request):
             'allow_back': allow_back,
             'study_id': self._study_id,
         }
-
         multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
         compared, skipped = self._get_comparison_stats(multiple_questions)
         if use_escape_route:
