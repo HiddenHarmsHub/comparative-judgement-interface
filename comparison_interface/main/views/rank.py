@@ -94,8 +94,9 @@ class Rank(Request):
 
         else:
             comparison_states = None
-            # save the items in the server session so we can validate results later
+        # save the items in the server session so we can validate results later
         self._session['item_ids'] = [item_1.item_id, item_2.item_id]
+        self._session['weighted_pair_id'] = pair_id
 
         # The participant can rejudge comparisons if:
         # - at least one comparison has already been made in the session
@@ -106,7 +107,6 @@ class Rank(Request):
         shared_data = {
             'item_1': item_1,
             'item_2': item_2,
-            'weighted_pair_id': pair_id,
             'rejudge_label': WS.get_text(WS.RANK_ITEM_REJUDGE_BUTTON_LABEL, self._language, self._app),
             'confirmed_label': WS.get_text(WS.RANK_ITEM_CONFIRMED_BUTTON_LABEL, self._language, self._app),
             'skipped_label': WS.get_text(WS.RANK_ITEM_SKIPPED_BUTTON_LABEL, self._language, self._app),
@@ -268,7 +268,7 @@ class Rank(Request):
                 # mark the pair as judged only if at least one question was answered
                 # TODO: check this logic with Rowland
                 if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and total_skipped > 0:
-                    pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
+                    pair = db.session.get(TotalItemPair, self._session['weighted_pair_id'])
                     pair.judged = True
                 db.session.commit()
                 comparison_ids = [comparison.comparison_id for comparison in comparisons]
@@ -321,7 +321,7 @@ class Rank(Request):
             try:
                 db.session.add(c)
                 if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and state != self.SKIPPED:
-                    pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
+                    pair = db.session.get(TotalItemPair, self._session['weighted_pair_id'])
                     pair.judged = True
                 db.session.commit()
                 # Save the comparison for future possible rejudging
@@ -578,7 +578,7 @@ class Rank(Request):
         query = db.select(Item).where(Item.item_id.in_([item_1_id, item_2_id]))
         items = db.session.scalars(query).all()
 
-        return items[0], items[1], selected_pair_id[0]
+        return items[0], items[1], int(selected_pair_id[0])
 
     def _get_custom_items(self):
         """Get a random pair of items respecting the weights provided in config file.
