@@ -16,7 +16,7 @@ function checkSelection(event) {
         const totalQuestions = rankForm.data('question-total');
         const submittedKeys = formData.map(item => item.name);
         const questionLabels = Array.from({ length: totalQuestions }, (_, i) => `question_${i + 1}`);
-        for (question of questionLabels) {
+        for (let question of questionLabels) {
             if (submittedKeys.indexOf(question) === -1) {
                 alert(rankForm.data('incomplete-form-error'));
                 return false;
@@ -25,7 +25,7 @@ function checkSelection(event) {
         if (allowTies && allowSkip) {
             // then we need to check that skip checkbox is appropriately used
             const questionData = Object.fromEntries(questionLabels.map(str => [str, []]));
-            for (entry of formData) {
+            for (let entry of formData) {
                 if (questionLabels.indexOf(entry.name) !== -1) {
                     questionData[entry.name].push(entry.value);
                 }
