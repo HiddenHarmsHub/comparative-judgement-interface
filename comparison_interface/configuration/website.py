@@ -96,6 +96,8 @@ class Settings:
     RANK_ITEM_REJUDGE_BUTTON_LABEL = "rankItemItemRejudgeButtonLabel"
     RANK_ITEM_CONFIRMED_BUTTON_LABEL = "rankItemConfirmedButtonLabel"
     RANK_ITEM_SKIPPED_BUTTON_LABEL = "rankItemSkippedButtonLabel"
+    RANK_ITEM_INCOMPLETE_FORM_ERROR_MESSAGE = "rankItemIncompleteFormErrorMessage"
+    RANK_ITEM_SKIP_SELECTION_ERROR_MESSAGE = "rankItemSkipSelectionErrorMessage"
     CONFIRM_BUTTON_ERROR_MESSAGE_WITH_SKIP = "confirmButtonErrorMessageWithSkip"
     CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP = "confirmButtonErrorMessageWithoutSkip"
     SKIP_BUTTON_ERROR_MESSAGE = "skipButtonErrorMessage"

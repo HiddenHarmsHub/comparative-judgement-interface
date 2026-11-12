@@ -24,6 +24,8 @@
         "rankItemSkippedButtonLabel": "Skip",
         "rankItemComparisonExecutedLabel": "Compared",
         "rankItemSkippedComparisonExecutedLabel": "Skipped",
+        "rankItemIncompleteFormErrorMessage": "You must answer all of the questions on the page.",
+        "rankItemSkipSelectionErrorMessage": "You cannot skip a question if you already have an item selected for the same question.",
         "confirmButtonErrorMessageWithSkip": "You must select at least one of the items or skip this comparison by using the Skip button.",
         "confirmButtonErrorMessageWithoutSkip": "You must select at least one of the items.",
         "skipButtonErrorMessage": "You cannot skip a comparison if any items are selected. Unselect the items to skip the comparison or use the Confirm button to confirm the current selection.",
