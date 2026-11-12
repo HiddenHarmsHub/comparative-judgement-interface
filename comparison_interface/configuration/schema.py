@@ -275,6 +275,12 @@ class WebsiteTextConfiguration(Schema):
     rankItemSkippedComparisonExecutedLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=50
     )
+    rankItemIncompleteFormErrorMessage = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=1000
+    )
+    rankItemSkipSelectionErrorMessage = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=1000
+    )
     confirmButtonErrorMessageWithSkip = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=1000
     )

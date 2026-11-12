@@ -146,6 +146,12 @@ class Rank(Request):
                     WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._language, self._app
                 ),
                 'comparison_number': compared,
+                'incomplete_form_error_message': WS.get_text(
+                    WS.RANK_ITEM_INCOMPLETE_FORM_ERROR_MESSAGE, self._language, self._app
+                ),
+                'skip_selection_error_message': WS.get_text(
+                    WS.RANK_ITEM_SKIP_SELECTION_ERROR_MESSAGE, self._language, self._app
+                ),
             }
             data = shared_data | data
             return self._render_template('main/pages/multi_rank.html', data)
