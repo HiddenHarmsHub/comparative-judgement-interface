@@ -8,11 +8,19 @@
   <div class="form-group p-3">
     <p>{{opening_text}}</p>
 
-    {% if continue == True %}
-      <p>{{continue_text}}</p>
-      <div class="text-center">
-        <a role="button" id="continue_button" class="btn btn-primary" href="/rank">{{ button }}</a>
-      </div>
+    {% if continue == True or next == True %}
+      {% if continue == True %}
+        <p>{{continue_text}}</p>
+        <div class="text-center">
+          <a role="button" id="continue_button" class="btn btn-primary" href="/rank">{{ button }}</a>
+        </div>
+      {% endif %}
+      {% if next == True %}
+        <p>Move to the next study</p>
+        <div class="text-center">
+          <a role="button" id="continue_button" class="btn btn-primary" href="/rank/{{ next_id }}">next study</a>
+        </div>
+      {% endif %}
     {% else %}
       <p>{{stop_text}}</p>
     {% endif %}

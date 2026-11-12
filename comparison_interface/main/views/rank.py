@@ -14,6 +14,7 @@ from comparison_interface.db.models import (
     Participant,
     ParticipantGroup,
     ParticipantItem,
+    ParticipantStudy,
     StudyControl,
     StudySubQuestions,
     StudyText,
@@ -418,12 +419,23 @@ class Rank(Request):
         participant = db.session.get(Participant, self._session['participant_id'])
         if participant is None:
             return 0
-        return participant.completed_cycles
+        query = db.select(ParticipantStudy).where(
+            ParticipantStudy.participant_id == self._session['participant_id'],
+            ParticipantStudy.study_id == self._session['study_id'],
+        )
+        current_study = db.session.scalars(query).one_or_none()
+        if current_study is None:
+            return 0
+        return current_study.completed_cycles
 
     def _increment_cycle_count(self):
-        """Increment the current participant's cycle count."""
-        participant = db.session.get(Participant, self._session['participant_id'])
-        participant.completed_cycles = participant.completed_cycles + 1
+        """Increment the current participant's cycle count fot their current study."""
+        query = db.select(ParticipantStudy).where(
+            ParticipantStudy.participant_id == self._session['participant_id'],
+            ParticipantStudy.study_id == self._session['study_id'],
+        )
+        current_study = db.session.scalars(query).one_or_none()
+        current_study.completed_cycles = current_study.completed_cycles + 1
         db.session.commit()
 
     def _get_comparison_stats(self, multiple_studies):
