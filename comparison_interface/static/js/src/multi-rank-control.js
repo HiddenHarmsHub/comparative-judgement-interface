@@ -13,7 +13,8 @@ function checkSelection(event) {
         if (allowTies) {
             // then we need to check that skip checkbox is appropriately used
 
-        }   
+        }
+        // check all questions have been answered
         console.log(allowTies)
         console.log('form submitted');
         $(event.target).data().isSubmitted = true;
