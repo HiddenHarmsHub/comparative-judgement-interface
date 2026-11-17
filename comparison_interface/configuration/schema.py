@@ -249,6 +249,9 @@ class WebsiteTextConfiguration(Schema):
     userRegistrationEthicsAgreementLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=500
     )
+    userRegistrationScreenReaderLegend = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=500
+    )
     itemSelectionYesButtonLabel = OptionalMultiLangField(
         required=False, value_type="string", min_length=1, max_length=50
     )

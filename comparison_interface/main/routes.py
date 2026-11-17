@@ -10,7 +10,7 @@ from .views.item_preference import ItemsPreference
 from .views.logout import Logout
 from .views.policies import Policies
 from .views.rank import Rank
-from .views.register import Register
+from .views.register import Register, RegisterNext
 from .views.request import Request
 from .views.thankyou import Thankyou
 
@@ -50,6 +50,15 @@ def participant_registration():
     """Handle registration URL and the route location when no user session registered."""
     return Request.process(Register(current_app, session), request)
 
+@blueprint.route('/register/<study_id>', methods=['GET'])
+def next_study_registration_form(study_id):
+    """Handle group selection form display for subsequent studies."""
+    return Request.process(Register(current_app, session, study_id), request)
+
+@blueprint.route('/register/<study_id>', methods=['POST'])
+def next_study_registration(study_id):
+    """Handle registration for subsequent studies."""
+    return Request.process(RegisterNext(current_app, session, study_id), request)
 
 @blueprint.route('/selection/items', methods=['GET', 'POST'])
 def item_selection():
