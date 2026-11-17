@@ -23,8 +23,7 @@ class Thankyou(Request):
         next_study = self._get_next_study()
         if next_study is not None:
             data['next'] = True
-            print(next_study.study_id)
-            data['next_id'] = next_study.study_id
+            data['next_seq'] = next_study.study_sequence
         else:
             data['next'] = False
         print(data)
@@ -54,4 +53,5 @@ class Thankyou(Request):
             StudyControl.study_sequence == next_study_sequence
         )
         next_study = db.session.scalars(query).one_or_none()
+
         return next_study

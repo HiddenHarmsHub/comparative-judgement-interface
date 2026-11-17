@@ -128,10 +128,11 @@ class ParticipantGroup(db.Model, BaseModel):
 
     participant_group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group.group_id'), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
     participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
-    __table_args__ = (UniqueConstraint('group_id', 'participant_id', name='_participant_group_uidx'),)
+    __table_args__ = (UniqueConstraint('group_id', 'study_id', 'participant_id', name='_participant_group_uidx'),)
 
 
 class Comparison(db.Model, BaseModel):
