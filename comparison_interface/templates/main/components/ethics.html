@@ -1,7 +1,7 @@
 <hr/>
 <div class="row mb-3 ml-3" style="text-align:left;">
     <input aria-labelledby="ethics-label" style="width:min-content;" class="col-1 focus-ring" type="checkbox" id="accept-ethics-agreement" name="accepted_ethics_agreement" value="1" required>
-    <span class="col-11 ml-5" id="ethics-label">{{ethics_agreement_label}}&MediumSpace;
-        <a class="focus-ring" id="ethics-link" href="{{ url_for('.ethics_agreement') }}">{{ethics_link_text}}</a>
+    <span class="col-11 ml-5" id="ethics-label">{{ component.ethics_agreement_label }}&MediumSpace;
+        <a class="focus-ring" id="ethics-link" href="{{ url_for('.ethics_agreement') }}">{{ component.ethics_link_text }}</a>
     </span>
 </div>

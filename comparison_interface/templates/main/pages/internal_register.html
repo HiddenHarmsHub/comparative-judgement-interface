@@ -9,7 +9,7 @@
         <legend class="visually-hidden">{{ registration_legend }}</legend>
         <div class="form-group p-3">
         {% for component in components %}
-          {{component|safe}}
+          {% include component.template %}
         {% endfor %}
         </div>
         <button 
