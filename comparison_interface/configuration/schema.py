@@ -299,6 +299,10 @@ class WebsiteTextConfiguration(Schema):
     thankYouOpeningText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
     thankYouContinueText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
     thankYouStopText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    thankYouNextStudyText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    thankYouNextStudyButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
     ethicsAgreementBackButtonLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=50
     )

@@ -36,6 +36,8 @@
         "thankYouOpeningText": "Thank you for contributing to this research.",
         "thankYouContinueText": "If you would like to continue with more comparisons please click the continue button below. If not, please log out to end the session.",
         "thankYouStopText": "There are no more comparisons available. Please log out to end the session.",
+        "thankYouNextStudyText": "Go to the next study",
+        "thankYouNextStudyButtonLabel": "Next Study",
         "ethicsAgreementBackButtonLabel": "Back",
         "sitePoliciesBackButtonLabel": "Back",
         "siteCookiesAcceptButtonLabel": "Accept",
