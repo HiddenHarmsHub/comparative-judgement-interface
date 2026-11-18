@@ -17,16 +17,18 @@ class Thankyou(Request):
             'continue_text': WS.get_text(WS.THANK_YOU_CONTINUE_TEXT, self._language, self._app),
             'stop_text': WS.get_text(WS.THANK_YOU_STOP_TEXT, self._language, self._app),
             'button': WS.get_text(WS.THANK_YOU_CONTINUE_BUTTON_LABEL, self._language, self._app),
+            'next_text': WS.get_text(WS.THANK_YOU_NEXT_STUDY_TEXT, self._language, self._app),
+            'next_button': WS.get_text(WS.THANK_YOU_NEXT_STUDY_BUTTON_LABEL, self._language, self._app),
         }
         if self._can_continue():
             data['continue'] = True
         next_study = self._get_next_study()
         if next_study is not None:
             data['next'] = True
+            # using sequence not id here in case researchers need to put people on a specific study
             data['next_seq'] = next_study.study_sequence
         else:
             data['next'] = False
-        print(data)
         return self._render_template('main/pages/thankyou.html', data)
 
     def _can_continue(self):
@@ -46,7 +48,6 @@ class Thankyou(Request):
         """Check if there is another study for this participant to complete."""
         participant = db.session.get(Participant, self._session['participant_id'])
         current_study = db.session.get(StudyControl, participant.current_study_id)
-        print(current_study)
         current_study_sequence = current_study.study_sequence
         next_study_sequence = current_study_sequence + 1
         query = db.select(StudyControl).where(
