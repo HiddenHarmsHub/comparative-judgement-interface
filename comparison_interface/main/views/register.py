@@ -23,6 +23,7 @@ class Register(Request):
     def get(self, _):
         """Request get handler."""
         if self.study_seq is not None:
+            # Then this is just group selection for the next study
             user_components = []
             group_columns = False
             direct_registration = True
@@ -38,6 +39,11 @@ class Register(Request):
                 {
                     'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._language, self._app),
                     'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._language, self._app),
+                    'next_study': WS.get_text(WS.THANK_YOU_NEXT_STUDY_TEXT, self._language, self._app),
+                    'next_button': WS.get_text(WS.THANK_YOU_NEXT_STUDY_BUTTON_LABEL, self._language, self._app),
+                    'registration_legend': WS.get_text(
+                        WS.USER_REGISTRATION_SCREEN_READER_LEGEND, self._language, self._app
+                    ),
                     'components': user_components,
                     'group_columns': group_columns,
                     'direct_registration': direct_registration,
@@ -318,23 +324,18 @@ class RegisterNext(Register):
         """
         raw_group_ids = request.form.getlist("group_ids")
         print(raw_group_ids)
-        print('=================')
 
         study_id = db.session.scalars(
             db.select(StudyControl.study_id).where(StudyControl.study_sequence == self.study_seq)
         ).first()
-        print(study_id)
-        print('##########')
+
         # Confirm we have a list of integers we can safely insert and that they belong to the right study.
         try:
             group_ids = [int(gid) for gid in raw_group_ids]
-            print(group_ids)
         except (TypeError, ValueError):
             self._app.logger.warning("Rejected group_ids")
             abort(400)
         allowed_groups = db.session.scalars(db.select(Group.group_id).where(Group.study_id == study_id)).all()
-        print(allowed_groups)
-        print('************')
 
         if not set(group_ids).issubset(allowed_groups):
             self._app.logger.warning("Rejected group_ids")
@@ -354,6 +355,9 @@ class RegisterNext(Register):
             # now add the study tracking
             participant_study = ParticipantStudy(participant_id=self._session['participant_id'], **study_tracking)
             db.session.add(participant_study)
+            # change the partipants current study
+            participant = db.session.get(Participant, self._session['participant_id'])
+            participant.current_study_id = study_id
             # now add the group ids
             if group_ids:
                 db.session.add_all(
@@ -367,7 +371,6 @@ class RegisterNext(Register):
         except Exception:
             db.session.rollback()
             self._app.logger.warning("Participant registration failed")
-            raise
             abort(400)
 
         self._session['group_ids'] = group_ids

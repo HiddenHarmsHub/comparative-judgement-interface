@@ -109,6 +109,8 @@ class Settings:
     THANK_YOU_OPENING_TEXT = "thankYouOpeningText"
     THANK_YOU_CONTINUE_TEXT = "thankYouContinueText"
     THANK_YOU_STOP_TEXT = "thankYouStopText"
+    THANK_YOU_NEXT_STUDY_TEXT = "thankYouNextStudyText"
+    THANK_YOU_NEXT_STUDY_BUTTON_LABEL = "thankYouNextStudyButtonLabel"
     ETHICS_AGREEMENT_BACK_BUTTON_LABEL = "ethicsAgreementBackButtonLabel"
     SITE_POLICIES_BACK_BUTTON_LABEL = "sitePoliciesBackButtonLabel"
     SITE_COOKIES_ACCEPT_BUTTON_LABEL = "siteCookiesAcceptButtonLabel"

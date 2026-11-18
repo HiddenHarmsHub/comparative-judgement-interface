@@ -465,7 +465,9 @@ class Rank(Request):
         if multiple_studies:
             skipped = 0
             query = db.select(func.count(Comparison.comparison_id)).where(
-                Comparison.participant_id == self._session['participant_id'], Comparison.sub_question_id == 1
+                Comparison.participant_id == self._session['participant_id'],
+                Comparison.study_id == self._study_id,
+                Comparison.sub_question_id == 1
             )
             counts = db.session.execute(query).all()
             compared = counts[0][0]
@@ -476,7 +478,7 @@ class Rank(Request):
 
         query = (
             db.select(Comparison.state, func.count(Comparison.comparison_id))
-            .where(Comparison.participant_id == self._session['participant_id'])
+            .where(Comparison.participant_id == self._session['participant_id'], Comparison.study_id == self._study_id)
             .group_by(Comparison.state)
         )
         counts = db.session.execute(query).all()

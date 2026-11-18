@@ -16,9 +16,9 @@
         </div>
       {% endif %}
       {% if next == True %}
-        <p>Move to the next study</p>
+        <p>{{ next_text }}</p>
         <div class="text-center">
-          <a role="button" id="continue_button" class="btn btn-primary" href="/register/{{ next_seq }}">next study</a>
+          <a role="button" id="continue_button" class="btn btn-primary" href="/register/{{ next_seq }}">{{ next_button }}</a>
         </div>
       {% endif %}
     {% else %}
