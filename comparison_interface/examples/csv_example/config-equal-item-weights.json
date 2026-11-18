@@ -15,8 +15,8 @@
         {
             "renderUserItemPreferencePage": false,
             "offerEscapeRouteBetweenCycles": true,
-            "cycleLength": 10,
-            "maximumCyclesPerUser": 1,
+            "cycleLength": 5,
+            "maximumCyclesPerUser": 2,
             "allowTies": false,
             "allowSkip": true,
             "allowBack": true,
@@ -38,7 +38,7 @@
         {
             "renderUserItemPreferencePage": false,
             "offerEscapeRouteBetweenCycles": true,
-            "cycleLength": 10,
+            "cycleLength": 5,
             "maximumCyclesPerUser": 3,
             "allowTies": true,
             "allowSkip": true,
