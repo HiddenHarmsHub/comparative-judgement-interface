@@ -11,15 +11,33 @@
     {% if continue == True or next == True %}
       {% if continue == True %}
         <p>{{continue_text}}</p>
-        <div class="text-center">
+        <div class="text-center mb-5">
           <a role="button" id="continue_button" class="btn btn-primary" href="/rank">{{ button }}</a>
         </div>
       {% endif %}
       {% if next == True %}
         <p>{{ next_text }}</p>
-        <div class="text-center">
-          <a role="button" id="continue_button" class="btn btn-primary" href="/register/{{ next_seq }}">{{ next_button }}</a>
-        </div>
+        {% if not direct_registration %}
+          <div class="text-center">
+            <a role="button" id="continue_button" class="btn btn-primary" href="/register/{{ next_seq }}">{{ next_button }}</a>
+          </div>
+        {% else %}
+          <div class="form-group p-3 text-center">
+            <form id="real-registration-form" method="POST" aria-label="Registration Form" action="/register/{{ next_seq }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              {% for component in components %}
+                {% include component.template %}
+              {% endfor %}
+              <button 
+                id="submit-button"
+                type="submit"
+                class="btn btn-primary"
+              >
+                {{ next_button }}
+              </button>
+            </form>
+          </div>
+        {% endif %}
       {% endif %}
     {% else %}
       <p>{{stop_text}}</p>

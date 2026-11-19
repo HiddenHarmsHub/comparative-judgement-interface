@@ -1,10 +1,10 @@
 <div class="row mb-3">
-    <label for="{{name}}-select" class="col-4 col-form-label {% if required == true %}required-field-label{% else %}{% endif %}">{{question_text}}</label>
+    <label for="{{ component.field.name }}-select" class="col-4 col-form-label {% if required == true %}required-field-label{% else %}{% endif %}">{{ component.question_text }}</label>
     <div class="col-8">
-        <select class="form-control" name="{{name}}" id="{{name}}-select" {% if required == true %}required{% else %}{% endif %}>
+        <select class="form-control" name="{{ component.field.name }}" id="{{ component.field.name }}-select" {% if required == true %}required{% else %}{% endif %}>
             <option {% if required == true %}disabled{% else %}{% endif %} selected value aria-hidden="true"></option>
-            {% for value in option %}
-                <option value="{{value}}">{{value}}</option>
+            {% for value in component.field.option %}
+                <option value="{{ value }}">{{ value }}</option>
             {% endfor %}
         </select>
     </div>
