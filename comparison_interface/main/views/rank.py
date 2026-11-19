@@ -507,7 +507,6 @@ class Rank(Request):
             Item: Model Item | None
             Item: Model Item | None
         """
-        # TODO: change hard coded study id from 1 to the current study
         render_item_prefer = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._study_id, self._app)
 
         # Case 1: Returns the items related to a particular comparison.
@@ -702,7 +701,6 @@ class Rank(Request):
             )
         )
         result = db.session.execute(query).all()
-
         items_id = []
         items = {}
         for _, _, i in result:
@@ -710,7 +708,6 @@ class Rank(Request):
             if i.item_id not in items_id:
                 items_id.append(i.item_id)
                 items[i.item_id] = i
-
         if len(items_id) < 2:
             return None, None
 
