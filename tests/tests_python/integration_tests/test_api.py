@@ -83,6 +83,7 @@ def add_basic_data_equal_api(equal_weight_client_api):
     participant_group_data = {
         'participant_id': id,
         'group_id': 2,
+        'study_id': 1,
         'created_date': datetime.now(timezone.utc),
     }
     participant_group = ParticipantGroup(**participant_group_data)
