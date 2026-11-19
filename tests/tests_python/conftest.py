@@ -115,7 +115,7 @@ def add_basic_data_custom(custom_weight_client):
         'offer_escape_route_between_cycles': True,
         'cycle_length': 5,
         'maximum_cycles_per_user': 2,
-        'render_user_item_preference_page': False, 
+        'render_user_item_preference_page': False,
     }
     study_control = StudyControl(**study_control_data)
     db.session.add(study_control)
@@ -128,7 +128,7 @@ def add_basic_data_custom(custom_weight_client):
         'age': '30',
         'email': 'dummy@test',
         'accepted_ethics_agreement': '1',
-        'current_study_id': study_control.study_id
+        'current_study_id': study_control.study_id,
     }
     participant_data['created_date'] = datetime.now(timezone.utc)
     db_engine = db.engines['study_db']

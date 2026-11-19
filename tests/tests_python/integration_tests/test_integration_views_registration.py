@@ -56,8 +56,8 @@ def test_register_participant_with_escape_route_on(equal_weight_client, particip
             assert participant.current_study_id == 1
             assert isinstance(participant.participant_id, int)
             assert participant.participant_id == session['participant_id']
-            participant_studies = db.session.scalars(db.select(ParticipantStudy).where(
-                ParticipantStudy.participant_id == participant.participant_id)
+            participant_studies = db.session.scalars(
+                db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant.participant_id)
             ).all()
             assert len(participant_studies) == 1
             assert participant_studies[0].completed_cycles == 0
@@ -85,8 +85,8 @@ def test_register_participant_with_escape_route_off(mocker, equal_weight_client,
             assert participant.current_study_id == 1
             assert isinstance(participant.participant_id, int)
             assert participant.participant_id == session['participant_id']
-            participant_studies = db.session.scalars(db.select(ParticipantStudy).where(
-                ParticipantStudy.participant_id == participant.participant_id)
+            participant_studies = db.session.scalars(
+                db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant.participant_id)
             ).all()
             assert len(participant_studies) == 1
             assert participant_studies[0].completed_cycles == 0
