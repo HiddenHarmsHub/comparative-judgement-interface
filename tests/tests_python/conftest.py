@@ -9,7 +9,7 @@ from app import create_app
 from comparison_interface.configuration.validation import Validation as ConfigValidation
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import ParticipantGroup, ParticipantItem
+from comparison_interface.db.models import ParticipantGroup, ParticipantItem, ParticipantStudy, StudyControl
 from comparison_interface.db.setup import Setup as DBSetup
 
 
@@ -105,6 +105,21 @@ def participant_data():
 
 @pytest.fixture()
 def add_basic_data_custom(custom_weight_client):
+    study_control_data = {
+        'study_sequence': 1,
+        'weight_configuration': 'equal',
+        'allow_ties': False,
+        'allow_skip': True,
+        'allow_back': True,
+        'multiple_questions': False,
+        'offer_escape_route_between_cycles': True,
+        'cycle_length': 5,
+        'maximum_cycles_per_user': 2,
+        'render_user_item_preference_page': False,
+    }
+    study_control = StudyControl(**study_control_data)
+    db.session.add(study_control)
+    db.session.commit()
     # add a participant
     participant_data = {
         'name': 'Tester One',
@@ -113,6 +128,7 @@ def add_basic_data_custom(custom_weight_client):
         'age': '30',
         'email': 'dummy@test',
         'accepted_ethics_agreement': '1',
+        'current_study_id': study_control.study_id,
     }
     participant_data['created_date'] = datetime.now(timezone.utc)
     db_engine = db.engines['study_db']
@@ -128,10 +144,20 @@ def add_basic_data_custom(custom_weight_client):
     except SQLAlchemyError as e:
         raise RuntimeError(str(e))
     db.session.commit
+    # make the study
+    participant_study_data = {
+        'participant_id': id,
+        'study_id': study_control.study_id,
+        'completed_cycles': 0,
+    }
+    participant_study = ParticipantStudy(**participant_study_data)
+    db.session.add(participant_study)
+    db.session.commit()
     # insert the group preferences for the east of england group (assumes groups are always added the same way)
     participant_group_data = {
         'participant_id': id,
         'group_id': 2,
+        'study_id': 1,
         'created_date': datetime.now(timezone.utc),
     }
     participant_group = ParticipantGroup(**participant_group_data)
@@ -143,6 +169,21 @@ def add_basic_data_custom(custom_weight_client):
 
 @pytest.fixture()
 def add_basic_data_totals(custom_totals_client):
+    study_control_data = {
+        'study_sequence': 1,
+        'weight_configuration': 'equal',
+        'allow_ties': False,
+        'allow_skip': True,
+        'allow_back': True,
+        'multiple_questions': False,
+        'offer_escape_route_between_cycles': True,
+        'cycle_length': 5,
+        'maximum_cycles_per_user': 2,
+        'render_user_item_preference_page': False,
+    }
+    study_control = StudyControl(**study_control_data)
+    db.session.add(study_control)
+    db.session.commit()
     # add a participant
     participant_data = {
         'name': 'Tester One',
@@ -151,6 +192,7 @@ def add_basic_data_totals(custom_totals_client):
         'age': '30',
         'email': 'dummy@test',
         'accepted_ethics_agreement': '1',
+        'current_study_id': study_control.study_id,
     }
     participant_data['created_date'] = datetime.now(timezone.utc)
     db_engine = db.engines['study_db']
@@ -166,10 +208,20 @@ def add_basic_data_totals(custom_totals_client):
     except SQLAlchemyError as e:
         raise RuntimeError(str(e))
     db.session.commit
+    # make the study
+    participant_study_data = {
+        'participant_id': id,
+        'study_id': study_control.study_id,
+        'completed_cycles': 0,
+    }
+    participant_study = ParticipantStudy(**participant_study_data)
+    db.session.add(participant_study)
+    db.session.commit()
     # insert the group preferences for the only group
     participant_group_data = {
         'participant_id': id,
         'group_id': 1,
+        'study_id': 1,
         'created_date': datetime.now(timezone.utc),
     }
     participant_group = ParticipantGroup(**participant_group_data)
@@ -181,6 +233,21 @@ def add_basic_data_totals(custom_totals_client):
 
 @pytest.fixture()
 def add_basic_data_equal(equal_weight_client):
+    study_control_data = {
+        'study_sequence': 1,
+        'weight_configuration': 'equal',
+        'allow_ties': False,
+        'allow_skip': True,
+        'allow_back': True,
+        'multiple_questions': False,
+        'offer_escape_route_between_cycles': True,
+        'cycle_length': 5,
+        'maximum_cycles_per_user': 2,
+        'render_user_item_preference_page': False,
+    }
+    study_control = StudyControl(**study_control_data)
+    db.session.add(study_control)
+    db.session.commit()
     # add data for a participant with 9 item preferences (for 12 group items)
     participant_data = {
         'name': 'Tester One',
@@ -189,6 +256,7 @@ def add_basic_data_equal(equal_weight_client):
         'age': '30',
         'email': 'dummy@test',
         'accepted_ethics_agreement': '1',
+        'current_study_id': study_control.study_id,
     }
     participant_data['created_date'] = datetime.now(timezone.utc)
     db_engine = db.engines['study_db']
@@ -204,10 +272,20 @@ def add_basic_data_equal(equal_weight_client):
     except SQLAlchemyError as e:
         raise RuntimeError(str(e))
     db.session.commit
+    # make the study
+    participant_study_data = {
+        'participant_id': id,
+        'study_id': study_control.study_id,
+        'completed_cycles': 0,
+    }
+    participant_study = ParticipantStudy(**participant_study_data)
+    db.session.add(participant_study)
+    db.session.commit()
     # insert the group preferences for the participant (assumes groups are always added the same way)
     participant_group_data = {
         'participant_id': id,
         'group_id': 1,
+        'study_id': study_control.study_id,
         'created_date': datetime.now(timezone.utc),
     }
     participant_group = ParticipantGroup(**participant_group_data)
@@ -255,6 +333,7 @@ def add_basic_data_equal(equal_weight_client):
     participant_group_data = {
         'participant_id': id,
         'group_id': 1,
+        'study_id': study_control.study_id,
         'created_date': datetime.now(timezone.utc),
     }
     participant_group = ParticipantGroup(**participant_group_data)

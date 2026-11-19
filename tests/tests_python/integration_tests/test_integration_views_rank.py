@@ -2,7 +2,7 @@ import pytest
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison, Participant, TotalItemPair
+from comparison_interface.db.models import Comparison, ParticipantStudy, TotalItemPair
 from comparison_interface.main.views import rank
 from tests.tests_python.conftest import execute_setup
 
@@ -439,18 +439,20 @@ def test_no_hard_stop_below_max_cycles(equal_weight_client, equal_weight_app):
     WHEN a logged in participant still has cycles remaining
     THEN they are allowed to continue ranking items
     """
+    participant_id = 1
+    participant_study = db.session.scalars(
+        db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant_id)
+    ).one_or_none()
     with equal_weight_client.session_transaction() as session:
-        session['participant_id'] = 1
+        session['participant_id'] = participant_id
         session['group_ids'] = [1]
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-        session['study_id'] = 1
+        session['study_id'] = participant_study.study_id
         session['item_ids'] = [1, 2]
-    # TODO: unhardocde study_id
-    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
-    participant = db.session.get(Participant, session['participant_id'])
-    participant.completed_cycles = max_cycles - 1
+    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, participant_study.study_id, equal_weight_app)
+    participant_study.completed_cycles = max_cycles - 1
     db.session.commit()
     response = equal_weight_client.get("/rank")
     assert response.status_code == 200
@@ -464,18 +466,20 @@ def test_hard_stop_at_max_cycles(equal_weight_client, equal_weight_app):
     WHEN a logged in participant tries to continue ranking items after the end of the final permitted cycle
     THEN they are sent to the thank you page and the page does not have a continue button
     """
+    participant_id = 1
+    participant_study = db.session.scalars(
+        db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant_id)
+    ).one_or_none()
     with equal_weight_client.session_transaction() as session:
         session['participant_id'] = 1
         session['group_ids'] = [1]
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-        session['study_id'] = 1
+        session['study_id'] = participant_study.study_id
         session['item_ids'] = [1, 2]
-    # TODO: unhardcode study id
-    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
-    participant = db.session.get(Participant, session['participant_id'])
-    participant.completed_cycles = max_cycles
+    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, participant_study.study_id, equal_weight_app)
+    participant_study.completed_cycles = max_cycles + 1
     db.session.commit()
     response = equal_weight_client.get("/rank", follow_redirects=True)
     assert response.status_code == 200
@@ -490,19 +494,21 @@ def test_redirect_at_first_cycle_end(mocker, equal_weight_client, equal_weight_a
     WHEN a logged in participant gets to the end of the first cycle
     THEN they are redirected to the thankyou page and the page has a continue button
     """
+    participant_id = 1
+    participant_study = db.session.scalars(
+        db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant_id)
+    ).one_or_none()
     with equal_weight_client.session_transaction() as session:
-        session['participant_id'] = 1
+        session['participant_id'] = participant_id
         session['group_ids'] = [1]
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-        session['study_id'] = 1
-    # TODO: unhardcode study id
-    cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, equal_weight_app)
+        session['study_id'] = participant_study.study_id
+    cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, participant_study.study_id, equal_weight_app)
     get_stats = mocker.patch.object(rank.Rank, '_get_comparison_stats')
     get_stats.side_effect = [(cycle_length, 0)]
-    participant = db.session.get(Participant, session['participant_id'])
-    participant.completed_cycles = 0
+    participant_study.completed_cycles = 0
     db.session.commit()
     response = equal_weight_client.get("/rank", follow_redirects=True)
     assert response.status_code == 200
@@ -517,20 +523,22 @@ def test_redirect_after_final_cycle_end(mocker, equal_weight_client, equal_weigh
     WHEN a logged in participant gets to the end of the final permitted cycle
     THEN they are redirected to the thank you page and the page does not have a continue button
     """
+    participant_id = 1
+    participant_study = db.session.scalars(
+        db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant_id)
+    ).one_or_none()
     with equal_weight_client.session_transaction() as session:
-        session['participant_id'] = 1
+        session['participant_id'] = participant_id
         session['group_ids'] = [1]
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-        session['study_id'] = 1
-    # TODO: unhardcode study id
-    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, 1, equal_weight_app)
-    cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, 1, equal_weight_app)
+        session['study_id'] = participant_study.study_id
+    max_cycles = WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, participant_study.study_id, equal_weight_app)
+    cycle_length = WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, participant_study.study_id, equal_weight_app)
     get_stats = mocker.patch.object(rank.Rank, '_get_comparison_stats')
     get_stats.side_effect = [(cycle_length * max_cycles, 0)]
-    participant = db.session.get(Participant, session['participant_id'])
-    participant.completed_cycles = max_cycles - 1
+    participant_study.completed_cycles = max_cycles - 1
     db.session.commit()
     response = equal_weight_client.get("/rank", follow_redirects=True)
     assert response.status_code == 200

@@ -158,9 +158,8 @@ class Register(Request):
             if group_ids:
                 db.session.add_all(
                     [
-                        ParticipantGroup(
-                            group_id=group_id, study_id=study_id, participant_id=participant_id
-                        ) for group_id in group_ids
+                        ParticipantGroup(group_id=group_id, study_id=study_id, participant_id=participant_id)
+                        for group_id in group_ids
                     ]
                 )
             db.session.commit()
@@ -312,6 +311,7 @@ class Register(Request):
         self._app._participant_write_schema = schema
         return schema
 
+
 class RegisterNext(Register):
     """Register group selections for follow on studies."""
 
@@ -335,7 +335,6 @@ class RegisterNext(Register):
                 or if the database rejects it (for example an unknown group id).
         """
         raw_group_ids = request.form.getlist("group_ids")
-        print(raw_group_ids)
 
         study_id = db.session.scalars(
             db.select(StudyControl.study_id).where(StudyControl.study_sequence == self.study_seq)
@@ -376,7 +375,8 @@ class RegisterNext(Register):
                     [
                         ParticipantGroup(
                             group_id=group_id, study_id=study_id, participant_id=self._session['participant_id']
-                        ) for group_id in group_ids
+                        )
+                        for group_id in group_ids
                     ]
                 )
             db.session.commit()
