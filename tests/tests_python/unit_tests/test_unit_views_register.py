@@ -26,5 +26,5 @@ def test_load_user_component(mocker, equal_weight_app):
                 },
             ]
         ]
-        reg._load_user_component(user_components)
+        user_components = reg._load_user_component()
         assert len(user_components) == 2
