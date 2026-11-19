@@ -6,7 +6,15 @@ from sqlalchemy import MetaData, create_engine, select, text, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison, Group, Item, ItemGroup, ParticipantGroup, ParticipantStudy, TotalItemPair
+from comparison_interface.db.models import (
+    Comparison,
+    Group,
+    Item,
+    ItemGroup,
+    ParticipantGroup,
+    ParticipantStudy,
+    TotalItemPair,
+)
 from comparison_interface.main.views import rank
 from comparison_interface.main.views.register import Request
 

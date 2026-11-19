@@ -2,7 +2,7 @@ import pytest
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Comparison, Participant, ParticipantStudy, TotalItemPair
+from comparison_interface.db.models import Comparison, ParticipantStudy, TotalItemPair
 from comparison_interface.main.views import rank
 from tests.tests_python.conftest import execute_setup
 
@@ -440,8 +440,8 @@ def test_no_hard_stop_below_max_cycles(equal_weight_client, equal_weight_app):
     THEN they are allowed to continue ranking items
     """
     participant_id = 1
-    participant_study = db.session.scalars(db.select(ParticipantStudy).where(
-        ParticipantStudy.participant_id == participant_id)
+    participant_study = db.session.scalars(
+        db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant_id)
     ).one_or_none()
     with equal_weight_client.session_transaction() as session:
         session['participant_id'] = participant_id
@@ -467,8 +467,8 @@ def test_hard_stop_at_max_cycles(equal_weight_client, equal_weight_app):
     THEN they are sent to the thank you page and the page does not have a continue button
     """
     participant_id = 1
-    participant_study = db.session.scalars(db.select(ParticipantStudy).where(
-        ParticipantStudy.participant_id == participant_id)
+    participant_study = db.session.scalars(
+        db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant_id)
     ).one_or_none()
     with equal_weight_client.session_transaction() as session:
         session['participant_id'] = 1
@@ -495,8 +495,8 @@ def test_redirect_at_first_cycle_end(mocker, equal_weight_client, equal_weight_a
     THEN they are redirected to the thankyou page and the page has a continue button
     """
     participant_id = 1
-    participant_study = db.session.scalars(db.select(ParticipantStudy).where(
-        ParticipantStudy.participant_id == participant_id)
+    participant_study = db.session.scalars(
+        db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant_id)
     ).one_or_none()
     with equal_weight_client.session_transaction() as session:
         session['participant_id'] = participant_id
@@ -524,8 +524,8 @@ def test_redirect_after_final_cycle_end(mocker, equal_weight_client, equal_weigh
     THEN they are redirected to the thank you page and the page does not have a continue button
     """
     participant_id = 1
-    participant_study = db.session.scalars(db.select(ParticipantStudy).where(
-        ParticipantStudy.participant_id == participant_id)
+    participant_study = db.session.scalars(
+        db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant_id)
     ).one_or_none()
     with equal_weight_client.session_transaction() as session:
         session['participant_id'] = participant_id
