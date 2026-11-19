@@ -13,12 +13,11 @@ def test_participant_setup(equal_weight_app):
     with engine.connect() as conn:
         sql = 'SELECT * FROM "participant"'
         participant_columns = conn.execute(text(sql)).keys()
-        assert len(participant_columns) == 10
+        assert len(participant_columns) == 9
         assert participant_columns == [
             'participant_id',
-            'current_study',
+            'current_study_id',
             'created_date',
-            'completed_cycles',
             'name',
             'country',
             'allergies',
