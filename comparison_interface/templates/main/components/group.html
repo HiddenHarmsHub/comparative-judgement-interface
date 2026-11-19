@@ -1,5 +1,5 @@
 {% if component.groups|length < 2 %}
-    <input type="hidden" id="group_ids" name="group_ids" value="{{groups[0].group_id}}">
+    <input type="hidden" id="group_ids" name="group_ids" value="{{component.groups[0].group_id}}">
 {% else %}
     <hr/>
     <div class="form-group row" role="group" aria-labelledby="group-ids-label">

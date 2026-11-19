@@ -43,7 +43,7 @@ class Register(Request):
                 groups = self._load_group_component(study.study_id)
                 user_components.append(groups)
                 group_columns = groups['group_columns']
-                direct_registration = True
+
             return self._render_template(
                 'main/pages/internal_register.html',
                 {
