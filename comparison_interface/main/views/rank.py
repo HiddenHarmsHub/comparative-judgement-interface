@@ -52,10 +52,6 @@ class Rank(Request):
         if use_escape_route and self._get_current_cycle() >= WS.get_study_conf(
             WS.BEHAVIOUR_MAX_CYCLES, self._study_id, self._app
         ):
-            print('returning the thankyou page because ')
-            print(f'use escapte route is {use_escape_route}')
-            print(f'current cycle is {self._get_current_cycle()}')
-            print(f'max cycles is {WS.get_study_conf(WS.BEHAVIOUR_MAX_CYCLES, self._study_id, self._app)}')
             return self._redirect('.thankyou')
 
         # get the items to compare, either a new pair or the previous pair as appropriate
@@ -132,18 +128,10 @@ class Rank(Request):
         if use_escape_route:
             # If we have asked for an escape route check the counts and redirect if necessary
             completed_cycles = self._get_current_cycle()
-            print('returning the thankyou page because ')
-            print(f'use escape route is {use_escape_route}')
-            print(f'completed cycles is {completed_cycles}')
 
             if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app) * (
                 completed_cycles + 1
             ):
-                print(f'compared + skipped = {compared + skipped}')
-                print(
-                    f'allowed cycle length is {WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app)}'
-                )
-
                 self._increment_cycle_count()
                 return self._redirect('.thankyou')
 
@@ -436,11 +424,8 @@ class Rank(Request):
             ParticipantStudy.study_id == self._session['study_id'],
         )
         current_study = db.session.scalars(query).one_or_none()
-        print('current study below')
-        print(current_study)
         if current_study is None:
             return 0
-        print(f'current study completed cycles = {current_study.completed_cycles}')
         return current_study.completed_cycles
 
     def _increment_cycle_count(self):
