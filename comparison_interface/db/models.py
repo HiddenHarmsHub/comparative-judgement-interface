@@ -98,6 +98,7 @@ class Participant(db.Model, BaseModel):
     # Other user files are added automatically by using the Website configuration file
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
+
 class ParticipantStudy(db.Model, BaseModel):
     """Tracks how far through the studies each user is.
 

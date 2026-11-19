@@ -50,9 +50,7 @@ class Thankyou(Request):
         current_study = db.session.get(StudyControl, participant.current_study_id)
         current_study_sequence = current_study.study_sequence
         next_study_sequence = current_study_sequence + 1
-        query = db.select(StudyControl).where(
-            StudyControl.study_sequence == next_study_sequence
-        )
+        query = db.select(StudyControl).where(StudyControl.study_sequence == next_study_sequence)
         next_study = db.session.scalars(query).one_or_none()
 
         return next_study

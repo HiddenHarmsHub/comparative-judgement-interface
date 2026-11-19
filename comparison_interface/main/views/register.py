@@ -6,7 +6,7 @@ from sqlalchemy import MetaData, Table
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Group, ParticipantGroup, ParticipantStudy, StudyControl
+from comparison_interface.db.models import Group, Participant, ParticipantGroup, ParticipantStudy, StudyControl
 from comparison_interface.main.schemas.register import ParticipantSchemaFactory
 
 from .request import Request
@@ -146,9 +146,8 @@ class Register(Request):
             if group_ids:
                 db.session.add_all(
                     [
-                        ParticipantGroup(
-                            group_id=group_id, study_id=study_id, participant_id=participant_id
-                        ) for group_id in group_ids
+                        ParticipantGroup(group_id=group_id, study_id=study_id, participant_id=participant_id)
+                        for group_id in group_ids
                     ]
                 )
             db.session.commit()
@@ -300,6 +299,7 @@ class Register(Request):
         self._app._participant_write_schema = schema
         return schema
 
+
 class RegisterNext(Register):
     """Register group selections for follow on studies."""
 
@@ -364,7 +364,8 @@ class RegisterNext(Register):
                     [
                         ParticipantGroup(
                             group_id=group_id, study_id=study_id, participant_id=self._session['participant_id']
-                        ) for group_id in group_ids
+                        )
+                        for group_id in group_ids
                     ]
                 )
             db.session.commit()

@@ -136,12 +136,13 @@ class Rank(Request):
             print(f'use escape route is {use_escape_route}')
             print(f'completed cycles is {completed_cycles}')
 
-
             if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app) * (
                 completed_cycles + 1
             ):
                 print(f'compared + skipped = {compared + skipped}')
-                print(f'allowed cycle length is {WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app)}')
+                print(
+                    f'allowed cycle length is {WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app)}'
+                )
 
                 self._increment_cycle_count()
                 return self._redirect('.thankyou')
@@ -467,7 +468,7 @@ class Rank(Request):
             query = db.select(func.count(Comparison.comparison_id)).where(
                 Comparison.participant_id == self._session['participant_id'],
                 Comparison.study_id == self._study_id,
-                Comparison.sub_question_id == 1
+                Comparison.sub_question_id == 1,
             )
             counts = db.session.execute(query).all()
             compared = counts[0][0]
