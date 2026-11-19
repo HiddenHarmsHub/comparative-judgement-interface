@@ -323,7 +323,6 @@ class RegisterNext(Register):
                 or if the database rejects it (for example an unknown group id).
         """
         raw_group_ids = request.form.getlist("group_ids")
-        print(raw_group_ids)
 
         study_id = db.session.scalars(
             db.select(StudyControl.study_id).where(StudyControl.study_sequence == self.study_seq)
