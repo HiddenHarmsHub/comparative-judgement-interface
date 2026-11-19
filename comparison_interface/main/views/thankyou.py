@@ -23,15 +23,28 @@ class Thankyou(Request):
         if self._can_continue():
             data['continue'] = True
         next_study = self._get_next_study()
+        group_component = []
         if next_study is not None:
             data['next'] = True
             # using sequence not id here in case researchers need to put people on a specific study
             data['next_seq'] = next_study.study_sequence
             groups = db.session.scalars(db.select(Group).where(Group.study_id == next_study.study_id)).all()
             if len(groups) == 1:
-                data['group_selection'] = False
+                print(groups)
+                data['direct_registration'] = True
+                group_data = {
+                    "template": "main/components/group.html",
+                    "groups": groups,
+                    "label": "",
+                    "multiple_selection": False,
+                    "group_selection_error": "",
+                    "group_columns": False,
+                }
+                group_component.append(group_data)
+                print(group_component)
             else:
-                data['group_selection'] = True
+                data['direct_registration'] = False
+            data['components'] = group_component
         else:
             data['next'] = False
         return self._render_template('main/pages/thankyou.html', data)
