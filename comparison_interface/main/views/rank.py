@@ -14,6 +14,7 @@ from comparison_interface.db.models import (
     Participant,
     ParticipantGroup,
     ParticipantItem,
+    ParticipantStudy,
     StudyControl,
     StudySubQuestions,
     StudyText,
@@ -418,12 +419,23 @@ class Rank(Request):
         participant = db.session.get(Participant, self._session['participant_id'])
         if participant is None:
             return 0
-        return participant.completed_cycles
+        query = db.select(ParticipantStudy).where(
+            ParticipantStudy.participant_id == self._session['participant_id'],
+            ParticipantStudy.study_id == self._session['study_id'],
+        )
+        current_study = db.session.scalars(query).one_or_none()
+        if current_study is None:
+            return 0
+        return current_study.completed_cycles
 
     def _increment_cycle_count(self):
-        """Increment the current participant's cycle count."""
-        participant = db.session.get(Participant, self._session['participant_id'])
-        participant.completed_cycles = participant.completed_cycles + 1
+        """Increment the current participant's cycle count fot their current study."""
+        query = db.select(ParticipantStudy).where(
+            ParticipantStudy.participant_id == self._session['participant_id'],
+            ParticipantStudy.study_id == self._session['study_id'],
+        )
+        current_study = db.session.scalars(query).one_or_none()
+        current_study.completed_cycles = current_study.completed_cycles + 1
         db.session.commit()
 
     def _get_comparison_stats(self, multiple_studies):
@@ -439,7 +451,9 @@ class Rank(Request):
         if multiple_studies:
             skipped = 0
             query = db.select(func.count(Comparison.comparison_id)).where(
-                Comparison.participant_id == self._session['participant_id'], Comparison.sub_question_id == 1
+                Comparison.participant_id == self._session['participant_id'],
+                Comparison.study_id == self._study_id,
+                Comparison.sub_question_id == 1,
             )
             counts = db.session.execute(query).all()
             compared = counts[0][0]
@@ -450,7 +464,7 @@ class Rank(Request):
 
         query = (
             db.select(Comparison.state, func.count(Comparison.comparison_id))
-            .where(Comparison.participant_id == self._session['participant_id'])
+            .where(Comparison.participant_id == self._session['participant_id'], Comparison.study_id == self._study_id)
             .group_by(Comparison.state)
         )
         counts = db.session.execute(query).all()
@@ -478,7 +492,6 @@ class Rank(Request):
             Item: Model Item | None
             Item: Model Item | None
         """
-        # TODO: change hard coded study id from 1 to the current study
         render_item_prefer = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._study_id, self._app)
 
         # Case 1: Returns the items related to a particular comparison.
@@ -551,6 +564,7 @@ class Rank(Request):
             .join(TotalItemPair, TotalItemPair.group_id == ParticipantGroup.group_id, isouter=True)
             .where(
                 ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.study_id == self._study_id,
                 ParticipantGroup.group_id.in_(self._session['group_ids']),
                 TotalItemPair.judged == False,  # NoQA
             )
@@ -594,6 +608,7 @@ class Rank(Request):
             .join(CustomItemPair, CustomItemPair.group_id == ParticipantGroup.group_id, isouter=True)
             .where(
                 ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.study_id == self._study_id,
                 ParticipantGroup.group_id.in_(self._session['group_ids']),
             )
         )
@@ -665,12 +680,12 @@ class Rank(Request):
             .join(Item, ItemGroup.item_id == Item.item_id, isouter=True)
             .where(
                 ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.study_id == self._study_id,
                 ParticipantGroup.group_id.in_(self._session['group_ids']),
                 ItemGroup.group_id.in_(self._session['group_ids']),
             )
         )
         result = db.session.execute(query).all()
-
         items_id = []
         items = {}
         for _, _, i in result:
@@ -678,7 +693,6 @@ class Rank(Request):
             if i.item_id not in items_id:
                 items_id.append(i.item_id)
                 items[i.item_id] = i
-
         if len(items_id) < 2:
             return None, None
 

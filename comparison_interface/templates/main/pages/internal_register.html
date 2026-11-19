@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}: {{participant_registration_page_title}}{% endblock %}
+{% block content %}
+<div id="{% if group_columns %}registration-form-group-columns{% else %}registration-form{% endif %}" style="margin: 0 auto;">
+    <div class="text-center"><h1>{{title}}</h1></div>
+    <form id="real-registration-form" method="POST" aria-label="Registration Form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <fieldset>
+        <legend class="visually-hidden">{{ registration_legend }}</legend>
+        <div class="form-group p-3">
+        {% for component in components %}
+          {{component|safe}}
+        {% endfor %}
+        </div>
+        <button 
+          id="submit-button"
+          type="submit"
+          class="btn btn-primary text-center submit col-sm-12 col-md-4 offset-md-4 col-lg-2 offset-lg-5"
+        >
+          {{button}}
+        </button>
+      </fieldset>
+    </form>
+</div>
+{% endblock %}

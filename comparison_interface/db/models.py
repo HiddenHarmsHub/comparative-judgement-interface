@@ -94,11 +94,9 @@ class Participant(db.Model, BaseModel):
     __bind_key__ = "study_db"
 
     participant_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    current_study = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=True)
+    current_study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=True)
     # Other user files are added automatically by using the Website configuration file
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
-    # TODO: temporary, we will be moving this to the participant study table when we do multiple studies
-    completed_cycles = db.Column(db.Integer, server_default='0')
 
 
 class ParticipantStudy(db.Model, BaseModel):
@@ -116,6 +114,8 @@ class ParticipantStudy(db.Model, BaseModel):
     participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     completed_cycles = db.Column(db.Integer, server_default='0')
 
+    __table_args__ = (UniqueConstraint('study_id', 'participant_id', name='_study_by_participant_uidx'),)
+
 
 class ParticipantGroup(db.Model, BaseModel):
     """Holds the group preferences of the user.
@@ -129,10 +129,11 @@ class ParticipantGroup(db.Model, BaseModel):
 
     participant_group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group.group_id'), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey('study_control.study_id'), nullable=False)
     participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
     created_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
-    __table_args__ = (UniqueConstraint('group_id', 'participant_id', name='_participant_group_uidx'),)
+    __table_args__ = (UniqueConstraint('group_id', 'study_id', 'participant_id', name='_participant_group_uidx'),)
 
 
 class Comparison(db.Model, BaseModel):
