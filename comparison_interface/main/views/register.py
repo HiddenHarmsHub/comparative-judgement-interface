@@ -19,6 +19,7 @@ COMPONENT_TEMPLATES = {
     "email": "main/components/email.html",
 }
 
+
 class Register(Request):
     """Register the user doing the comparative judgment."""
 
@@ -265,11 +266,9 @@ class Register(Request):
         additional_text_components = []
         first = True
         for item in additional_list.split("||"):
-            additional_text_components.append({
-                "template": "main/components/additional_text.html",
-                "text": item,
-                "add_hr": first
-            })
+            additional_text_components.append(
+                {"template": "main/components/additional_text.html", "text": item, "add_hr": first}
+            )
             first = False
         return additional_text_components
 
