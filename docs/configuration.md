@@ -91,12 +91,7 @@ be added to the project configuration with the strings you want to display.
 There are also three booleans which are required to determine which additional pages to include. The configuration of
 these pages is covered in the [Additional pages](#additional-pages) sub-section.
 
-Five further boolean keys are required.
-
-**renderUserItemPreferencePage** determines if the user is asked to specify whether they know each item in the set of
-items to be judged. For large item sets it is probably best to determine a users knowledge based on groups rather than
-individual items and set this value to false. However, it can be used in combination with the group preferences to add
-an extra level of selection if required. For weighted item configurations this boolean should be set to false.
+Four further boolean keys are required.
 
 **allowTies** determines whether or not the system allows a user to select both images and record a tied result. Set
 this to true if you want to include ties in your study and to false if you do not.
@@ -194,10 +189,6 @@ to override the language defaults should this be required.
 
 All project configurations require the **rankItemInstructionLabel** key which is the text that is presented to the user
 along with the two images used to make the judgement.
-
-If the behaviour configuration **renderUserItemPreferencePage** is set to `true` then the **itemSelectionQuestionLabel**
-key is also required. This is the text presented to the user when they are selecting which items they know and will be
-followed by the image display name.
 
 If multiple groups are defined in the comparison configuration section then the keys **userRegistrationGroupQuestionLabel**
 and **userRegistrationGroupSelectionErr** are required. The first is the text put alongside the group selection section

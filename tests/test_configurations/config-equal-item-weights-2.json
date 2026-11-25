@@ -11,7 +11,6 @@
     },
     "studyConfiguration": [
         {
-            "renderUserItemPreferencePage": false,
             "offerEscapeRouteBetweenCycles": false,
             "cycleLength": 3,
             "maximumCyclesPerUser": 3,

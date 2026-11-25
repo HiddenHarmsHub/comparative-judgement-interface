@@ -500,8 +500,6 @@ class Rank(Request):
             Item: Model Item | None
             Item: Model Item | None
         """
-        render_item_prefer = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._study_id, self._app)
-
         # Case 1: Returns the items related to a particular comparison.
         if comparison_id is not None:
             return self._get_comparison_items(comparison_id)
@@ -510,15 +508,11 @@ class Rank(Request):
         if self._session['weight_conf'] == StudyControl.CUSTOM_WEIGHT:
             return self._get_custom_items()
 
-        # Case 3: Get a random item pair when equal weights and item preference was defined
-        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT and render_item_prefer:
-            return self._get_preferred_items()
-
-        # Case 4: Get a random item pair when equal weights and no item preference was defined
-        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT and not render_item_prefer:
+        # Case 3: Get a random item pair when equal weights and no item preference was defined
+        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT:
             return self._get_random_items()
 
-        # Case 5: Get a random pair from the item pair totals table
+        # Case 4: Get a random pair from the item pair totals table
         if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL:
             return self._get_random_pair()
 
