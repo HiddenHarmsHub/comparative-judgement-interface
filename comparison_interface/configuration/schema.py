@@ -288,7 +288,6 @@ class WebsiteTextConfiguration(Schema):
     additionalRadioButtonInstructions = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=1000
     )
-    itemSelectionGroupLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=100)
     introductionContinueButtonLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=50
     )
@@ -414,16 +413,12 @@ class StudyConfiguration(Schema):
     allowTies = fields.Boolean(required=True)
     allowSkip = fields.Boolean(required=True)
     allowBack = fields.Boolean(required=True)
-    renderUserItemPreferencePage = fields.Boolean(required=True)
     offerEscapeRouteBetweenCycles = fields.Boolean(required=True)
     cycleLength = fields.Integer(required=False)
     maximumCyclesPerUser = fields.Integer(required=False)
     comparisonConfiguration = fields.Nested(ComparisonConfiguration(), required=True)
     rankItemInstructionLabel = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
     rankItemSubQuestions = OptionalMultiLangField(required=False, value_type="list", min_length=1, max_length=6)
-    itemSelectionQuestionLabel = OptionalMultiLangField(
-        required=False, value_type="string", min_length=1, max_length=500
-    )
     userRegistrationGroupQuestionLabel = OptionalMultiLangField(
         required=False, value_type="string", min_length=1, max_length=500
     )
@@ -505,31 +500,6 @@ class Configuration(Schema):
                         self.missing_translation_warnings.append(field_name)
 
         for i, study in enumerate(data['studyConfiguration']):
-            render_item_preference = study['renderUserItemPreferencePage']
-            if 'weightConfiguration' in study['comparisonConfiguration']:
-                weight_conf = study['comparisonConfiguration']['weightConfiguration']
-                if weight_conf == StudyControl.CUSTOM_WEIGHT and render_item_preference:
-                    raise ValidationError(
-                        "User item preference section cannot be rendered when defining a manual weight configuration. "
-                        f"Please change renderUserItemPreferencePage to false in study {i + 1}"
-                    )
-
-            # Check that if we want to show the item selection page we have the required text field too
-            if render_item_preference and ('itemSelectionQuestionLabel' not in study):
-                raise ValidationError(
-                    "If renderUserItemPreferencePage is true then itemSelectionQuestionLabel must be provided in the "
-                    "same study section."
-                )
-            if render_item_preference and (
-                'itemSelectionYesButtonLabel' not in data['websiteTextConfiguration']
-                or 'itemSelectionNoButtonLabel' not in data['websiteTextConfiguration']
-            ):
-                raise ValidationError(
-                    "If renderUserItemPreferencePage is true then itemSelectionYesButtonLabel and "
-                    "itemSelectionYesButtonLabel must be provided in the websiteTextConfiguration "
-                    "section or the language file."
-                )
-
             # Check that if we have defined multiple groups then we have the relevant selection/error text available
             if 'groups' in study['comparisonConfiguration'] and len(study['comparisonConfiguration']['groups']) > 1:
                 if (

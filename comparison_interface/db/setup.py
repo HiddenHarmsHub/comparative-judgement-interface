@@ -352,7 +352,6 @@ class Setup:
             config.allow_ties = study[WS.BEHAVIOUR_ALLOW_TIES]
             config.allow_skip = study[WS.BEHAVIOUR_ALLOW_SKIP]
             config.allow_back = study[WS.BEHAVIOUR_ALLOW_BACK]
-            config.render_user_item_preference_page = study[WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE]
             config.offer_escape_route_between_cycles = study[WS.BEHAVIOUR_ESCAPE_ROUTE]
             config.cycle_length = study[WS.BEHAVIOUR_CYCLE_LENGTH]
             config.maximum_cycles_per_user = study[WS.BEHAVIOUR_MAX_CYCLES]
