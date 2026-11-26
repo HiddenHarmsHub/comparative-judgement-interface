@@ -61,7 +61,7 @@ class Register(Request):
             )
 
         if self._valid_session():
-            return self._redirect('.item_selection')
+            return self._redirect('.rank')
 
         # Load components
         user_components = []
@@ -176,7 +176,7 @@ class Register(Request):
         self._session['comparison_ids'] = []
         self._session['study_id'] = study_id
 
-        return self._redirect('.item_selection')
+        return self._redirect('.rank')
 
     def _get_participant_table(self):
         """Use the cached participant table or reflect a new one."""
@@ -390,4 +390,4 @@ class RegisterNext(Register):
         self._session['comparison_ids'] = []
         self._session['study_id'] = study_id
 
-        return self._redirect('.item_selection')
+        return self._redirect('.rank')

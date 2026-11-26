@@ -13,7 +13,6 @@ from comparison_interface.db.models import (
     ItemGroup,
     Participant,
     ParticipantGroup,
-    ParticipantItem,
     ParticipantStudy,
     StudyControl,
     StudySubQuestions,
@@ -630,37 +629,6 @@ class Rank(Request):
 
         return items[0], items[1]
 
-    def _get_preferred_items(self):
-        """Get a random pair of items from the preferred participant's item selection.
-
-        Returns:
-            Item: Model Item | None
-            Item: Model Item | None
-        """
-        # 1. Get the participant's item preferences
-        query = (
-            db.select(ParticipantItem, Item)
-            .join(Item, Item.item_id == ParticipantItem.item_id, isouter=True)
-            .where(ParticipantItem.participant_id == self._session['participant_id'], ParticipantItem.known == 1)
-        )
-        result = db.session.execute(query).all()
-
-        items_id = []
-        items = {}
-        for _, i in result:
-            # Insert only unique values to guarantee an equal item distribution.
-            if i.item_id not in items_id:
-                items_id.append(i.item_id)
-                items[i.item_id] = i
-
-        if len(items_id) < 2:
-            return None, None
-
-        # 2. Select randomly two items from the participant's item preferences
-        selected_items_id = [None, None]
-        selected_items_id = self._app.rng.choice(items_id, 2, replace=False)
-
-        return items[selected_items_id[0]], items[selected_items_id[1]]
 
     def _get_random_items(self):
         """Get a random pair of items from the website configuration list.
