@@ -19,7 +19,6 @@
             "allowBack": false,
             "userRegistrationGroupQuestionLabel": "Which of these boroughs are you familiar with?",
             "userRegistrationGroupSelectionErr": "Please select at least one area.",
-            "itemSelectionQuestionLabel": "Do you know the region",
             "rankItemInstructionLabel": "Click the region that has the higher rate of deprivation, then click on the blue confirm button.",
             "comparisonConfiguration" : {
                 "weightConfiguration": "equal",

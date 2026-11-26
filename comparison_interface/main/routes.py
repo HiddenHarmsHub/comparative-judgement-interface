@@ -6,7 +6,6 @@ from comparison_interface.main import blueprint
 
 from .views.ethics import Ethics
 from .views.introduction import Introduction
-from .views.item_preference import ItemsPreference
 from .views.logout import Logout
 from .views.policies import Policies
 from .views.rank import Rank
@@ -61,12 +60,6 @@ def next_study_registration_form(study_id):
 def next_study_registration(study_id):
     """Handle registration for subsequent studies."""
     return Request.process(RegisterNext(current_app, session, study_id), request)
-
-
-@blueprint.route('/selection/items', methods=['GET', 'POST'])
-def item_selection():
-    """Handle item selection URL (pre-ranking)."""
-    return Request.process(ItemsPreference(current_app, session), request)
 
 
 @blueprint.route('/rank/previous', methods=['GET', 'POST'])
