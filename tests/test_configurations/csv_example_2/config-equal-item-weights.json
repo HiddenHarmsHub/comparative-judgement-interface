@@ -2,13 +2,6 @@
     "behaviourConfiguration": {
         "supportedLanguages": {"en": "English"},
         "exportPathLocation": "../exports",
-        "renderUserItemPreferencePage": false,
-        "offerEscapeRouteBetweenCycles": true,
-        "cycleLength": 10,
-        "maximumCyclesPerUser": 3,
-        "allowTies": true,
-        "allowSkip": true,
-        "allowBack": true,
         "renderUserInstructionPage":  true,
         "userInstructionHtml": "examples/html/instructions.html",
         "renderEthicsAgreementPage":  true,
@@ -17,12 +10,24 @@
         "sitePoliciesHtml": "examples/html/site-policies.html",
         "renderCookieBanner":  true    
     },
+    "studyConfiguration": [
+        {
+            "offerEscapeRouteBetweenCycles": true,
+            "cycleLength": 10,
+            "maximumCyclesPerUser": 3,
+            "allowTies": true,
+            "allowSkip": true,
+            "allowBack": true,
+            "renderUserItemPreferencePage": false,
+            "rankItemInstructionLabel": "Click the region that has the higher rate of deprivation, then click on the blue confirm button.",
+            "comparisonConfiguration" : {
+                "weightConfiguration": "equal",
+                "csvFile": "example_2.csv"
+            }
+        }
+    ],
     "userFieldsConfiguration": [],
     "websiteTextConfiguration":  {
-        "rankItemInstructionLabel": "Click the region that has the higher rate of deprivation, then click on the blue confirm button.",
         "additionalRegistrationPageText": ["The boundary outlines used in the images on this website are taken from the Office for National Statistics licensed under the Open Government Licence v.3.0 and Contains OS data © Crown copyright and database right 2024"]
-    },
-    "comparisonConfiguration" : {
-        "csvFile": "example_2.csv"
     }
 }
