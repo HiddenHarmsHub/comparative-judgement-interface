@@ -200,7 +200,7 @@ class ComparisonConfiguration(Schema):
             # option being added)
             if 'groups' in data:
                 raise ValidationError(
-                    "If a CSV file is specified then the groups keys should be present in the study configuration."
+                    "If a CSV file is specified then the groups keys should be not present in the study configuration."
                 )
         else:
             if 'weightConfiguration' not in data or 'groups' not in data:
@@ -499,7 +499,7 @@ class Configuration(Schema):
 
         for i, study in enumerate(data['studyConfiguration']):
             render_item_preference = study['renderUserItemPreferencePage']
-            if 'weightConfiguration' in study:
+            if 'weightConfiguration' in study['comparisonConfiguration']:
                 weight_conf = study['weightConfiguration']
                 if weight_conf == StudyControl.CUSTOM_WEIGHT and render_item_preference:
                     raise ValidationError(
