@@ -429,7 +429,7 @@ class Rank(Request):
         return current_study.completed_cycles
 
     def _increment_cycle_count(self):
-        """Increment the current participant's cycle count fot their current study."""
+        """Increment the current participant's cycle count for their current study."""
         query = db.select(ParticipantStudy).where(
             ParticipantStudy.participant_id == self._session['participant_id'],
             ParticipantStudy.study_id == self._session['study_id'],
