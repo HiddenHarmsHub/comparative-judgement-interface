@@ -200,7 +200,7 @@ class ComparisonConfiguration(Schema):
             # option being added)
             if 'groups' in data:
                 raise ValidationError(
-                    "If a CSV file is specified then the groups keys should be present in the study configuration."
+                    "If a CSV file is specified then the groups keys should be not present in the study configuration."
                 )
         else:
             if 'weightConfiguration' not in data or 'groups' not in data:
