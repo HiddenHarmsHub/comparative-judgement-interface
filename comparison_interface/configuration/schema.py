@@ -499,7 +499,7 @@ class Configuration(Schema):
 
         for i, study in enumerate(data['studyConfiguration']):
             render_item_preference = study['renderUserItemPreferencePage']
-            if 'weightConfiguration' in study:
+            if 'weightConfiguration' in study['comparisonConfiguration']:
                 weight_conf = study['weightConfiguration']
                 if weight_conf == StudyControl.CUSTOM_WEIGHT and render_item_preference:
                     raise ValidationError(
