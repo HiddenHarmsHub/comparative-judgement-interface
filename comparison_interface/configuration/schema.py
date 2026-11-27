@@ -500,7 +500,7 @@ class Configuration(Schema):
         for i, study in enumerate(data['studyConfiguration']):
             render_item_preference = study['renderUserItemPreferencePage']
             if 'weightConfiguration' in study['comparisonConfiguration']:
-                weight_conf = study['weightConfiguration']
+                weight_conf = study['comparisonConfiguration']['weightConfiguration']
                 if weight_conf == StudyControl.CUSTOM_WEIGHT and render_item_preference:
                     raise ValidationError(
                         "User item preference section cannot be rendered when defining a manual weight configuration. "
