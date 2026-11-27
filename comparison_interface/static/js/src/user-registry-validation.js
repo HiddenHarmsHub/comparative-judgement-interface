@@ -1,4 +1,8 @@
 // called from register template
+$(function () {
+    $('#real-registration-form').on('submit', handleData);
+});
+
 function handleData() {  // eslint-disable-line no-unused-vars
     // Verify that a group preference was selected by the user
     var form_data = new FormData(document.getElementById('real-registration-form'));

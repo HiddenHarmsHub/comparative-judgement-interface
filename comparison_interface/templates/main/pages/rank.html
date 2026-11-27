@@ -29,15 +29,15 @@
         <p id="instructions" class="judgement-instructions fs-4">{{comparison_instruction_label}}</p>
         <p class="progress-counter fs-5">{{comparison_number_label}}:&nbsp;{{comparison_number}}{% if allow_skip %};&nbsp;{{skipped_number_label}}:&nbsp;{{skipped_number}}{% endif %}</p>
       </div>
-      <div class="row pl-2 pr-2"  {% if allow_ties == 'false' %}role="radiogroup" {% else %}role="group"{% endif %} aria-label="{{ item_group_selection_label }}">
-        {% if allow_ties == 'false' %}<p id="additional-instructions" class="visually-hidden">{{ additional_screen_reader_instructions }}</p>{% endif %}
+      <div class="row pl-2 pr-2"  {% if not allow_ties %}role="radiogroup" {% else %}role="group"{% endif %} aria-label="{{ item_group_selection_label }}">
+        {% if not allow_ties %}<p id="additional-instructions" class="visually-hidden">{{ additional_screen_reader_instructions }}</p>{% endif %}
         <div class="col position-relative">
           <div class="text-center">
             <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">{{ item_1.display_name }}</span>
             <span class="visually-hidden" id="left-item-description">{% if item_1.image_description != None %}{{item_1.display_name}}: {{item_1.image_description}}{% else %}{{item_1.display_name}}{% endif %}</span>
           </div>
           <div class="text-center">
-            <img id="left-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
+            <img id="left-item" tabindex="0" {% if not allow_ties %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
           </div>
         </div>
         <div class="col position-relative">

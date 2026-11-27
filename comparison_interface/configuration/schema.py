@@ -200,7 +200,7 @@ class ComparisonConfiguration(Schema):
             # option being added)
             if 'groups' in data:
                 raise ValidationError(
-                    "If a CSV file is specified then the groups keys should be present in the study configuration."
+                    "If a CSV file is specified then the groups keys should be not present in the study configuration."
                 )
         else:
             if 'weightConfiguration' not in data or 'groups' not in data:
@@ -247,6 +247,9 @@ class WebsiteTextConfiguration(Schema):
         required=True, value_type="string", min_length=1, max_length=50
     )
     userRegistrationEthicsAgreementLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=500
+    )
+    userRegistrationScreenReaderLegend = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=500
     )
     itemSelectionYesButtonLabel = OptionalMultiLangField(
@@ -302,6 +305,10 @@ class WebsiteTextConfiguration(Schema):
     thankYouOpeningText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
     thankYouContinueText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
     thankYouStopText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    thankYouNextStudyText = OptionalMultiLangField(required=True, value_type="string", min_length=1, max_length=500)
+    thankYouNextStudyButtonLabel = OptionalMultiLangField(
+        required=True, value_type="string", min_length=1, max_length=50
+    )
     ethicsAgreementBackButtonLabel = OptionalMultiLangField(
         required=True, value_type="string", min_length=1, max_length=50
     )
@@ -505,8 +512,8 @@ class Configuration(Schema):
 
         for i, study in enumerate(data['studyConfiguration']):
             render_item_preference = study['renderUserItemPreferencePage']
-            if 'weightConfiguration' in study:
-                weight_conf = study['weightConfiguration']
+            if 'weightConfiguration' in study['comparisonConfiguration']:
+                weight_conf = study['comparisonConfiguration']['weightConfiguration']
                 if weight_conf == StudyControl.CUSTOM_WEIGHT and render_item_preference:
                     raise ValidationError(
                         "User item preference section cannot be rendered when defining a manual weight configuration. "

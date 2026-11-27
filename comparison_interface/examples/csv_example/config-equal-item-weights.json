@@ -16,7 +16,7 @@
             "renderUserItemPreferencePage": false,
             "offerEscapeRouteBetweenCycles": true,
             "cycleLength": 10,
-            "maximumCyclesPerUser": 3,
+            "maximumCyclesPerUser": 1,
             "allowTies": false,
             "allowSkip": true,
             "allowBack": true,
@@ -44,6 +44,8 @@
             "allowSkip": true,
             "allowBack": true,
             "rankItemInstructionLabel": "This is the study 2 question?",
+            "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
+            "userRegistrationGroupSelectionErr": "Please select at least one region.",
             "comparisonConfiguration": {
                 "weightConfiguration": "equal",
                 "csvFile": "example.csv"
