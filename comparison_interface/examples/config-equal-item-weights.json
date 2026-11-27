@@ -1,5 +1,6 @@
 {
     "behaviourConfiguration": {
+        "supportedLanguages": {"en": "English"},
         "exportPathLocation": "../exports",
         "renderUserItemPreferencePage": false,
         "offerEscapeRouteBetweenCycles": true,

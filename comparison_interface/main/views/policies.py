@@ -13,8 +13,8 @@ class Policies(Request):
 
     def get(self, _):
         """Request get handler."""
-        if WS.configuration_has_key(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app):
-            site_policies_html = WS.get_behaviour_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app)
+        site_policies_html = WS.get_website_conf(WS.BEHAVIOUR_SITE_POLICIES_HTML, self._app)
+        if site_policies_html is not None:
             with open(os.path.join(self._app.root_path, site_policies_html)) as input_file:
                 html = input_file.read()
         else:
@@ -31,6 +31,6 @@ class Policies(Request):
             {
                 'fragment': fragment,
                 'html_string': html,
-                'site_policies_back_button': WS.get_text(WS.SITE_POLICIES_BACK_BUTTON_LABEL, self._app),
+                'site_policies_back_button': WS.get_text(WS.SITE_POLICIES_BACK_BUTTON_LABEL, self._language, self._app),
             },
         )

@@ -1,0 +1,85 @@
+.judgement-instructions {
+    font-size: 1.6rem;
+}
+
+.answer-matrix {
+    max-width: 60rem;
+}
+
+.answer-matrix-header {
+    background-color: lightgray;
+}
+
+.answer-matrix-header,
+.answer-matrix-row-content {
+    grid-template-columns: minmax(14rem, 2fr) repeat(3, minmax(5rem, 1fr));
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.4rem;
+}
+
+.answer-matrix-row {
+    border-bottom-color: black;
+}
+
+.answer-matrix-choice input {
+    inline-size: 1em;
+    block-size: 1em;
+}
+
+.answer-matrix-choice {
+    place-items: center;
+    min-block-size: 2.75rem;
+}
+
+.answer-matrix-choice:focus-within {
+    outline: 0.2rem solid lightskyblue;
+    outline-offset: 0.2rem;
+    border-radius: 0.2rem;
+}
+
+@media (width <= 576px) {
+    .judgement-instructions {
+        font-size: 1rem;
+    }
+
+    .answer-matrix-header,
+    .answer-matrix-row-content {
+        grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(0, 1fr));
+        gap: 0.35rem;
+    }
+
+    .answer-matrix-header {
+        padding: 0.5rem 0.35rem;
+        font-size: 0.8rem;
+    }
+
+    .answer-matrix-header span,
+    .answer-matrix-question {
+        overflow-wrap: anywhere;
+    }
+
+    .answer-matrix-row {
+        padding: 0.5rem 0.35rem;
+    }
+
+    .answer-matrix-row-content {
+        align-items: stretch;
+    }
+
+    .answer-matrix-question {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        font-size: 0.8rem;
+    }
+
+    .answer-matrix-choice {
+        padding: 0.25rem;
+    }
+
+    .answer-matrix-choice input {
+        inline-size: 0.8em;
+        block-size: 0.8em;
+    }
+}

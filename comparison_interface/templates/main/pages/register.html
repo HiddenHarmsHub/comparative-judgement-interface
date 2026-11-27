@@ -3,13 +3,13 @@
 {% block content %}
 <div id="{% if group_columns %}registration-form-group-columns{% else %}registration-form{% endif %}" style="margin: 0 auto;">
     <div class="text-center"><h1>{{title}}</h1></div>
-    <form method="POST" onsubmit="return handleData();" aria-label="Registration Form">
+    <form id="real-registration-form" method="POST" aria-label="Registration Form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <fieldset>
-        <legend class="visually-hidden">Registration details</legend>
+        <legend class="visually-hidden">{{ registration_legend }}</legend>
         <div class="form-group p-3">
         {% for component in components %}
-          {{component|safe}}
+          {% include component.template %}
         {% endfor %}
         </div>
         <button 

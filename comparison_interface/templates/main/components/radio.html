@@ -1,9 +1,9 @@
 <div class="row mb-3">
-  <div id="{{name}}-label" for="{{name}}-radio" class="col-4 col-form-label {% if required == true %}required-field-label{% else %}{% endif %}">{{displayName}}</div>
-  <div id="{{name}}-radio" class="col-8" role="radiogroup" aria-labelledby="{{name}}-label">
-    {% for value in option %}
-      <label class="form-check-label" for="{{name}}-choice-{{loop.index}}">
-        <input id="{{name}}-choice-{{loop.index}}" class="form-check-input" type="radio" name="{{name}}" value="{{value}}" {% if required == true %}required{% else %}{% endif %}> {{value}}
+  <div id="{{ component.field.name }}-label" for="{{ component.field.name }}-radio" class="col-4 col-form-label {% if required == true %}required-field-label{% else %}{% endif %}">{{ component.question_text }}</div>
+  <div id="{{ component.field.name }}-radio" class="col-8" role="radiogroup" aria-labelledby="{{ component.field.name }}-label">
+    {% for value in component.field.option %}
+      <label class="form-check-label" for="{{ component.field.name }}-choice-{{loop.index}}">
+        <input id="{{ component.field.name }}-choice-{{loop.index}}" class="form-check-input" type="radio" name="{{ component.field.name }}" value="{{ value }}" {% if required == true %}required{% else %}{% endif %}> {{ value }}
       </label>
     {% endfor %}
     </div>

@@ -1,11 +1,5 @@
-from marshmallow import RAISE, Schema, ValidationError, fields, pre_load, validate, validates_schema
+from marshmallow import RAISE, Schema, ValidationError, fields, validate, validates_schema
 from sqlalchemy import Boolean, Date, DateTime, Integer, String
-
-
-def no_duplicate_group_ids(values):
-    """Ensure group ids are unique."""
-    if len(values) != len(set(values)):
-        raise ValidationError("Duplicate group ids are not allowed")
 
 
 class ParticipantSchemaFactory:
@@ -52,28 +46,7 @@ class ParticipantSchemaFactory:
         attrs = {
             "Meta": type("Meta", (), {"unknown": RAISE}),
             **cls.SYSTEM_FIELDS,
-            "group_ids": fields.List(
-                fields.Int(validate=validate.Range(min=1)),
-                required=True,
-                validate=[
-                    validate.Length(min=1),
-                    validate.Length(max=100),  # set at 100 to match configuration schema
-                    no_duplicate_group_ids,
-                ],
-            ),
         }
-
-        def normalise_group_ids(self, data, **kwargs):
-            """Normalise group_ids to a list because it will be a string if there is only 1."""
-            data = dict(data)
-            group_ids = data.get("group_ids")
-            if group_ids is None:
-                return data
-            if isinstance(group_ids, str):
-                data["group_ids"] = [group_ids]
-            return data
-
-        attrs["normalise_group_ids"] = pre_load(normalise_group_ids)
 
         for column in table.columns:
             if column.name in cls.SYSTEM_FIELDS or column.name == "group_ids":

@@ -13,8 +13,8 @@ class Introduction(Request):
 
     def get(self, _):
         """Request get handler."""
-        if WS.configuration_has_key(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, self._app):
-            user_instruction_html = WS.get_behaviour_conf(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, self._app)
+        user_instruction_html = WS.get_website_conf(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, self._app)
+        if user_instruction_html is not None:
             with open(os.path.join(self._app.root_path, user_instruction_html)) as input_file:
                 html = input_file.read()
         else:
@@ -31,6 +31,8 @@ class Introduction(Request):
             {
                 'fragment': fragment,
                 'html_string': html,
-                'introduction_continue_button': WS.get_text(WS.INTRODUCTION_CONTINUE_BUTTON_LABEL, self._app),
+                'introduction_continue_button': WS.get_text(
+                    WS.INTRODUCTION_CONTINUE_BUTTON_LABEL, self._language, self._app
+                ),
             },
         )

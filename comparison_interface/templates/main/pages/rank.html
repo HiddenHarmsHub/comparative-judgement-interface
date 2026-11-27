@@ -7,8 +7,10 @@
   <form
     id="rank-form"
     method="POST"
+    action="{{ url_for('.rank') }}"
     aria-labelledby="instructions"
-    onsubmit="return checkSelection(event);"
+    data-item-1-id="{{ item_1.item_id }}"
+    data-item-2-id="{{ item_2.item_id }}"
     data-allow-ties="{{ 'true' if allow_ties else 'false' }}"
     data-selected-item-indicator="{{selected_item_label}}"
     data-tied-items-indicator="{{tied_selection_label}}"
@@ -19,24 +21,23 @@
     data-initial-selected-item-id="{% if initial_selected_item_id %}{{initial_selected_item_id}}{% else %}{% endif %}"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" id="weighted_pair_id" name="weighted_pair_id" value="{% if weighted_pair_id %}{{weighted_pair_id}}{% else %}{% endif %}">
+    <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
+    <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
     <input type="hidden" id="selected_item_id" name="selected_item_id" value="">
-    <input type="hidden" id="comparison_id" name="comparison_id" value="{% if comparison_id %}{{comparison_id}}{% else %}{% endif %}">
     <div class="form-group">
       <div class="text-center">
         <p id="instructions" class="judgement-instructions fs-4">{{comparison_instruction_label}}</p>
         <p class="progress-counter fs-5">{{comparison_number_label}}:&nbsp;{{comparison_number}}{% if allow_skip %};&nbsp;{{skipped_number_label}}:&nbsp;{{skipped_number}}{% endif %}</p>
       </div>
-      <div class="row pl-2 pr-2"  {% if allow_ties == 'false' %}role="radiogroup" {% else %}role="group"{% endif %} aria-label="{{ item_group_selection_label }}">
-        {% if allow_ties == 'false' %}<p id="additional-instructions" class="visually-hidden">{{ additional_screen_reader_instructions }}</p>{% endif %}
+      <div class="row pl-2 pr-2"  {% if not allow_ties %}role="radiogroup" {% else %}role="group"{% endif %} aria-label="{{ item_group_selection_label }}">
+        {% if not allow_ties %}<p id="additional-instructions" class="visually-hidden">{{ additional_screen_reader_instructions }}</p>{% endif %}
         <div class="col position-relative">
           <div class="text-center">
             <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">{{ item_1.display_name }}</span>
             <span class="visually-hidden" id="left-item-description">{% if item_1.image_description != None %}{{item_1.display_name}}: {{item_1.image_description}}{% else %}{{item_1.display_name}}{% endif %}</span>
           </div>
           <div class="text-center">
-            <input type="hidden" id="item_1_id" name="item_1_id" value="{{ item_1.item_id }}">
-            <img id="left-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
+            <img id="left-item" tabindex="0" {% if not allow_ties %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="left-item-description" src="{{ url_for('static', filename = 'images/' + item_1.image_path|string) }}" class="left-item img-fluid img-constraint" alt="">
           </div>
         </div>
         <div class="col position-relative">
@@ -45,7 +46,6 @@
             <span class="visually-hidden" id="right-item-description">{% if item_2.image_description != None %}{{item_2.display_name}}: {{item_2.image_description}}{% else %}{{item_2.display_name}}{% endif %}</span>
           </div>
           <div class="text-center">
-            <input type="hidden" id="item_2_id" name="item_2_id" value="{{ item_2.item_id }}">
             <img id="right-item" tabindex="0" {% if allow_ties == 'false' %}role="radio"{% else %}role="checkbox"{% endif %} aria-checked="false" aria-labelledby="right-item-description" src="{{ url_for('static', filename = 'images/' + item_2.image_path|string) }}" class="right-item img-fluid img-constraint" alt="">
           </div>
           </div>
@@ -54,15 +54,15 @@
     <div class="row pl-2 pr-2 mt-1">
       <div class="p-2 text-center col-4">
         {% if can_rejudge and allow_back %}
-          <button id="previous-button" type="submit" name='state' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
+          <button id="previous-button" formaction="{{ url_for('.previous') }}" type="submit" name='action' value='{{rejudge_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{rejudge_label}}</button>
         {% endif %}
         </div>
       <div class="p-2 text-center col-4">
-        <button id="confirm-button-d" type="submit" name='state' value='{{confirmed_value}}' class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
+        <button id="confirm-button-d" type="submit" name='action' value='{{confirmed_value}}' class="col-12 col-lg-6 btn btn-lg btn-primary p-1">{{confirmed_label}}</button>
       </div>
       <div class="p-2 text-center col-4">
         {% if allow_skip %}
-          <button id="skip-button" type="submit" name='state' value='{{skipped_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{skipped_label}}</button>
+          <button id="skip-button" type="submit" name='action' value='{{skipped_value}}' class="col-12 col-lg-6 btn btn-lg btn-secondary p-1">{{skipped_label}}</button>
         {% endif %}
         </div>
     </div>

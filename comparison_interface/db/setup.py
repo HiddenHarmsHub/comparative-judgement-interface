@@ -5,10 +5,24 @@ from math import ceil
 
 from sqlalchemy import create_engine, text
 
+from comparison_interface.configuration.csv_processor import CsvProcessor
+from comparison_interface.configuration.schema import WebsiteTextConfiguration
 from comparison_interface.configuration.website import Settings as WS
 
 from .connection import db, persist
-from .models import CustomItemPair, Group, Item, ItemGroup, TotalItemPair, WebsiteControl
+from .models import (
+    CustomItemPair,
+    Group,
+    Item,
+    ItemGroup,
+    RegistrationQuestions,
+    StudyControl,
+    StudySubQuestions,
+    StudyText,
+    TotalItemPair,
+    WebsiteControl,
+    WebsiteText,
+)
 
 
 class Setup:
@@ -17,6 +31,7 @@ class Setup:
     def __init__(self, app) -> None:
         """Initialise the Setup with the Flask app."""
         self.app = app
+        self.json_conf = WS.get_configuration(self.app)
 
     def exec(self):
         """Initialise the website database.
@@ -29,7 +44,7 @@ class Setup:
             db.create_all('study_db')
 
             # Remove previous exported database content
-            export_location = WS.get_export_location(self.app)
+            export_location = self._get_config_value(WS.BEHAVIOUR_EXPORT_PATH_LOCATION)
             if os.path.exists(export_location):
                 for file in os.listdir(export_location):
                     try:
@@ -37,9 +52,10 @@ class Setup:
                     except IsADirectoryError:
                         pass
 
-            # The session needs be committed after the creation of the groups.
-            self._setup_group(db)
-            self._setup_website_control_history(db)
+            self._setup_website_control(db)
+            self._setup_registration_questions(db)
+            self._setup_study_control(db)
+            self._setup_website_text(db)
             db.session.commit()
 
             # The setup of the participant configuration doesn't use SQLAlchemy ORM. The transaction
@@ -47,22 +63,47 @@ class Setup:
             # columns values are dynamically defined so a different process needs to be followed.
             self._setup_participant(db)
 
-    def _setup_group(self, db):
+    def _get_comparison_conf(self, study_config, key):
+        """Get the configuration values related to the comparison behaviour of the website.
+
+        This could come from the config file or from the csv file.
+
+        Args:
+            key (string): configuration key required
+            app (Flask app): Flask application
+
+        Returns:
+            string: Configuration value for the requested key
+        """
+        if "csvFile" in study_config[WS.CONFIGURATION_COMPARISON]:
+            # then we need to get the data from the csv file
+            location = WS.get_configuration_location(self.app)
+            filepath = os.path.join(location, study_config[WS.CONFIGURATION_COMPARISON]["csvFile"])
+            data = CsvProcessor().create_config_from_csv(filepath)
+            return data[key]
+        else:
+            if key not in study_config[WS.CONFIGURATION_COMPARISON]:
+                self.app.logger.critical("Label %s wasn't found in the comparison configuration." % (key))
+                exit()
+        return study_config[WS.CONFIGURATION_COMPARISON][key]
+
+    def _setup_group(self, db, study_config, study_id):
         """Save the group configuration in the database.
 
         Args:
             db (SQLAlchemy): Database connection
         """
-        for g in WS.get_comparison_conf(WS.GROUPS, self.app):
-            group = Group(name=g[WS.GROUP_NAME], display_name=g[WS.GROUP_DISPLAY_NAME])
+        for g in self._get_comparison_conf(study_config, WS.GROUPS):
+            group = Group(name=g[WS.GROUP_NAME], display_name=g[WS.GROUP_DISPLAY_NAME], study_id=study_id)
             group = persist(db, group)
             # Setup the items and their weights
             items = self._setup_item(db, group, g)
-            weight_conf = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
-            if weight_conf == WebsiteControl.CUSTOM_WEIGHT:
+
+            weight_conf = self._get_comparison_conf(study_config, WS.GROUP_WEIGHT_CONFIGURATION)
+            if weight_conf == StudyControl.CUSTOM_WEIGHT:
                 self._setup_custom_item_pair(db, items, group, g)
-            if weight_conf == WebsiteControl.WEIGHTED_TOTAL:
-                total_judgements_required = WS.get_comparison_conf(WS.TARGET_COMPARISONS, self.app)
+            if weight_conf == StudyControl.WEIGHTED_TOTAL:
+                total_judgements_required = self._get_comparison_conf(study_config, WS.TARGET_COMPARISONS)
                 self._setup_weighted_total_pairs(db, items, group, g, total_judgements_required)
 
     def _setup_custom_item_pair(self, db, items, group, g):
@@ -199,7 +240,7 @@ class Setup:
         Args:
             db (SQLAlchemy): Database connection
         """
-        participant_conf = WS.get_user_conf(self.app)
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
         # Create each of the new participant columns
         os.chdir(self.app.instance_path)
         engine = create_engine(self.app.config["SQLALCHEMY_BINDS"]["study_db"])
@@ -237,23 +278,216 @@ class Setup:
 
             # Add a field to specify if the participant accepted the ethics agreement
             # if this section was configured to be rendered
-            render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self.app)
+            render_ethics = self._get_config_value(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE)
             if render_ethics:
                 conn.execute(
                     text('alter table participant add column accepted_ethics_agreement INT NOT NULL DEFAULT "0"')
                 )
 
-    def _setup_website_control_history(self, db):
-        """Setup the control history to monitor for changes to the website configuration file.
+    def _get_config_value(self, key):
+        if key not in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            self.app.logger.critical(f"Label {key} wasn't found in the behaviour configuration.")
+            exit()
+        else:
+            return self.json_conf[WS.CONFIGURATION_BEHAVIOUR][key]
 
-        Once the project has been setup no changes are allowed to the website configuration file.
-        if the file is changed the web interface will no longer respond to requests. A reset will be necessary and all
-        information in the current database will be deleted as part of that process.
+    def _setup_registration_questions(self, db):
+        """Load the configuration for the registration questions.
 
         Args:
             db (SQLAlchemy): Database connection,
         """
-        hist = WebsiteControl()
-        hist.weight_configuration = WS.get_comparison_conf(WS.GROUP_WEIGHT_CONFIGURATION, self.app)
-        hist.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
-        db.session.add(hist)
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
+        for question in participant_conf:
+            config = RegistrationQuestions()
+            config.question_name = question[WS.USER_FIELD_NAME]
+            config.type = question[WS.USER_FIELD_TYPE]
+            try:
+                config.max_limit = question[WS.USER_FIELD_MAX_LIMIT]
+            except KeyError:
+                config.max_limit = None
+            try:
+                config.min_limit = question[WS.USER_FIELD_MIN_LIMIT]
+            except KeyError:
+                config.min_limit = None
+            config.required = question[WS.USER_FIELD_REQUIRED]
+            db.session.add(config)
+
+    def _setup_website_control(self, db):
+        """Load the configuration for the website control.
+
+        Args:
+            db (SQLAlchemy): Database connection,
+        """
+        config = WebsiteControl()
+        config.study_count = 1
+
+        config.supported_languages = self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES)
+        config.export_path_location = self._get_config_value(WS.BEHAVIOUR_EXPORT_PATH_LOCATION)
+        config.render_user_instruction_page = self._get_config_value(WS.BEHAVIOUR_RENDER_USER_INSTRUCTION_PAGE)
+        config.render_ethics_agreement_page = self._get_config_value(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE)
+        config.render_site_policies_page = self._get_config_value(WS.BEHAVIOUR_RENDER_SITE_POLICIES)
+        config.render_cookie_banner = self._get_config_value(WS.BEHAVIOUR_RENDER_COOKIE_BANNER)
+        if WS.BEHAVIOUR_USER_INSTRUCTION_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.instructions_html = self._get_config_value(WS.BEHAVIOUR_USER_INSTRUCTION_HTML)
+        if WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.ethics_html = self._get_config_value(WS.BEHAVIOUR_ETHICS_AGREEMENT_HTML)
+        if WS.BEHAVIOUR_SITE_POLICIES_HTML in self.json_conf[WS.CONFIGURATION_BEHAVIOUR]:
+            config.site_policies_html = self._get_config_value(WS.BEHAVIOUR_SITE_POLICIES_HTML)
+
+        config.configuration_file = self.app.config[WS.CONFIGURATION_LOCATION]
+        db.session.add(config)
+
+    def _setup_study_control(self, db):
+        """Load the configuration for the studies.
+
+        Args:
+            db (SQLAlchemy): Database connection,
+        """
+        studies = self.json_conf[WS.CONFIGURATION_STUDY]
+        for i, study in enumerate(studies):
+            config = StudyControl()
+            config.study_sequence = i + 1
+            config.weight_configuration = study[WS.CONFIGURATION_COMPARISON][WS.GROUP_WEIGHT_CONFIGURATION]
+            config.allow_ties = study[WS.BEHAVIOUR_ALLOW_TIES]
+            config.allow_skip = study[WS.BEHAVIOUR_ALLOW_SKIP]
+            config.allow_back = study[WS.BEHAVIOUR_ALLOW_BACK]
+            config.render_user_item_preference_page = study[WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE]
+            config.offer_escape_route_between_cycles = study[WS.BEHAVIOUR_ESCAPE_ROUTE]
+            config.cycle_length = study[WS.BEHAVIOUR_CYCLE_LENGTH]
+            config.maximum_cycles_per_user = study[WS.BEHAVIOUR_MAX_CYCLES]
+            if WS.RANK_ITEM_SUB_QUESTIONS in study:
+                config.multiple_questions = True
+            else:
+                config.multiple_questions = False
+            db.session.add(config)
+            db.session.flush()
+            self._setup_group(db, study, config.study_id)
+            if WS.RANK_ITEM_SUB_QUESTIONS in study:
+                self._setup_sub_questions(db, study, config.study_id)
+            self._setup_study_text(db, study, config.study_id)
+
+    def _setup_sub_questions(self, db, study_config, study_id):
+        if not isinstance(study_config[WS.RANK_ITEM_SUB_QUESTIONS], dict):
+            for i, _ in enumerate(study_config[WS.RANK_ITEM_SUB_QUESTIONS]):
+                config = StudySubQuestions()
+                config.study_id = study_id
+                config.question_text_key = f'study{study_id}question{i + 1}'
+                db.session.add(config)
+        else:
+            supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
+            for i, _ in enumerate(study_config[WS.RANK_ITEM_SUB_QUESTIONS][supported_languages[0]]):
+                config = StudySubQuestions()
+                config.study_id = study_id
+                config.question_text_key = f'study{study_id}question{i + 1}'
+                db.session.add(config)
+
+    def _setup_study_text(self, db, study_config, study_id):
+        supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
+        study_keys = [
+            "userRegistrationGroupQuestionLabel",
+            "userRegistrationGroupSelectionErr",
+            "rankItemInstructionLabel",
+            "itemSelectionQuestionLabel",
+        ]
+        for key in study_keys:
+            for language in supported_languages:
+                if key in study_config:
+                    config = StudyText()
+                    config.study_id = study_id
+                    config.string_key = key
+                    config.language = language
+                    if not isinstance(study_config[key], dict):
+                        config.string_value = study_config[key]
+                    else:
+                        if language in study_config[key]:
+                            config.string_value = study_config[key][language]
+                        elif supported_languages[0] in study_config[key]:
+                            config.string_value = study_config[key][supported_languages[0]]
+                        else:
+                            config.string_value = "missing"
+                    if isinstance(config.string_value, list):
+                        config.string_value = '||'.join(config.string_value)
+                    db.session.add(config)
+        if "rankItemSubQuestions" in study_config:
+            if not isinstance(study_config["rankItemSubQuestions"], dict):
+                for i, question in enumerate(study_config["rankItemSubQuestions"]):
+                    for language in supported_languages:
+                        config = StudyText()
+                        config.study_id = study_id
+                        config.string_key = f'study{study_id}question{i + 1}'
+                        config.language = language
+                        config.string_value = question
+                        db.session.add(config)
+            else:
+                for language in supported_languages:
+                    if language in study_config["rankItemSubQuestions"]:
+                        for i, question in enumerate(study_config["rankItemSubQuestions"][language]):
+                            config = StudyText()
+                            config.study_id = study_id
+                            config.string_key = f'study{study_id}question{i + 1}'
+                            config.language = language
+                            config.string_value = question
+                            db.session.add(config)
+                    else:
+                        for i, question in enumerate(study_config["rankItemSubQuestions"][supported_languages[0]]):
+                            config = StudyText()
+                            config.study_id = study_id
+                            config.string_key = f'study{study_id}question{i + 1}'
+                            config.language = language
+                            config.string_value = question
+                            db.session.add(config)
+
+    def _setup_website_text(self, db):
+        supported_languages = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())
+        keys = vars(WebsiteTextConfiguration())['declared_fields'].keys()
+        for key in keys:
+            for language in supported_languages:
+                config = WebsiteText()
+                config.string_key = key
+                config.language = language
+                if key in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT]:
+                    if not isinstance(self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key], dict):
+                        config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]
+                    else:
+                        if language in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]:
+                            config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key][language]
+                        elif supported_languages[0] in self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key]:
+                            config.string_value = self.json_conf[WS.CONFIGURATION_WEBSITE_TEXT][key][
+                                supported_languages[0]
+                            ]
+                        else:
+                            config.string_value = "missing"
+                else:
+                    config.string_value = "missing"
+                if isinstance(config.string_value, list):
+                    config.string_value = '||'.join(config.string_value)
+                db.session.add(config)
+        # now add the user study data
+        participant_conf = self.json_conf[WS.CONFIGURATION_USER_FIELDS]
+        for question in participant_conf:
+            first_language = list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys())[0]
+            for language in list(self._get_config_value(WS.BEHAVIOUR_SUPPORTED_LANGUAGES).keys()):
+                config = WebsiteText()
+                config.string_key = f"{question[WS.USER_FIELD_NAME]}_question_text"
+                config.language = language
+                if isinstance(question[WS.USER_FIELD_DISPLAY_NAME], dict):
+                    try:
+                        config.string_value = question[WS.USER_FIELD_DISPLAY_NAME][language]
+                    except KeyError:
+                        config.string_value = question[WS.USER_FIELD_DISPLAY_NAME][first_language]
+                else:
+                    config.string_value = question[WS.USER_FIELD_DISPLAY_NAME]
+                db.session.add(config)
+                if "option" in question:
+                    config = WebsiteText()
+                    config.string_key = f"{question[WS.USER_FIELD_NAME]}_option_text"
+                    config.language = language
+                    if isinstance(question[WS.USER_FIELD_SELECT_OPTION], dict):
+                        try:
+                            config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION][language])
+                        except KeyError:
+                            config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION][first_language])
+                    else:
+                        config.string_value = "||".join(question[WS.USER_FIELD_SELECT_OPTION])
+                    db.session.add(config)

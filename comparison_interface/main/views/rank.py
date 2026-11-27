@@ -14,8 +14,11 @@ from comparison_interface.db.models import (
     Participant,
     ParticipantGroup,
     ParticipantItem,
+    ParticipantStudy,
+    StudyControl,
+    StudySubQuestions,
+    StudyText,
     TotalItemPair,
-    WebsiteControl,
 )
 from comparison_interface.main.schemas.rank import RankPostSchema
 
@@ -24,6 +27,11 @@ from .request import Request
 
 class Rank(Request):
     """Page to rank each of the items being compared."""
+
+    def __init__(self, app, session, previous=False):
+        """Initialise rank with a flag to say if we are rejudging or making a new comparison."""
+        super().__init__(app, session)
+        self.previous = previous
 
     # Available rank actions
     REJUDGE = 'rejudged'
@@ -34,44 +42,64 @@ class Rank(Request):
         """Request get handler."""
         if not self._valid_session():
             return self._redirect('.participant_registration')
+        print(self._session)
+        allow_ties = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_TIES, self._study_id, self._app)
+        allow_skip = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._study_id, self._app)
+        allow_back = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_BACK, self._study_id, self._app)
 
-        allow_ties = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_TIES, self._app)
-        allow_skip = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._app)
-        allow_back = WS.get_behaviour_conf(WS.BEHAVIOUR_ALLOW_BACK, self._app)
+        use_escape_route = WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._study_id, self._app)
 
-        use_escape_route = WS.get_behaviour_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, self._app)
-
-        if use_escape_route and self._get_current_cycle() >= WS.get_behaviour_conf(WS.BEHAVIOUR_MAX_CYCLES, self._app):
+        if use_escape_route and self._get_current_cycle() >= WS.get_study_conf(
+            WS.BEHAVIOUR_MAX_CYCLES, self._study_id, self._app
+        ):
             return self._redirect('.thankyou')
 
-        comparison_id = None
-        args = request.args.to_dict(flat=True)
-        if 'comparison_id' in args:
-            comparison_id = args['comparison_id']
-
+        # get the items to compare, either a new pair or the previous pair as appropriate
+        previous_id = None
+        if self.previous:
+            previous_id = self._session['previous_comparison_id']
+            if isinstance(previous_id, list):
+                previous_id = previous_id[0]  # the pairs are all the same so just get the first one
         pair_id = None
-        item_data = self._get_items_to_compare(comparison_id)
+        item_data = self._get_items_to_compare(previous_id)
+        print(item_data)
 
         if len(item_data) == 2:
             item_1, item_2 = item_data
         else:
             item_1, item_2, pair_id = item_data
+        print(f'items for display {item_1}, {item_2}')
         # Show a "no content error" in case of not enough selected known items.
         if item_1 is None or item_2 is None:
             return self._render_template(
                 'main/204.html',
                 {
-                    'error_204_title': WS.get_text(WS.ERROR_204_TITLE, self._app),
-                    'error_204_message': WS.get_text(WS.ERROR_204_MESSAGE, self._app),
+                    'error_204_title': WS.get_text(WS.ERROR_204_TITLE, self._language, self._app),
+                    'error_204_message': WS.get_text(WS.ERROR_204_MESSAGE, self._language, self._app),
                 },
             )
 
-        if comparison_id is not None:
-            # if we are in a rejudging state get the current state to show to the participant
-            current_state, selected_item_id = self._get_current_comparison_state(comparison_id)
+        if previous_id is not None:
+            # if we are in a rejudging state get the current state to show to the participant:
+            comparison_states = self._get_current_comparison_state()
+            self._session['current_comparison'] = self._session['previous_comparison_id']
+            # reset the session information
+            try:
+                comparison_id_index = self._session['comparison_ids'].index(int(previous_id))
+            except ValueError:  # this one handles multiple readings
+                comparison_id_index = next(
+                    (i for i, inner in enumerate(self._session['comparison_ids']) if int(previous_id) in inner), None
+                )
+            if comparison_id_index == 0:
+                self._session['previous_comparison_id'] = None
+            else:
+                self._session['previous_comparison_id'] = self._session['comparison_ids'][comparison_id_index - 1]
+
         else:
-            current_state = None
-            selected_item_id = None
+            comparison_states = None
+        # save the items in the server session so we can validate results later
+        self._session['item_ids'] = [item_1.item_id, item_2.item_id]
+        self._session['weighted_pair_id'] = pair_id
 
         # The participant can rejudge comparisons if:
         # - at least one comparison has already been made in the session
@@ -79,147 +107,298 @@ class Rank(Request):
         # this boolean determines whether the previous button is present or not
         can_rejudge = len(self._session['comparison_ids']) > 0 and self._session['previous_comparison_id'] is not None
 
-        compared, skipped = self._get_comparison_stats()
-
+        shared_data = {
+            'item_1': item_1,
+            'item_2': item_2,
+            'rejudge_label': WS.get_text(WS.RANK_ITEM_REJUDGE_BUTTON_LABEL, self._language, self._app),
+            'confirmed_label': WS.get_text(WS.RANK_ITEM_CONFIRMED_BUTTON_LABEL, self._language, self._app),
+            'skipped_label': WS.get_text(WS.RANK_ITEM_SKIPPED_BUTTON_LABEL, self._language, self._app),
+            'comparison_instruction_label': WS.get_study_text(
+                WS.RANK_ITEM_INSTRUCTION_LABEL, self._language, self._study_id, self._app
+            ),
+            'rejudge_value': self.REJUDGE,
+            'confirmed_value': self.CONFIRMED,
+            'skipped_value': self.SKIPPED,
+            'can_rejudge': can_rejudge,
+            'allow_ties': allow_ties,
+            'allow_skip': allow_skip,
+            'allow_back': allow_back,
+            'study_id': self._study_id,
+        }
+        multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
+        compared, skipped = self._get_comparison_stats(multiple_questions)
         if use_escape_route:
             # If we have asked for an escape route check the counts and redirect if necessary
             completed_cycles = self._get_current_cycle()
 
-            if compared + skipped >= WS.get_behaviour_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._app) * (
+            if compared + skipped >= WS.get_study_conf(WS.BEHAVIOUR_CYCLE_LENGTH, self._study_id, self._app) * (
                 completed_cycles + 1
             ):
                 self._increment_cycle_count()
                 return self._redirect('.thankyou')
 
-        if allow_ties:
-            additional_screen_reader_instructions = ""
-        else:
-            additional_screen_reader_instructions = WS.get_text(WS.ADDITIONAL_RADIO_BUTTON_INSTRUCTIONS, self._app)
-
-        if allow_skip:
-            confirm_button_error_message = WS.get_text(WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITH_SKIP, self._app)
-        else:
-            confirm_button_error_message = WS.get_text(WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP, self._app)
-        return self._render_template(
-            'main/pages/rank.html',
-            {
-                'item_1': item_1,
-                'item_2': item_2,
-                'weighted_pair_id': pair_id,
-                'selected_item_label': WS.get_text(WS.RANK_ITEM_SELECTED_INDICATOR_LABEL, self._app),
-                'tied_selection_label': WS.get_text(WS.RANK_ITEM_TIED_SELECTION_INDICATOR_LABEL, self._app),
-                'skipped_selection_label': WS.get_text(WS.RANK_ITEM_SKIPPED_SELECTION_INDICATOR_LABEL, self._app),
-                'rejudge_label': WS.get_text(WS.RANK_ITEM_REJUDGE_BUTTON_LABEL, self._app),
-                'confirmed_label': WS.get_text(WS.RANK_ITEM_CONFIRMED_BUTTON_LABEL, self._app),
-                'confirm_button_error_message': confirm_button_error_message,
-                'skip_button_error_message': WS.get_text(WS.SKIP_BUTTON_ERROR_MESSAGE, self._app),
-                'skipped_label': WS.get_text(WS.RANK_ITEM_SKIPPED_BUTTON_LABEL, self._app),
-                'comparison_instruction_label': WS.get_text(WS.RANK_ITEM_INSTRUCTION_LABEL, self._app),
-                'comparison_number_label': WS.get_text(WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._app),
+        if multiple_questions:
+            questions = self._get_sub_questions()
+            if comparison_states and len(comparison_states) == len(questions):
+                for i, question in enumerate(questions):
+                    question.initial_state = comparison_states[i][0]
+                    question.initial_selected_item_id = comparison_states[i][1]
+            data = {
+                'questions': questions,
+                'comparison_number_label': WS.get_text(
+                    WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._language, self._app
+                ),
                 'comparison_number': compared,
-                'skipped_number_label': WS.get_text(WS.RANK_ITEM_SKIPPED_COMPARISON_EXECUTED_LABEL, self._app),
+                'incomplete_form_error_message': WS.get_text(
+                    WS.RANK_ITEM_INCOMPLETE_FORM_ERROR_MESSAGE, self._language, self._app
+                ),
+                'skip_selection_error_message': WS.get_text(
+                    WS.RANK_ITEM_SKIP_SELECTION_ERROR_MESSAGE, self._language, self._app
+                ),
+            }
+            data = shared_data | data
+            return self._render_template('main/pages/multi_rank.html', data)
+
+        else:
+            if allow_ties:
+                additional_screen_reader_instructions = ""
+            else:
+                additional_screen_reader_instructions = WS.get_text(
+                    WS.ADDITIONAL_RADIO_BUTTON_INSTRUCTIONS, self._language, self._app
+                )
+
+            if allow_skip:
+                confirm_button_error_message = WS.get_text(
+                    WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITH_SKIP, self._language, self._app
+                )
+            else:
+                confirm_button_error_message = WS.get_text(
+                    WS.CONFIRM_BUTTON_ERROR_MESSAGE_WITHOUT_SKIP, self._language, self._app
+                )
+            data = {
+                'comparison_id': previous_id,
+                'selected_item_label': WS.get_text(WS.RANK_ITEM_SELECTED_INDICATOR_LABEL, self._language, self._app),
+                'tied_selection_label': WS.get_text(
+                    WS.RANK_ITEM_TIED_SELECTION_INDICATOR_LABEL, self._language, self._app
+                ),
+                'skipped_selection_label': WS.get_text(
+                    WS.RANK_ITEM_SKIPPED_SELECTION_INDICATOR_LABEL, self._language, self._app
+                ),
+                'confirm_button_error_message': confirm_button_error_message,
+                'skip_button_error_message': WS.get_text(WS.SKIP_BUTTON_ERROR_MESSAGE, self._language, self._app),
+                'comparison_number_label': WS.get_text(
+                    WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._language, self._app
+                ),
+                'comparison_number': compared,
+                'skipped_number_label': WS.get_text(
+                    WS.RANK_ITEM_SKIPPED_COMPARISON_EXECUTED_LABEL, self._language, self._app
+                ),
                 'skipped_number': skipped,
-                'rejudge_value': self.REJUDGE,
-                'confirmed_value': self.CONFIRMED,
-                'skipped_value': self.SKIPPED,
-                'can_rejudge': can_rejudge,
-                'comparison_id': comparison_id,
-                'initial_state': current_state,
-                'initial_selected_item_id': selected_item_id,
-                'allow_ties': allow_ties,
-                'allow_skip': allow_skip,
-                'allow_back': allow_back,
                 'additional_screen_reader_instructions': additional_screen_reader_instructions,
-                'item_group_selection_label': WS.get_text(WS.ITEM_SELECTION_GROUP_LABEL, self._app),
-            },
-        )
+                'initial_state': None,
+                'initial_selected_item_id': None,
+            }
+            if comparison_states is not None:
+                data['initial_state'] = comparison_states[0][0]
+                data['initial_selected_item_id'] = comparison_states[0][1]
+            data = shared_data | data
+            return self._render_template('main/pages/rank.html', data)
 
     def post(self, request):
         """Request post handler."""
+        if self.previous:
+            return self.get(request)
+
         raw_form = request.form.to_dict(flat=True)
+        questions = [x for x in raw_form if x.startswith('question_')]
+        for question in questions:
+            raw_form[question] = request.form.getlist(question)
         raw_form.pop('csrf_token', None)
+        multiple_questions = db.session.get(StudyControl, self._study_id).multiple_questions
+        expected_item_ids = self._session['item_ids']
+        if multiple_questions:
+            allow_skip = db.session.get(StudyControl, self._study_id).allow_skip
+            allow_ties = db.session.get(StudyControl, self._study_id).allow_ties
+            questions = self._get_sub_questions()
+            rank_schema = RankPostSchema(
+                expected_item_ids=expected_item_ids,
+                questions=questions,
+                none_allowed=allow_skip,
+                ties_allowed=allow_ties,
+            )
+        else:
+            allow_ties = db.session.get(StudyControl, self._study_id).allow_ties
+            rank_schema = RankPostSchema(expected_item_ids=expected_item_ids, ties_allowed=allow_ties)
         try:
-            response = RankPostSchema().load(raw_form)
-        except ValidationError:
+            response = rank_schema.load(raw_form)
+        except ValidationError as error:
+            print(error.messages)
             self._app.logger.warning("Rejected judgement")
             abort(400)
 
-        action = response['state']
-        if action != self.REJUDGE:
-            # Set the comparison state based on the participant's action
-            state, selected_item_id = self._calculate_comparison_state(action, response)
-
-            # Verify if the participant want to rejudge an item
-            comparison_id = None
-            if 'comparison_id' in response and response['comparison_id'] != "":
-                comparison_id = response['comparison_id']
-
-            if comparison_id is None:
-                # Save the new participant comparison in the database.
-                c = Comparison(
-                    participant_id=self._session['participant_id'],
-                    item_1_id=response['item_1_id'],
-                    item_2_id=response['item_2_id'],
-                    state=state,
-                    selected_item_id=selected_item_id,
-                )
-                try:
-                    db.session.add(c)
-                    if self._session['weight_conf'] == WebsiteControl.WEIGHTED_TOTAL and state != self.SKIPPED:
-                        pair = db.session.get(TotalItemPair, response['weighted_pair_id'])
-                        pair.judged = True
-                    db.session.commit()
-                    # Save the comparison for future possible rejudging
-                    self._session['previous_comparison_id'] = c.comparison_id
-                    self._session['comparison_ids'] = self._session['comparison_ids'] + [c.comparison_id]
-                except Exception:
-                    db.session.rollback()
-                    raise
-            else:
-                # Rejudge an existence comparison.
-                query = db.select(Comparison).where(
-                    Comparison.comparison_id == comparison_id,
-                    Comparison.participant_id == self._session['participant_id'],
-                )
-                comparison = db.session.scalars(query).first()
-
-                if comparison is None:
-                    raise RuntimeError("Invalid comparison id provided")
-                try:
-                    comparison.selected_item_id = selected_item_id
-                    comparison.state = state
-                    comparison.updated = datetime.now(timezone.utc)
-                    db.session.commit()
-                    # Return the pointer to the last comparison made as the participant will be given a new one next
-                    self._session['previous_comparison_id'] = self._session['comparison_ids'][
-                        len(self._session['comparison_ids']) - 1
-                    ]
-                except Exception:
-                    db.session.rollback()
-                    raise
-
-            return self._redirect('.rank')
+        if multiple_questions:
+            self._save_multiple_comparisons(response)
         else:
-            return self._redirect('.rank', comparison_id=self._session['previous_comparison_id'])
+            self._save_single_comparison(response)
+        return self._redirect('.rank')
 
-    def _get_current_comparison_state(self, comparison_id):
-        """Get the current comparison state and selected item id for the requested comparison id.
+    def _save_multiple_comparisons(self, response):
+        questions = [x for x in response.keys() if x.startswith('question_')]
+        questions.sort(key=lambda x: int(x.rsplit("_", 1)[1]))
+        comparisons = []
+        total_skipped = 0
+        for question in questions:
+            if len(response[question]) == 0:
+                state = Comparison.SKIPPED
+                total_skipped += 1
+                selected_id = None
+            elif len(response[question]) == 1:
+                state = Comparison.SELECTED
+                selected_id = response[question][0]
+            elif len(response[question]) == 2:
+                state = Comparison.TIED
+                selected_id = None
 
-        Args:
-            comparison_id (int): The primary key of the comparison to retrieve
+            c = Comparison(
+                participant_id=self._session['participant_id'],
+                study_id=self._study_id,
+                item_1_id=response['item_1_id'],
+                item_2_id=response['item_2_id'],
+                state=state,
+                sub_question_id=question.replace('question_', ''),
+                selected_item_id=selected_id,
+            )
+            comparisons.append(c)
+
+        # Check if the participant is rejudging an item
+        if 'current_comparison' not in self._session:
+            try:
+                db.session.add_all(comparisons)
+                # mark the pair as judged only if at least one question was answered
+                # TODO: check this logic with Rowland
+                if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and total_skipped > 0:
+                    pair = db.session.get(TotalItemPair, self._session['weighted_pair_id'])
+                    pair.judged = True
+                db.session.commit()
+                comparison_ids = [comparison.comparison_id for comparison in comparisons]
+                self._session['previous_comparison_id'] = comparison_ids
+                self._session['comparison_ids'] = self._session['comparison_ids'] + [comparison_ids]
+            except Exception:
+                db.session.rollback()
+                raise
+        else:
+            # we are rejudging
+            # need to be careful that we are saving the right ones in the right place
+            query = db.select(Comparison).filter(
+                Comparison.comparison_id.in_(self._session['current_comparison']),
+                Comparison.participant_id == self._session['participant_id'],
+                Comparison.study_id == self._study_id,
+            )
+            existing_comparisons = db.session.scalars(query).all()
+            # make a look up for the new data then merge it
+            new_by_id = {c.sub_question_id: c for c in comparisons}
+            try:
+                for existing_comparison in existing_comparisons:
+                    new_data = new_by_id[str(existing_comparison.sub_question_id)]
+                    existing_comparison.selected_item_id = new_data.selected_item_id
+                    existing_comparison.state = new_data.state
+                    existing_comparison.updated = datetime.now(timezone.utc)
+                db.session.commit()
+                # Return the pointer to the last comparison made as the participant will be given a new one next
+                self._session['previous_comparison_id'] = self._session['comparison_ids'][-1]
+                self._session.pop('current_comparison')
+            except Exception:
+                db.session.rollback()
+                self._session.pop('current_comparison')
+                raise
+
+    def _save_single_comparison(self, response):
+        # Set the comparison state based on the participant's action
+        state, selected_item_id = self._calculate_comparison_state(response)
+
+        # Verify if the participant is rejudging an item
+        if 'current_comparison' not in self._session:
+            # Save the new participant comparison in the database.
+            c = Comparison(
+                participant_id=self._session['participant_id'],
+                study_id=self._study_id,
+                item_1_id=response['item_1_id'],
+                item_2_id=response['item_2_id'],
+                state=state,
+                selected_item_id=selected_item_id,
+            )
+            try:
+                db.session.add(c)
+                if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL and state != self.SKIPPED:
+                    pair = db.session.get(TotalItemPair, self._session['weighted_pair_id'])
+                    pair.judged = True
+                db.session.commit()
+                # Save the comparison for future possible rejudging
+                self._session['previous_comparison_id'] = c.comparison_id
+                self._session['comparison_ids'] = self._session['comparison_ids'] + [c.comparison_id]
+            except Exception:
+                db.session.rollback()
+                raise
+        else:
+            # Rejudge an existence comparison.
+            query = db.select(Comparison).where(
+                Comparison.comparison_id == self._session['current_comparison'],
+                Comparison.participant_id == self._session['participant_id'],
+            )
+            comparison = db.session.scalars(query).first()
+
+            if comparison is None:
+                raise RuntimeError("Invalid comparison id provided")
+            try:
+                comparison.selected_item_id = selected_item_id
+                comparison.state = state
+                comparison.updated = datetime.now(timezone.utc)
+                db.session.commit()
+                # Return the pointer to the last comparison made as the participant will be given a new one next
+                self._session['previous_comparison_id'] = self._session['comparison_ids'][-1]
+            except Exception:
+                db.session.rollback()
+                raise
+
+    def _get_sub_questions(self):
+        questions = []
+        results = db.session.execute(
+            db.select(
+                StudySubQuestions,
+                StudyText.string_value,
+            )
+            .join(
+                StudyText,
+                (StudySubQuestions.question_text_key == StudyText.string_key) & (StudyText.language == self._language),
+            )
+            .where(StudySubQuestions.study_id == self._study_id)
+        ).all()
+
+        for question, text in results:
+            question.question_text = text
+            questions.append(question)
+        return questions
+
+    def _get_current_comparison_state(self):
+        """Get the current comparison state and selected item id for the previous comparison.
+
+        Returns:
+            list: A list of tuples containing the state and selected id.
         """
+        previous_comparison = self._session['previous_comparison_id']
+        if not isinstance(previous_comparison, list):
+            previous_comparison = [previous_comparison]
         res = (
             db.session.query(Comparison.state, Comparison.selected_item_id)
-            .where(Comparison.comparison_id == comparison_id)
-            .first()
+            .filter(Comparison.comparison_id.in_(previous_comparison))
+            .all()
         )
         return res
 
-    def _calculate_comparison_state(self, action, response):
+    def _calculate_comparison_state(self, response):
         """Get the right comparison parameters based on the participant's action.
 
         Args:
-            action (str): Action triggered by the participant
             response (dict): POST from response
 
         Returns:
@@ -228,13 +407,13 @@ class Rank(Request):
         """
         state = None
         selected_item_id = None
-        if action == self.CONFIRMED:
+        if response['action'] == self.CONFIRMED:
             if response.get('selected_item_id') is not None:
                 state = Comparison.SELECTED
                 selected_item_id = response['selected_item_id']
             else:
                 state = Comparison.TIED
-        elif action == self.SKIPPED:
+        elif response['action'] == self.SKIPPED:
             state = Comparison.SKIPPED
 
         return state, selected_item_id
@@ -248,27 +427,52 @@ class Rank(Request):
         participant = db.session.get(Participant, self._session['participant_id'])
         if participant is None:
             return 0
-        return participant.completed_cycles
+        query = db.select(ParticipantStudy).where(
+            ParticipantStudy.participant_id == self._session['participant_id'],
+            ParticipantStudy.study_id == self._session['study_id'],
+        )
+        current_study = db.session.scalars(query).one_or_none()
+        if current_study is None:
+            return 0
+        return current_study.completed_cycles
 
     def _increment_cycle_count(self):
-        """Increment the current participant's cycle count."""
-        participant = db.session.get(Participant, self._session['participant_id'])
-        participant.completed_cycles = participant.completed_cycles + 1
+        """Increment the current participant's cycle count for their current study."""
+        query = db.select(ParticipantStudy).where(
+            ParticipantStudy.participant_id == self._session['participant_id'],
+            ParticipantStudy.study_id == self._session['study_id'],
+        )
+        current_study = db.session.scalars(query).one_or_none()
+        current_study.completed_cycles = current_study.completed_cycles + 1
         db.session.commit()
 
-    def _get_comparison_stats(self):
+    def _get_comparison_stats(self, multiple_studies):
         """Get summary statistics about the comparison made.
+
+        Args:
+            multiple_studies (bool): Whether or not we are running in mutliple studies mode or not.
 
         Returns:
             compared: Number of comparisons made
             skipped: Number of comparisons skipped
         """
+        if multiple_studies:
+            skipped = 0
+            query = db.select(func.count(Comparison.comparison_id)).where(
+                Comparison.participant_id == self._session['participant_id'],
+                Comparison.study_id == self._study_id,
+                Comparison.sub_question_id == 1,
+            )
+            counts = db.session.execute(query).all()
+            compared = counts[0][0]
+            return compared, skipped
+
         compared = 0
         skipped = 0
 
         query = (
             db.select(Comparison.state, func.count(Comparison.comparison_id))
-            .where(Comparison.participant_id == self._session['participant_id'])
+            .where(Comparison.participant_id == self._session['participant_id'], Comparison.study_id == self._study_id)
             .group_by(Comparison.state)
         )
         counts = db.session.execute(query).all()
@@ -296,26 +500,26 @@ class Rank(Request):
             Item: Model Item | None
             Item: Model Item | None
         """
-        render_item_prefer = WS.should_render(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._app)
+        render_item_prefer = WS.get_study_conf(WS.BEHAVIOUR_RENDER_USER_ITEM_PREFERENCE_PAGE, self._study_id, self._app)
 
         # Case 1: Returns the items related to a particular comparison.
         if comparison_id is not None:
             return self._get_comparison_items(comparison_id)
 
         # Case 2: Get a random pair from list of custom defined weights
-        if self._session['weight_conf'] == WebsiteControl.CUSTOM_WEIGHT:
+        if self._session['weight_conf'] == StudyControl.CUSTOM_WEIGHT:
             return self._get_custom_items()
 
         # Case 3: Get a random item pair when equal weights and item preference was defined
-        if self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT and render_item_prefer:
+        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT and render_item_prefer:
             return self._get_preferred_items()
 
         # Case 4: Get a random item pair when equal weights and no item preference was defined
-        if self._session['weight_conf'] == WebsiteControl.EQUAL_WEIGHT and not render_item_prefer:
+        if self._session['weight_conf'] == StudyControl.EQUAL_WEIGHT and not render_item_prefer:
             return self._get_random_items()
 
         # Case 5: Get a random pair from the item pair totals table
-        if self._session['weight_conf'] == WebsiteControl.WEIGHTED_TOTAL:
+        if self._session['weight_conf'] == StudyControl.WEIGHTED_TOTAL:
             return self._get_random_pair()
 
         # All no implemented cases
@@ -345,16 +549,10 @@ class Rank(Request):
         if comparison is None:
             raise RuntimeError("Invalid comparison id provided")
 
-        # 2. Get the items information)
+        # 2. Get the individual item information
         query = db.select(Item).where(Item.item_id.in_([comparison.item_1_id, comparison.item_2_id]))
         items = db.session.scalars(query).all()
 
-        # 3. Update the session parameters
-        comparison_id_index = self._session['comparison_ids'].index(int(comparison_id))
-        if comparison_id_index == 0:
-            self._session['previous_comparison_id'] = None
-        else:
-            self._session['previous_comparison_id'] = self._session['comparison_ids'][comparison_id_index - 1]
         # return them in the order they were originally displayed
         if items[0].item_id == comparison.item_1_id:
             return items[0], items[1]
@@ -374,6 +572,7 @@ class Rank(Request):
             .join(TotalItemPair, TotalItemPair.group_id == ParticipantGroup.group_id, isouter=True)
             .where(
                 ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.study_id == self._study_id,
                 ParticipantGroup.group_id.in_(self._session['group_ids']),
                 TotalItemPair.judged == False,  # NoQA
             )
@@ -401,7 +600,7 @@ class Rank(Request):
         query = db.select(Item).where(Item.item_id.in_([item_1_id, item_2_id]))
         items = db.session.scalars(query).all()
 
-        return items[0], items[1], selected_pair_id[0]
+        return items[0], items[1], int(selected_pair_id[0])
 
     def _get_custom_items(self):
         """Get a random pair of items respecting the weights provided in config file.
@@ -417,6 +616,7 @@ class Rank(Request):
             .join(CustomItemPair, CustomItemPair.group_id == ParticipantGroup.group_id, isouter=True)
             .where(
                 ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.study_id == self._study_id,
                 ParticipantGroup.group_id.in_(self._session['group_ids']),
             )
         )
@@ -488,12 +688,12 @@ class Rank(Request):
             .join(Item, ItemGroup.item_id == Item.item_id, isouter=True)
             .where(
                 ParticipantGroup.participant_id == self._session['participant_id'],
+                ParticipantGroup.study_id == self._study_id,
                 ParticipantGroup.group_id.in_(self._session['group_ids']),
                 ItemGroup.group_id.in_(self._session['group_ids']),
             )
         )
         result = db.session.execute(query).all()
-
         items_id = []
         items = {}
         for _, _, i in result:
@@ -501,7 +701,6 @@ class Rank(Request):
             if i.item_id not in items_id:
                 items_id.append(i.item_id)
                 items[i.item_id] = i
-
         if len(items_id) < 2:
             return None, None
 

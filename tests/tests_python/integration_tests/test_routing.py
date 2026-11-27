@@ -38,7 +38,7 @@ def test_render_introduction(equal_weight_client):
     """
     response = equal_weight_client.get("/introduction")
     assert response.status_code == 200
-    assert b'<h1>User Instructions</h1>' in response.data
+    assert b'<h1>Instructions/Introduction Page</h1>' in response.data
 
 
 def test_render_ethics_agreement(equal_weight_client):

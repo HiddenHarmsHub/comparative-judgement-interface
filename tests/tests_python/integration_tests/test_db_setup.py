@@ -16,8 +16,8 @@ def test_participant_setup(equal_weight_app):
         assert len(participant_columns) == 9
         assert participant_columns == [
             'participant_id',
+            'current_study_id',
             'created_date',
-            'completed_cycles',
             'name',
             'country',
             'allergies',
