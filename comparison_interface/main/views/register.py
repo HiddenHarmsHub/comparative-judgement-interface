@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from flask import abort, render_template
+from flask import abort
 from marshmallow import ValidationError
 from sqlalchemy import MetaData, Table
 
@@ -10,6 +10,14 @@ from comparison_interface.db.models import Group, Participant, ParticipantGroup,
 from comparison_interface.main.schemas.register import ParticipantSchemaFactory
 
 from .request import Request
+
+COMPONENT_TEMPLATES = {
+    "int": "main/components/int.html",
+    "text": "main/components/text.html",
+    "radio": "main/components/radio.html",
+    "dropdown": "main/components/dropdown.html",
+    "email": "main/components/email.html",
+}
 
 
 class Register(Request):
@@ -32,8 +40,10 @@ class Register(Request):
             ).one()
             groups = db.session.scalars(db.select(Group).where(Group.study_id == study.study_id)).all()
             if len(groups) > 1:
-                group_columns = self._load_group_component(user_components, study.study_id)
-                direct_registration = True
+                groups = self._load_group_component(study.study_id)
+                user_components.append(groups)
+                group_columns = groups['group_columns']
+
             return self._render_template(
                 'main/pages/internal_register.html',
                 {
@@ -55,11 +65,14 @@ class Register(Request):
 
         # Load components
         user_components = []
-        self._load_user_component(user_components)
+        user_components.extend(self._load_user_component())
         study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence == 1)).first()
-        group_columns = self._load_group_component(user_components, study_id)
-        self._load_additional_text(user_components)
-        self._load_ethics_component(user_components)
+        groups = self._load_group_component(study_id)
+        user_components.append(groups)
+        user_components.extend(self._load_additional_text())
+        ethics_component = self._load_ethics_component()
+        if ethics_component is not None:
+            user_components.append(ethics_component)
 
         # Render components
         return self._render_template(
@@ -71,7 +84,7 @@ class Register(Request):
                     WS.USER_REGISTRATION_SCREEN_READER_LEGEND, self._language, self._app
                 ),
                 'components': user_components,
-                'group_columns': group_columns,
+                'group_columns': groups['group_columns'],
             },
         )
 
@@ -180,30 +193,37 @@ class Register(Request):
         self._app._participant_table = table
         return table
 
-    def _load_user_component(self, user_components: list):
+    def _load_user_component(self):
         """Load custom user fields.
 
         Args:
             user_components (list): Components render in the user registry view
         """
+        user_components = []
         user_fields = WS.get_user_conf(self._app)
         # Add the custom user fields
         for field in user_fields:
-            component = 'main/components/{}.html'.format(field[WS.USER_FIELD_TYPE])
-            text = {
-                "question_text": WS.get_text(f"{field[WS.USER_FIELD_NAME]}_question_text", self._language, self._app)
-            }
-            if 'option' in field:
-                text['option_text'] = WS.get_text(
-                    f"{field[WS.USER_FIELD_NAME]}_option_text", self._language, self._app
-                ).split("||")
-            user_components.append(render_template(component, **field, **text))
+            field_type = field[WS.USER_FIELD_TYPE]
+            if field_type in COMPONENT_TEMPLATES:
+                text = {
+                    "template": COMPONENT_TEMPLATES[field_type],
+                    "question_text": WS.get_text(
+                        f"{field[WS.USER_FIELD_NAME]}_question_text", self._language, self._app
+                    ),
+                    "field": field,
+                }
+                if 'option' in field:
+                    text['option_text'] = WS.get_text(
+                        f"{field[WS.USER_FIELD_NAME]}_option_text", self._language, self._app
+                    ).split("||")
+            user_components.append(text)
+        return user_components
 
-    def _load_group_component(self, user_components, study_id):
+    def _load_group_component(self, study_id):
         """Load the group selection component.
 
         Args:
-            user_components (list): Components render in the user registry view
+            study_id (int): The id of the current study.
         """
         # Allow multiple item selection only if the item's weight distribution in this study is "equal"
         multiple_selection = False
@@ -218,62 +238,53 @@ class Register(Request):
                 WS.USER_REGISTRATION_GROUP_SELECTION_ERROR, self._language, study_id, self._app
             )
         else:
-            label_text = ''
-            error_text = ''
+            label_text = ""
+            error_text = ""
         if len(groups) >= 10:
             group_length = (len(groups) + 1) // 2
             groups = [groups[:group_length], groups[group_length:]]
             group_columns = True
         else:
             group_columns = False
-        user_components.append(
-            render_template(
-                'main/components/group.html',
-                **{
-                    'groups': groups,
-                    'label': label_text,
-                    'multiple_selection': multiple_selection,
-                    'group_selection_error': error_text,
-                    'group_columns': group_columns,
-                },
-            )
-        )
-        return group_columns
+        return {
+            "template": "main/components/group.html",
+            "groups": groups,
+            "label": label_text,
+            "multiple_selection": multiple_selection,
+            "group_selection_error": error_text,
+            "group_columns": group_columns,
+        }
 
-    def _load_additional_text(self, user_components: list):
+    def _load_additional_text(self):
         """Load any additional text for the registration page.
 
         This is supplied as a list of strings and ends up as one paragraph for each string in the list.
-
-        Args:
-            user_components (list): Components render in the user registry view
         """
         additional_list = WS.get_text(WS.ADDITIONAL_REGISTRATION_TEXT, self._language, self._app)
-        if additional_list is not None:
-            if len(additional_list) > 0:
-                user_components.append('<hr/>')
-                for item in additional_list.split('||'):
-                    user_components.append(render_template('main/components/additional_text.html', **{'text': item}))
-
-    def _load_ethics_component(self, user_components: list):
-        """Load the ethics agreement component.
-
-        Args:
-            user_components (list): Components render in the user registry view
-        """
-        render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app)
-        if render_ethics:
-            user_components.append(
-                render_template(
-                    'main/components/ethics.html',
-                    **{
-                        'ethics_agreement_label': WS.get_text(
-                            WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._language, self._app
-                        ),
-                        'ethics_link_text': WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._language, self._app),
-                    },
-                )
+        if additional_list is None or len(additional_list) == 0:
+            return []
+        additional_text_components = []
+        first = True
+        for item in additional_list.split("||"):
+            additional_text_components.append(
+                {"template": "main/components/additional_text.html", "text": item, "add_hr": first}
             )
+            first = False
+        return additional_text_components
+
+    def _load_ethics_component(self):
+        """Load the ethics agreement component."""
+        render_ethics = WS.should_render(WS.BEHAVIOUR_RENDER_ETHICS_AGREEMENT_PAGE, self._app)
+        if not render_ethics:
+            return None
+        ethics_component = {
+            "template": "main/components/ethics.html",
+            "ethics_agreement_label": WS.get_text(
+                WS.USER_REGISTRATION_ETHICS_AGREEMENT_LABEL, self._language, self._app
+            ),
+            "ethics_link_text": WS.get_text(WS.PAGE_TITLE_ETHICS_AGREEMENT, self._language, self._app),
+        }
+        return ethics_component
 
     def _get_participant_write_schema(self):
         """Return the cached participant write schema, building it on first use.
