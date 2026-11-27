@@ -1,5 +1,5 @@
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Participant
+from comparison_interface.db.models import Participant, ParticipantStudy
 from comparison_interface.main.views import register
 
 
@@ -40,8 +40,8 @@ def test_register_participant_with_escape_route_on(equal_weight_client, particip
     """
     GIVEN a flask app configured for testing and equal weights and with the escape route on
     WHEN a new participant registers on the site
-    THEN the participant is stored in the database with cycle count set at 0 and is redirected to the item
-    selection page
+    THEN the participant is stored in the database for study 1 with the study cycle count set at 0 and is redirected
+    to the item selection page
     """
     with equal_weight_client:
         response = equal_weight_client.post("/register", data=participant_data)
@@ -53,9 +53,14 @@ def test_register_participant_with_escape_route_on(equal_weight_client, particip
         # Verify the participant was inserted into the database with the cycle count set as 0 and added to the session
         with equal_weight_client.session_transaction() as session:
             participant = db.session.scalars(db.select(Participant).order_by(Participant.participant_id.desc())).first()
-            assert participant.completed_cycles == 0
+            assert participant.current_study_id == 1
             assert isinstance(participant.participant_id, int)
             assert participant.participant_id == session['participant_id']
+            participant_studies = db.session.scalars(
+                db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant.participant_id)
+            ).all()
+            assert len(participant_studies) == 1
+            assert participant_studies[0].completed_cycles == 0
 
 
 def test_register_participant_with_escape_route_off(mocker, equal_weight_client, participant_data):
@@ -77,6 +82,11 @@ def test_register_participant_with_escape_route_off(mocker, equal_weight_client,
         # Verify the participant was inserted into the database with the cycle count set as 0 and added to the session
         with equal_weight_client.session_transaction() as session:
             participant = db.session.scalars(db.select(Participant).order_by(Participant.participant_id.desc())).first()
-            assert participant.completed_cycles is None
+            assert participant.current_study_id == 1
             assert isinstance(participant.participant_id, int)
             assert participant.participant_id == session['participant_id']
+            participant_studies = db.session.scalars(
+                db.select(ParticipantStudy).where(ParticipantStudy.participant_id == participant.participant_id)
+            ).all()
+            assert len(participant_studies) == 1
+            assert participant_studies[0].completed_cycles == 0

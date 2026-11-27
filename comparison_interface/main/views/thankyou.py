@@ -1,6 +1,6 @@
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Participant
+from comparison_interface.db.models import Participant, ParticipantStudy, StudyControl
 
 from .request import Request
 
@@ -17,16 +17,40 @@ class Thankyou(Request):
             'continue_text': WS.get_text(WS.THANK_YOU_CONTINUE_TEXT, self._language, self._app),
             'stop_text': WS.get_text(WS.THANK_YOU_STOP_TEXT, self._language, self._app),
             'button': WS.get_text(WS.THANK_YOU_CONTINUE_BUTTON_LABEL, self._language, self._app),
+            'next_text': WS.get_text(WS.THANK_YOU_NEXT_STUDY_TEXT, self._language, self._app),
+            'next_button': WS.get_text(WS.THANK_YOU_NEXT_STUDY_BUTTON_LABEL, self._language, self._app),
         }
         if self._can_continue():
             data['continue'] = True
+        next_study = self._get_next_study()
+        if next_study is not None:
+            data['next'] = True
+            # using sequence not id here in case researchers need to put people on a specific study
+            data['next_seq'] = next_study.study_sequence
+        else:
+            data['next'] = False
         return self._render_template('main/pages/thankyou.html', data)
 
     def _can_continue(self):
-        """Check if this participant can complete another cycle."""
-        participant = db.session.get(Participant, self._session['participant_id'])
-        if participant.completed_cycles is None or participant.completed_cycles < WS.get_study_conf(
-            WS.BEHAVIOUR_MAX_CYCLES, 1, self._app
+        """Check if this participant can complete another cycle for this study."""
+        query = db.select(ParticipantStudy).where(
+            ParticipantStudy.participant_id == self._session['participant_id'],
+            ParticipantStudy.study_id == self._session['study_id'],
+        )
+        current_study = db.session.scalars(query).one_or_none()
+        if current_study.completed_cycles is None or current_study.completed_cycles < WS.get_study_conf(
+            WS.BEHAVIOUR_MAX_CYCLES, self._session['study_id'], self._app
         ):
             return True
         return False
+
+    def _get_next_study(self):
+        """Check if there is another study for this participant to complete."""
+        participant = db.session.get(Participant, self._session['participant_id'])
+        current_study = db.session.get(StudyControl, participant.current_study_id)
+        current_study_sequence = current_study.study_sequence
+        next_study_sequence = current_study_sequence + 1
+        query = db.select(StudyControl).where(StudyControl.study_sequence == next_study_sequence)
+        next_study = db.session.scalars(query).one_or_none()
+
+        return next_study

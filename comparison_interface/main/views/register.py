@@ -3,11 +3,10 @@ from datetime import datetime, timezone
 from flask import abort, render_template
 from marshmallow import ValidationError
 from sqlalchemy import MetaData, Table
-from sqlalchemy.exc import IntegrityError
 
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import Group, ParticipantGroup, StudyControl
+from comparison_interface.db.models import Group, Participant, ParticipantGroup, ParticipantStudy, StudyControl
 from comparison_interface.main.schemas.register import ParticipantSchemaFactory
 
 from .request import Request
@@ -16,15 +15,49 @@ from .request import Request
 class Register(Request):
     """Register the user doing the comparative judgment."""
 
+    def __init__(self, app, session, study_seq=None):
+        """Initialise Registration with a flag determining if this is not the first study."""
+        super().__init__(app, session)
+        self.study_seq = study_seq
+
     def get(self, _):
         """Request get handler."""
+        if self.study_seq is not None:
+            # Then this is just group selection for the next study
+            user_components = []
+            group_columns = False
+            direct_registration = True
+            study = db.session.scalars(
+                db.select(StudyControl).where(StudyControl.study_sequence == self.study_seq)
+            ).one()
+            groups = db.session.scalars(db.select(Group).where(Group.study_id == study.study_id)).all()
+            if len(groups) > 1:
+                group_columns = self._load_group_component(user_components, study.study_id)
+                direct_registration = True
+            return self._render_template(
+                'main/pages/internal_register.html',
+                {
+                    'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._language, self._app),
+                    'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._language, self._app),
+                    'next_study': WS.get_text(WS.THANK_YOU_NEXT_STUDY_TEXT, self._language, self._app),
+                    'next_button': WS.get_text(WS.THANK_YOU_NEXT_STUDY_BUTTON_LABEL, self._language, self._app),
+                    'registration_legend': WS.get_text(
+                        WS.USER_REGISTRATION_SCREEN_READER_LEGEND, self._language, self._app
+                    ),
+                    'components': user_components,
+                    'group_columns': group_columns,
+                    'direct_registration': direct_registration,
+                },
+            )
+
         if self._valid_session():
             return self._redirect('.item_selection')
 
         # Load components
         user_components = []
         self._load_user_component(user_components)
-        group_columns = self._load_group_component(user_components)
+        study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence == 1)).first()
+        group_columns = self._load_group_component(user_components, study_id)
         self._load_additional_text(user_components)
         self._load_ethics_component(user_components)
 
@@ -34,6 +67,9 @@ class Register(Request):
             {
                 'title': WS.get_text(WS.USER_REGISTRATION_FORM_TITLE_LABEL, self._language, self._app),
                 'button': WS.get_text(WS.USER_REGISTRATION_SUMMIT_BUTTON_LABEL, self._language, self._app),
+                'registration_legend': WS.get_text(
+                    WS.USER_REGISTRATION_SCREEN_READER_LEGEND, self._language, self._app
+                ),
                 'components': user_components,
                 'group_columns': group_columns,
             },
@@ -84,26 +120,39 @@ class Register(Request):
 
         # Add server-managed fields. These are dump_only in the schema, so they can never arrive from the client.
         form_data['created_date'] = datetime.now(timezone.utc)
-        if not WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, 1, self._app):
+        form_data['current_study_id'] = study_id
+
+        study_tracking = {
+            'study_id': study_id,
+        }
+
+        if not WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, study_id, self._app):
             # Cycles are not tracked for this study configuration.
-            form_data['completed_cycles'] = None
+            study_tracking['completed_cycles'] = None
         else:
-            form_data['completed_cycles'] = 0
+            study_tracking['completed_cycles'] = 0
 
         table = self._get_participant_table()
 
         try:
-            with db.engines['study_db'].begin() as connection:
-                result = connection.execute(table.insert().values(**form_data))
-                participant_id = result.inserted_primary_key[0]
-
-                if group_ids:
-                    connection.execute(
-                        ParticipantGroup.__table__.insert(),
-                        [{'group_id': group_id, 'participant_id': participant_id} for group_id in group_ids],
-                    )
-        except IntegrityError:
-            # The transaction has already been rolled back by the context manager.
+            engine = db.engines['study_db']
+            connection = db.session.connection(bind_arguments={'bind': engine})
+            result = connection.execute(table.insert().values(**form_data))
+            participant_id = result.inserted_primary_key[0]
+            # now add the study tracking
+            participant_study = ParticipantStudy(participant_id=participant_id, **study_tracking)
+            db.session.add(participant_study)
+            # now add the group ids
+            if group_ids:
+                db.session.add_all(
+                    [
+                        ParticipantGroup(group_id=group_id, study_id=study_id, participant_id=participant_id)
+                        for group_id in group_ids
+                    ]
+                )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
             self._app.logger.warning("Participant registration failed")
             abort(400)
 
@@ -150,14 +199,12 @@ class Register(Request):
                 ).split("||")
             user_components.append(render_template(component, **field, **text))
 
-    def _load_group_component(self, user_components: list):
+    def _load_group_component(self, user_components, study_id):
         """Load the group selection component.
 
         Args:
             user_components (list): Components render in the user registry view
         """
-        study_id = db.session.scalars(db.select(StudyControl.study_id).where(StudyControl.study_sequence == 1)).first()
-
         # Allow multiple item selection only if the item's weight distribution in this study is "equal"
         multiple_selection = False
         if StudyControl().get_conf(study_id).weight_configuration == StudyControl.EQUAL_WEIGHT:
@@ -251,3 +298,85 @@ class Register(Request):
         schema = schema_class()
         self._app._participant_write_schema = schema
         return schema
+
+
+class RegisterNext(Register):
+    """Register group selections for follow on studies."""
+
+    def post(self, request):
+        """Handle participant registration submission.
+
+        User-facing validation is handled by the front end so that messages can be
+        localised. This handler therefore treats any validation failure as a
+        malformed or crafted request and aborts with 400.
+
+        Args:
+            request (flask.Request): The incoming Flask request containing the
+                registration form data.
+
+        Returns:
+            werkzeug.wrappers.Response: A redirect to the item selection page on
+                success.
+
+        Raises:
+            werkzeug.exceptions.BadRequest: If the payload is structurally invalid,
+                or if the database rejects it (for example an unknown group id).
+        """
+        raw_group_ids = request.form.getlist("group_ids")
+
+        study_id = db.session.scalars(
+            db.select(StudyControl.study_id).where(StudyControl.study_sequence == self.study_seq)
+        ).first()
+
+        # Confirm we have a list of integers we can safely insert and that they belong to the right study.
+        try:
+            group_ids = [int(gid) for gid in raw_group_ids]
+        except (TypeError, ValueError):
+            self._app.logger.warning("Rejected group_ids")
+            abort(400)
+        allowed_groups = db.session.scalars(db.select(Group.group_id).where(Group.study_id == study_id)).all()
+
+        if not set(group_ids).issubset(allowed_groups):
+            self._app.logger.warning("Rejected group_ids")
+            abort(400)
+
+        study_tracking = {
+            'study_id': study_id,
+        }
+
+        if not WS.get_study_conf(WS.BEHAVIOUR_ESCAPE_ROUTE, study_id, self._app):
+            # Cycles are not tracked for this study configuration.
+            study_tracking['completed_cycles'] = None
+        else:
+            study_tracking['completed_cycles'] = 0
+
+        try:
+            # now add the study tracking
+            participant_study = ParticipantStudy(participant_id=self._session['participant_id'], **study_tracking)
+            db.session.add(participant_study)
+            # change the partipants current study
+            participant = db.session.get(Participant, self._session['participant_id'])
+            participant.current_study_id = study_id
+            # now add the group ids
+            if group_ids:
+                db.session.add_all(
+                    [
+                        ParticipantGroup(
+                            group_id=group_id, study_id=study_id, participant_id=self._session['participant_id']
+                        )
+                        for group_id in group_ids
+                    ]
+                )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            self._app.logger.warning("Participant registration failed")
+            abort(400)
+
+        self._session['group_ids'] = group_ids
+        self._session['weight_conf'] = StudyControl().get_conf(study_id).weight_configuration
+        self._session['previous_comparison_id'] = None
+        self._session['comparison_ids'] = []
+        self._session['study_id'] = study_id
+
+        return self._redirect('.item_selection')
