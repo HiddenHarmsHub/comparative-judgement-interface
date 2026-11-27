@@ -25,10 +25,8 @@
     <div class="text-center">
       <p class="progress-counter fs-5">{{comparison_number_label}}:&nbsp;{{comparison_number}}</p>
     </div>
-    <div class="row pl-2 pr-2" {% if allow_ties=='false' %}role="radiogroup" {% else %}role="group" {% endif %}
+    <div class="row pl-2 pr-2" {% if not allow_ties %}role="radiogroup" {% else %}role="group" {% endif %}
       aria-label="{{ item_group_selection_label }}">
-      {% if allow_ties == 'false' %}<p id="additional-instructions" class="visually-hidden">{{
-        additional_screen_reader_instructions }}</p>{% endif %}
       <div class="col position-relative">
         <div class="text-center">
           <span aria-hidden="true" id="left-item-label" class="fs-3 fw-bold">{{ item_1.display_name }}</span>
