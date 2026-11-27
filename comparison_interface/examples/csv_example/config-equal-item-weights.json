@@ -20,6 +20,7 @@
             "allowTies": false,
             "allowSkip": true,
             "allowBack": true,
+            "itemSelectionQuestionLabel": "Do you know this item?",
             "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
             "userRegistrationGroupSelectionErr": "Please select at least one region.",
             "rankItemInstructionLabel": "Which municipality has the highest prevalence of the following types of violence?",
