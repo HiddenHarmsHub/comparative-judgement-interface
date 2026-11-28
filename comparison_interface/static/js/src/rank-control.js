@@ -1,5 +1,6 @@
 /* global module */
 
+
 // on load function to display current state if we are rejudging
 $(function () {
     const rankForm = $('#rank-form');
