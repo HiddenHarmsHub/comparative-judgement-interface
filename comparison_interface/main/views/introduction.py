@@ -13,6 +13,7 @@ class Introduction(Request):
 
     def get(self, _):
         """Request get handler."""
+        print('test')
         user_instruction_html = WS.get_website_conf(WS.BEHAVIOUR_USER_INSTRUCTION_HTML, self._app)
         if user_instruction_html is not None:
             with open(os.path.join(self._app.root_path, user_instruction_html)) as input_file:
