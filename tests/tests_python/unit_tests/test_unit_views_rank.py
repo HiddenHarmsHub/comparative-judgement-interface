@@ -30,15 +30,11 @@ def test_equal_data_setup(equal_weight_app):
     with engine.connect() as conn:
         participant_sql = 'SELECT * FROM "participant"'
         participants = conn.execute(text(participant_sql)).all()
-        assert len(participants) == 2
+        assert len(participants) == 1
 
         participant_group_sql = 'SELECT * FROM "participant_group"'
         participant_groups = conn.execute(text(participant_group_sql)).all()
-        assert len(participant_groups) == 2
-
-        participant_item_sql = 'SELECT * FROM "participant_item"'
-        participant_items = conn.execute(text(participant_item_sql)).all()
-        assert len(participant_items) == 10
+        assert len(participant_groups) == 1
 
 
 def test_item_retrieval_function_choice_with_id(mocker, equal_weight_app):
@@ -85,29 +81,7 @@ def test_item_retrieval_function_choice_with_custom_weights(mocker, custom_weigh
     comparison_function.assert_called_once_with()
 
 
-def test_item_retrieval_function_choice_with_preference(mocker, equal_weight_app):
-    """
-    GIVEN a flask app configured for testing and equal weights
-    WHEN a comparison pair is requested
-    THEN the correct function runs
-    """
-    request = Request(equal_weight_app, {})
-    request._session['participant_id'] = 1
-    request._session['study_id'] = 1
-    request._session['group_ids'] = [1]
-    request._session['weight_conf'] = 'equal'
-    request._session['previous_comparison_id'] = None
-    request._session['comparison_ids'] = []
-    ranker = rank.Rank(request, request._session)
-    ranker._app = request._app
-    get_study_conf = mocker.patch.object(rank.WS, 'get_study_conf')
-    get_study_conf.side_effect = [True]
-    comparison_function = mocker.patch.object(rank.Rank, '_get_preferred_items')
-    ranker._get_items_to_compare()
-    comparison_function.assert_called_once_with()
-
-
-def test_item_retrieval_function_choice_without_preference(mocker, equal_weight_app):
+def test_item_retrieval_function_choice(mocker, equal_weight_app):
     """
     GIVEN a flask app configured for testing and equal weights
     WHEN a comparison pair is requested
@@ -660,53 +634,6 @@ def test_weighted_totals_item_retrieval_last_pair(mocker, custom_totals_app):
     stmt = select(TotalItemPair.custom_item_pair_id).where(TotalItemPair.judged == False)  # NoQA
     result = db.session.execute(stmt).all()
     assert len(result) == 101
-
-
-@pytest.mark.usefixtures('add_basic_data_equal')
-def test_preferred_item_retrieval(mocker, equal_weight_app):
-    """
-    GIVEN a flask app configured for testing and equal weights and with basic data added including item preferences
-    WHEN a user has an active session specifying a group_id and _get_preferred_items is called
-    THEN only items that are known are selected for comparison
-    """
-    request = Request(equal_weight_app, {})
-    request._session['participant_id'] = 1
-    request._session['group_ids'] = [1]
-    request._session['study_id'] = 1
-    request._session['weight_conf'] = 'equal'
-    request._session['previous_comparison_id'] = None
-    request._session['comparison_ids'] = []
-    ranker = rank.Rank(request, request._session)
-    mock_rng = mocker.Mock(spec=random.Generator)
-    equal_weight_app.rng = mock_rng
-    ranker._app = equal_weight_app
-    mock_rng.choice.return_value = [1, 8]
-    ranker._get_preferred_items()
-    # check that we feed the correct data to the random item generator
-    mock_rng.choice.assert_called_once_with([1, 2, 3, 7, 8, 9], 2, replace=False)
-
-
-@pytest.mark.usefixtures('add_basic_data_equal')
-def test_preferred_item_retrieval_not_enough_items(equal_weight_app):
-    """
-    GIVEN a flask app configured for testing and equal weights with basic data added including a single item preference
-    WHEN a user has an active session specifying a group_id and _get_preferred_items is called
-    THEN no items are returned for comparison because there is only one to choose from
-    """
-    request = Request(equal_weight_app, {})
-    request._session['participant_id'] = 2
-    request._session['group_ids'] = [1]
-    request._session['study_id'] = 1
-    request._session['weight_conf'] = 'equal'
-    request._session['previous_comparison_id'] = None
-    request._session['comparison_ids'] = []
-    ranker = rank.Rank(request, request._session)
-    ranker._app = request._app
-    items = ranker._get_preferred_items()
-    # check that we get two items returned from the range
-    assert len(items) == 2
-    assert items[0] is None
-    assert items[1] is None
 
 
 @pytest.mark.usefixtures('add_basic_data_equal')

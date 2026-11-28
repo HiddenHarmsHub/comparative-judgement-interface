@@ -5,7 +5,7 @@ import shutil
 from sqlalchemy import MetaData, Table, text
 
 from .connection import db
-from .models import Comparison, CustomItemPair, Group, Item, ItemGroup, ParticipantGroup, ParticipantItem
+from .models import Comparison, CustomItemPair, Group, Item, ItemGroup, ParticipantGroup
 
 
 class Exporter:
@@ -14,7 +14,7 @@ class Exporter:
     def __init__(self, app) -> None:
         """Initialise the export with the flask app and the required models."""
         self.app = app
-        self.models = [Group, Item, ItemGroup, ParticipantGroup, Comparison, CustomItemPair, ParticipantItem]
+        self.models = [Group, Item, ItemGroup, ParticipantGroup, Comparison, CustomItemPair]
 
     def get_outcome_data(self):
         """Get the data for the outcome table in the form of a list of dictionaries.

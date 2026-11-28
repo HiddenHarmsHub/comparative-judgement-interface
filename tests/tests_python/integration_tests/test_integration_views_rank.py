@@ -584,7 +584,7 @@ def test_skip_button_if_setting_true(equal_weight_client):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = None
         session['comparison_ids'] = []
-        session['study_id'] = 1
+        session['study_id'] = 2
     response = equal_weight_client.get("/rank", follow_redirects=True)
     assert response.status_code == 200
     assert b'Comparison Software: Items Rank' in response.data
@@ -622,7 +622,7 @@ def test_previous_button_if_setting_true(equal_weight_client):
         session['weight_conf'] = 'equal'
         session['previous_comparison_id'] = 2
         session['comparison_ids'] = [1, 2]
-        session['study_id'] = 1
+        session['study_id'] = 2
     response = equal_weight_client.get("/rank", follow_redirects=True)
     assert response.status_code == 200
     assert b'Comparison Software: Items Rank' in response.data

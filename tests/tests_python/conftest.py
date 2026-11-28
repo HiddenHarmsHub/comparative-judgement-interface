@@ -9,7 +9,7 @@ from app import create_app
 from comparison_interface.configuration.validation import Validation as ConfigValidation
 from comparison_interface.configuration.website import Settings as WS
 from comparison_interface.db.connection import db
-from comparison_interface.db.models import ParticipantGroup, ParticipantItem, ParticipantStudy, StudyControl
+from comparison_interface.db.models import ParticipantGroup, ParticipantStudy, StudyControl
 from comparison_interface.db.setup import Setup as DBSetup
 
 
@@ -115,7 +115,6 @@ def add_basic_data_custom(custom_weight_client):
         'offer_escape_route_between_cycles': True,
         'cycle_length': 5,
         'maximum_cycles_per_user': 2,
-        'render_user_item_preference_page': False,
     }
     study_control = StudyControl(**study_control_data)
     db.session.add(study_control)
@@ -179,7 +178,6 @@ def add_basic_data_totals(custom_totals_client):
         'offer_escape_route_between_cycles': True,
         'cycle_length': 5,
         'maximum_cycles_per_user': 2,
-        'render_user_item_preference_page': False,
     }
     study_control = StudyControl(**study_control_data)
     db.session.add(study_control)
@@ -243,7 +241,6 @@ def add_basic_data_equal(equal_weight_client):
         'offer_escape_route_between_cycles': True,
         'cycle_length': 5,
         'maximum_cycles_per_user': 2,
-        'render_user_item_preference_page': False,
     }
     study_control = StudyControl(**study_control_data)
     db.session.add(study_control)
@@ -290,59 +287,6 @@ def add_basic_data_equal(equal_weight_client):
     }
     participant_group = ParticipantGroup(**participant_group_data)
     db.session.add(participant_group)
-    db.session.commit()
-    item_preferences = [
-        {'participant_id': id, 'item_id': 1, 'known': True},
-        {'participant_id': id, 'item_id': 2, 'known': True},
-        {'participant_id': id, 'item_id': 3, 'known': True},
-        {'participant_id': id, 'item_id': 4, 'known': False},
-        {'participant_id': id, 'item_id': 5, 'known': False},
-        {'participant_id': id, 'item_id': 6, 'known': False},
-        {'participant_id': id, 'item_id': 7, 'known': True},
-        {'participant_id': id, 'item_id': 8, 'known': True},
-        {'participant_id': id, 'item_id': 9, 'known': True},
-    ]
-    for preference in item_preferences:
-        item = ParticipantItem(**preference)
-        db.session.add(item)
-    db.session.commit()
-
-    # add data for a participant with only one item preference
-    participant_data = {
-        'name': 'Tester Two',
-        'country': 'England',
-        'allergies': 'Yes',
-        'age': '30',
-        'accepted_ethics_agreement': '1',
-    }
-    participant_data['created_date'] = datetime.now(timezone.utc)
-    db_engine = db.engines['study_db']
-    db_meta = MetaData()
-    db_meta.reflect(bind=db_engine)
-    table = db_meta.tables["participant"]
-    new_participant_sql = table.insert().values(**participant_data)
-    try:
-        # Insert the participant into the database
-        with db_engine.begin() as connection:
-            result = connection.execute(new_participant_sql)
-        id = result.lastrowid
-    except SQLAlchemyError as e:
-        raise RuntimeError(str(e))
-    db.session.commit
-    # insert the group preferences for the participant (assumes groups are always added the same way)
-    participant_group_data = {
-        'participant_id': id,
-        'group_id': 1,
-        'study_id': study_control.study_id,
-        'created_date': datetime.now(timezone.utc),
-    }
-    participant_group = ParticipantGroup(**participant_group_data)
-    db.session.add(participant_group)
-    db.session.commit()
-    item_preferences = [{'participant_id': id, 'item_id': 1, 'known': True}]
-    for preference in item_preferences:
-        item = ParticipantItem(**preference)
-        db.session.add(item)
     db.session.commit()
 
     yield

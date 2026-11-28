@@ -48,7 +48,7 @@ def test_register_participant_with_escape_route_on(equal_weight_client, particip
 
         # Check that there was a redirect to the next page.
         assert response.status_code == 302
-        assert b'href="/selection/items"' in response.data
+        assert b'href="/rank"' in response.data
 
         # Verify the participant was inserted into the database with the cycle count set as 0 and added to the session
         with equal_weight_client.session_transaction() as session:
@@ -77,7 +77,7 @@ def test_register_participant_with_escape_route_off(mocker, equal_weight_client,
 
         # Check that there was a redirect to the next page.
         assert response.status_code == 302
-        assert b'href="/selection/items"' in response.data
+        assert b'href="/rank"' in response.data
 
         # Verify the participant was inserted into the database with the cycle count set as 0 and added to the session
         with equal_weight_client.session_transaction() as session:

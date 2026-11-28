@@ -30,7 +30,6 @@ class Thankyou(Request):
             data['next_seq'] = next_study.study_sequence
             groups = db.session.scalars(db.select(Group).where(Group.study_id == next_study.study_id)).all()
             if len(groups) == 1:
-                print(groups)
                 data['direct_registration'] = True
                 group_data = {
                     "template": "main/components/group.html",
@@ -41,7 +40,6 @@ class Thankyou(Request):
                     "group_columns": False,
                 }
                 group_component.append(group_data)
-                print(group_component)
             else:
                 data['direct_registration'] = False
             data['components'] = group_component

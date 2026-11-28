@@ -79,19 +79,6 @@ The tests can then be run as follows:
 NODE_OPTIONS=--experimental-vm-modules npx jest -- tests_accessibility/accessibility.test.js
 ```
 
-To run the additional study configuration test file:
-
-```bash
-flask --debug setup ../tests/test_configurations/config-equal-item-weights.json
-flask --debug run ---port=5001
-```
-
-The tests can then be run as follows:
-
-```bash
-NODE_OPTIONS=--experimental-vm-modules npx jest -- tests_accessibility/accessibility-item-select.test.js
-```
-
 To run the admin interface accessibility tests a different base settings file is needed and a specific admin user needs
 to be added to the system. In addition to the general installation instructions the following lines fo code need to be
 run to setup the system for the admin tests. Make sure you have a backup copy of your flask.py file before running these
@@ -112,8 +99,7 @@ The tests can then be run as follows:
 NODE_OPTIONS=--experimental-vm-modules npx jest -- tests_accessibility/accessibility-admin.test.js
 ```
 
-The first set of tests will probably be enough for most changes to the system. The second test only tests the item
-select page used when the `renderUserItemPreferencePage` key in the configuration file is set to `true`. The third
+The first set of tests will probably be enough for most changes to the system. The third
 set of tests are only for testing the admin interface.
 
 It is important to remember that automated accessibility tests cannot alone determine whether a website is fully accessible.

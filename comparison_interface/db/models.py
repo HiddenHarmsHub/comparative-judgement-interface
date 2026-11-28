@@ -205,25 +205,6 @@ class TotalItemPair(db.Model, BaseModel):
     created = db.Column(db.DateTime(timezone=True), default=datetime.now)
 
 
-class ParticipantItem(db.Model, BaseModel):
-    """Items that are recognizable by the user. The comparison will be made using only the items selected.
-
-    Args:
-        db (SQLAlchemy): SQLAlchemy connection object
-    """
-
-    __tablename__ = 'participant_item'
-    __bind_key__ = "study_db"
-
-    participant_item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    participant_id = db.Column(db.Integer, db.ForeignKey('participant.participant_id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), nullable=False)
-    known = db.Column(db.Boolean, nullable=False)  # 0 for unknown. 1 for know.
-    date = db.Column(db.DateTime(timezone=True), default=datetime.now)
-
-    __table_args__ = (UniqueConstraint('participant_id', 'item_id', name='_participant_item_uidx'),)
-
-
 class RegistrationQuestions(db.Model, BaseModel):
     """Table to store details of participant registration questions. This can only be changed on rebuild.
 
@@ -301,7 +282,6 @@ class StudyControl(db.Model, BaseModel):
     allow_skip = db.Column(db.Boolean, nullable=False)
     allow_back = db.Column(db.Boolean, nullable=False)
     multiple_questions = db.Column(db.Boolean, nullable=False)
-    render_user_item_preference_page = db.Column(db.Boolean, nullable=False)
     offer_escape_route_between_cycles = db.Column(db.Boolean, nullable=False)
     cycle_length = db.Column(db.Integer, nullable=False)
     maximum_cycles_per_user = db.Column(db.Integer, nullable=False)

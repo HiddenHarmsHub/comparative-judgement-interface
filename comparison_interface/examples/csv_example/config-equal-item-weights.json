@@ -13,14 +13,12 @@
     },
     "studyConfiguration": [
         {
-            "renderUserItemPreferencePage": false,
             "offerEscapeRouteBetweenCycles": true,
             "cycleLength": 5,
             "maximumCyclesPerUser": 2,
             "allowTies": false,
             "allowSkip": true,
             "allowBack": true,
-            "itemSelectionQuestionLabel": "Do you know this item?",
             "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
             "userRegistrationGroupSelectionErr": "Please select at least one region.",
             "rankItemInstructionLabel": "Which municipality has the highest prevalence of the following types of violence?",
@@ -36,19 +34,76 @@
             }
         },
         {
-            "renderUserItemPreferencePage": false,
             "offerEscapeRouteBetweenCycles": true,
-            "cycleLength": 5,
+            "cycleLength": 10,
             "maximumCyclesPerUser": 3,
-            "allowTies": true,
+            "allowTies": false,
             "allowSkip": true,
             "allowBack": true,
-            "rankItemInstructionLabel": "This is the study 2 question?",
-            "userRegistrationGroupQuestionLabel": "Which of these regions are you familiar with?",
-            "userRegistrationGroupSelectionErr": "Please select at least one region.",
-            "comparisonConfiguration": {
-                "weightConfiguration": "equal",
-                "csvFile": "example.csv"
+            "rankItemInstructionLabel": "Study 2 question?",
+            "comparisonConfiguration" : {
+                "weightConfiguration": "weighted-total",
+                "targetComparisons": 100,
+                "groups": [
+                    {
+                        "name": "england_east",
+                        "displayName": "East of England",
+                        "items":[
+                            {
+                                "name": "north_east",
+                                "displayName": "North East",
+                                "imageName": "item_1.png"
+                            },
+                            {
+                                "name": "yorkshire",
+                                "displayName": "Yorkshire & Humberside",
+                                "imageName": "item_3.png"
+                            },
+                            {
+                                "name": "east_midlands",
+                                "displayName": "East Midlands",
+                                "imageName": "item_4.png"
+                            },
+                            {
+                                "name": "eastern",
+                                "displayName": "Eastern",
+                                "imageName": "item_6.png"
+                            }
+                        ],
+                        "weight":[
+                            {
+                                "item_1": "north_east",
+                                "item_2": "yorkshire",
+                                "weight":0.1
+                            },
+                            {
+                                "item_1": "north_east",
+                                "item_2": "east_midlands",
+                                "weight":0.2
+                            },
+                            {
+                                "item_1": "north_east",
+                                "item_2": "eastern",
+                                "weight":0.2
+                            },
+                            {
+                                "item_1": "yorkshire",
+                                "item_2": "east_midlands",
+                                "weight":0.3
+                            },
+                            {
+                                "item_1": "yorkshire",
+                                "item_2": "eastern",
+                                "weight":0.1
+                            },
+                            {
+                                "item_1": "east_midlands",
+                                "item_2": "eastern",
+                                "weight":0.1
+                            }
+                        ]
+                    }
+                ]
             }
         }
     ],
