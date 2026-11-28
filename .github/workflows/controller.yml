@@ -71,12 +71,14 @@ jobs:
 
   html_lint:
     needs: changes
+    if: needs.changes.outputs.curlylint == 'true' 
     uses: ./.github/workflows/html-lint.yml
     with:
       run_curlylint: true
 
   css_lint:
     needs: changes
+    if: needs.changes.outputs.stylelint == 'true'
     uses: ./.github/workflows/css-lint.yml
     with:
       run_stylelint: true
