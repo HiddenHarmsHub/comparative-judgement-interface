@@ -10,8 +10,7 @@
     overflow-wrap: break-word;
 }
 
-div.col,
-div.test {
+div.col {
     padding-left: 0;
 }
 

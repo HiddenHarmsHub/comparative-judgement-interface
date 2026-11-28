@@ -9,6 +9,5 @@ class Logout(Request):
 
     def get(self, _):
         """Request get handler."""
-        print('test')
         self._session.clear()
         return self._redirect('.participant_registration')
