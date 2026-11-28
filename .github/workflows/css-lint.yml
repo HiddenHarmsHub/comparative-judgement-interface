@@ -1,0 +1,28 @@
+name: css-lint
+
+on:
+  workflow_call:
+    inputs:
+      run_stylelint:
+        description: Run Stylelint checks
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  stylelint:
+    if: ${{ inputs.run_stylelint }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24.16.0'
+    - name: Install dependencies
+      run: |
+        npm i stylelint-config-standard
+        npm i @stylistic/stylelint-plugin
+        node_modules/stylelint/bin/stylelint.mjs ./comparison_interface/static/css

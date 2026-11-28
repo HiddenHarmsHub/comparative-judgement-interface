@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ruff: ${{ steps.filter.outputs.ruff }}
+      curlylint: ${{ steps.filter.outputs.curlylint }}
+      eslint: ${{ steps.filter.outputs.eslint }}
+      stylelint: ${{ steps.filter.outputs.stylelint }}
+      pytest: ${{ steps.filter.outputs.pytest }}
+      javascript_tests: ${{ steps.filter.outputs.javascript_tests }}
+      accessibility: ${{ steps.filter.outputs.accessibility }}
+      any_lint: ${{ steps.filter.outputs.ruff == 'true' || steps.filter.outputs.curlylint == 'true' || steps.filter.outputs.eslint == 'true' || steps.filter.outputs.stylelint == 'true' }}
+      any_test: ${{ steps.filter.outputs.pytest == 'true' || steps.filter.outputs.javascript_tests == 'true' }}
+    steps:
+      - name: Detect changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ruff:
+              - '**/*.py'
+            curlylint:
+              - '**/*.html'
+            eslint:
+              - '**/*.js'
+            stylelint:
+              - '**/*.css'
+            pytest:
+              - '**/*.py'
+              - 'tests/test_configurations/**'
+              - 'tests/tests_python/**'
+              - 'tests/tests_admin/**'
+            javascript_tests:
+              - '**/*.js'
+              - 'tests/tests_javascript/**'
+            accessibility:
+              - 'comparison_interface/**/*.py'
+              - 'comparison_interface/**/*.html'
+              - 'comparison_interface/static/js/**/*.js'
+              - 'comparison_interface/static/css/**/*.css'
+              - 'tests/tests_accessibility/**'
+
+  python_ci:
+    needs: changes
+    if: >-
+      needs.changes.outputs.ruff == 'true' ||
+      needs.changes.outputs.pytest == 'true'
+    uses: ./.github/workflows/python-ci.yml
+    with:
+      run_ruff: ${{ needs.changes.outputs.ruff == 'true' }}
+      run_pytest: ${{ needs.changes.outputs.pytest == 'true' }}
+
+  javascript_ci:
+    needs: changes
+    if: >-
+      needs.changes.outputs.eslint == 'true' ||
+      needs.changes.outputs.javascript_tests == 'true'
+    uses: ./.github/workflows/javascript-ci.yml
+    with:
+      run_eslint: ${{ needs.changes.outputs.eslint == 'true' }}
+      run_javascript_tests: ${{ needs.changes.outputs.javascript_tests == 'true' }}
+
+  html_lint:
+    needs: changes
+    if: needs.changes.outputs.curlylint == 'true' 
+    uses: ./.github/workflows/html-lint.yml
+    with:
+      run_curlylint: true
+
+  css_lint:
+    needs: changes
+    if: needs.changes.outputs.stylelint == 'true'
+    uses: ./.github/workflows/css-lint.yml
+    with:
+      run_stylelint: true
+
+  accessibility:
+    needs: [changes, python_ci, javascript_ci, html_lint, css_lint]
+    if: >-
+      always() &&
+      needs.changes.outputs.accessibility == 'true' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    uses: ./.github/workflows/accessibility.yml
+    with:
+      run_accessibility: true

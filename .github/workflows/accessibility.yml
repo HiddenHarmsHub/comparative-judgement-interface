@@ -1,9 +1,16 @@
 name: accessibility-testing
 
-on: [pull_request]
+on:
+  workflow_call:
+    inputs:
+      run_accessibility:
+        description: Run both accessibility test jobs
+        required: true
+        type: boolean
 
 jobs:
-    accessibility_1:
+    accessibility:
+        if: ${{ inputs.run_accessibility }}
         permissions:
           contents: read
         runs-on: ubuntu-latest
@@ -39,6 +46,7 @@ jobs:
 
 
     accessibility_admin:
+        if: ${{ inputs.run_accessibility }}
         permissions:
           contents: read
         runs-on: ubuntu-latest
