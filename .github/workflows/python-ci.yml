@@ -1,0 +1,50 @@
+name: python-ci
+
+on:
+  workflow_call:
+    inputs:
+      run_ruff:
+        description: Run Ruff checks
+        required: false
+        type: boolean
+        default: false
+      run_pytest:
+        description: Run the Python test suites
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  python-ci:
+    if: ${{ inputs.run_ruff || inputs.run_pytest }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Python 3.12
+      uses: actions/setup-python@v5
+      with: 
+        python-version: "3.12"
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install ".[lint,test,admin]"
+        playwright install
+    
+    - name: Run Ruff
+      run: |
+        source venv/bin/activate
+        ruff check .
+        ruff format --check --diff .
+
+    - name: Run Pytest
+      run: |
+        source venv/bin/activate
+        mv comparison_interface/static/example.images/ comparison_interface/static/images/
+        mv  comparison_interface/configuration/example.flask.py comparison_interface/configuration/flask.py
+        mv comparison_interface/example.pages_html comparison_interface/pages_html
+        mv .env-example .env
+        pytest -v tests/tests_python
+        pytest -v tests/tests_admin

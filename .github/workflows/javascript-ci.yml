@@ -1,0 +1,40 @@
+name: javascript-ci
+
+on:
+  workflow_call:
+    inputs:
+      run_eslint:
+        description: Run ESLint checks
+        required: false
+        type: boolean
+        default: false
+      run_javascript_tests:
+        description: Run JavaScript tests
+        required: true
+        type: boolean
+
+jobs:
+  javascript-ci:
+    if: ${{ inputs.run_eslint || inputs.run_javascript_tests }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24.16.0'
+    - name: Install dependencies
+      run: |
+        npm i eslint
+        npm i @eslint/js
+        npm i globals
+        npm i @stylistic/eslint-plugin
+        npm i  jest@^29.7.0 jest-environment-jsdom@^29.7.0
+    
+    - name: Run EsLint
+      run: node_modules/eslint/bin/eslint.js comparison_interface/static/js/src/*.js tests/tests_javascript/*.js tests/tests_accessibility/*.js
+
+    - name: Run tests
+      run: npx jest -- tests/tests_javascript

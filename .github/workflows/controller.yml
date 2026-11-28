@@ -49,65 +49,37 @@ jobs:
               - 'comparison_interface/static/css/**/*.css'
               - 'tests/tests_accessibility/**'
 
-  python_lint:
+  python_ci:
     needs: changes
-    uses: ./.github/workflows/linting.yml
+    if: >-
+      needs.changes.outputs.ruff == 'true' ||
+      needs.changes.outputs.pytest == 'true'
+    uses: ./.github/workflows/python-ci.yml
     with:
-      run_ruff: true
-      run_curlylint: false
-      run_eslint: false
-      run_stylelint: false
+      run_ruff: ${{ needs.changes.outputs.ruff == 'true' }}
+      run_pytest: ${{ needs.changes.outputs.pytest == 'true' }}
+
+  javascript_ci:
+    needs: changes
+    if: >-
+      needs.changes.outputs.eslint == 'true' ||
+      needs.changes.outputs.javascript_tests == 'true'
+    uses: ./.github/workflows/javascript-ci.yml
+    with:
+      run_ruff: ${{ needs.changes.outputs.eslint == 'true' }}
+      run_pytest: ${{ needs.changes.outputs.javascript_tests == 'true' }}
 
   html_lint:
     needs: changes
-    uses: ./.github/workflows/linting.yml
+    uses: ./.github/workflows/html-lint.yml
     with:
-      run_ruff: false
       run_curlylint: true
-      run_eslint: false
-      run_stylelint: false
-
-  js_lint:
-    needs: changes
-    uses: ./.github/workflows/linting.yml
-    with:
-      run_ruff: false
-      run_curlylint: false
-      run_eslint: true
-      run_stylelint: false
 
   css_lint:
     needs: changes
-    uses: ./.github/workflows/linting.yml
+    uses: ./.github/workflows/css-lint.yml
     with:
-      run_ruff: false
-      run_curlylint: false
-      run_eslint: false
       run_stylelint: true
-
-  python_tests:
-    needs: [changes, python_lint]
-    if: >-
-      always() &&
-      needs.changes.outputs.pytest == 'true' &&
-      needs.python_lint.result != 'failure' &&
-      needs.python_lint.result != 'cancelled'
-    uses: ./.github/workflows/testing.yml
-    with:
-      run_pytest: true
-      run_javascript_tests: false
-
-  javascript_tests:
-    needs: [changes, js_lint]
-    if: >-
-      always() &&
-      needs.changes.outputs.javascript_tests == 'true' &&
-      needs.javascript_lint.result != 'failure' &&
-      needs.javascript_lint.result != 'cancelled'
-    uses: ./.github/workflows/testing.yml
-    with:
-      run_pytest: false
-      run_javascript_tests: true
 
   accessibility:
     needs: [changes, python_lint, html_lint, css_lint, js_lint, python_tests, javascript_tests]
