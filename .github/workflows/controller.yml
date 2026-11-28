@@ -82,7 +82,7 @@ jobs:
       run_stylelint: true
 
   accessibility:
-    needs: [changes, python_lint, html_lint, css_lint, js_lint, python_tests, javascript_tests]
+    needs: [changes, python_ci, javascript_ci, html_lint, css_lint]
     if: >-
       always() &&
       needs.changes.outputs.accessibility == 'true' &&
