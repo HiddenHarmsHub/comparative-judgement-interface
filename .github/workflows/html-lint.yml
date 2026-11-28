@@ -9,24 +9,24 @@ on:
         type: boolean
         default: false
 
-  jobs:
-    curlylint:
-      if: ${{ inputs.run_curlylint }}
-      permissions:
-        contents: read
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v4
-      - name: Install Python 3.12
-        uses: actions/setup-python@v5
-        with: 
-          python-version: "3.12"
-      - name: Install dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install ".[lint]"
-      - name: Run curlylint
-        run: |
-          source venv/bin/activate
-          curlylint --verbose .
+jobs:
+  curlylint:
+    if: ${{ inputs.run_curlylint }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Python 3.12
+      uses: actions/setup-python@v5
+      with: 
+        python-version: "3.12"
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install ".[lint]"
+    - name: Run curlylint
+      run: |
+        source venv/bin/activate
+        curlylint --verbose .
