@@ -2,6 +2,7 @@
 
 // on load function to display current state if we are rejudging
 $(function () {
+    console.log('test')
     const rankForm = $('#rank-form');
     if (rankForm.data('initial-state') != '') {
         const initialState = rankForm.data('initial-state');
