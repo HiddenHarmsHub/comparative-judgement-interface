@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ruff: ${{ steps.filter.outputs.ruff }}
+      curlylint: ${{ steps.filter.outputs.curlylint }}
+      eslint: ${{ steps.filter.outputs.eslint }}
+      stylelint: ${{ steps.filter.outputs.stylelint }}
+      pytest: ${{ steps.filter.outputs.pytest }}
+      javascript_tests: ${{ steps.filter.outputs.javascript_tests }}
+      accessibility: ${{ steps.filter.outputs.accessibility }}
+    steps:
+      - name: Detect changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ruff:
+              - '**/*.py'
+            curlylint:
+              - '**/*.html'
+            eslint:
+              - '**/*.js'
+            stylelint:
+              - '**/*.css'
+            pytest:
+              - '**/*.py'
+              - 'tests/test_configurations/**'
+              - 'tests/tests_python/**'
+              - 'tests/tests_admin/**'
+            javascript_tests:
+              - '**/*.js'
+              - 'tests/tests_javascript/**'
+            accessibility:
+              - 'comparison_interface/**/*.py'
+              - 'comparison_interface/**/*.html'
+              - 'comparison_interface/static/js/**/*.js'
+              - 'comparison_interface/static/css/**/*.css'
+              - 'tests/tests_accessibility/**'
+
+  linting:
+    needs: changes
+    uses: ./.github/workflows/linting.yml
+    with:
+      run_ruff: ${{ needs.changes.outputs.ruff == 'true' }}
+      run_curlylint: ${{ needs.changes.outputs.curlylint == 'true' }}
+      run_eslint: ${{ needs.changes.outputs.eslint == 'true' }}
+      run_stylelint: ${{ needs.changes.outputs.stylelint == 'true' }}
+
+  testing:
+    needs: [changes, linting]
+    if: >-
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    uses: ./.github/workflows/testing.yml
+    with:
+      run_pytest: ${{ needs.changes.outputs.pytest == 'true' }}
+      run_javascript_tests: ${{ needs.changes.outputs.javascript_tests == 'true' }}
+
+  accessibility:
+    needs: [changes, linting, testing]
+    if: >-
+      always() &&
+      needs.changes.outputs.accessibility == 'true' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    uses: ./.github/workflows/accessibility.yml
+    with:
+      run_accessibility: true
