@@ -635,7 +635,6 @@ class Rank(Request):
 
         return items[0], items[1]
 
-
     def _get_random_items(self):
         """Get a random pair of items from the website configuration list.
 
