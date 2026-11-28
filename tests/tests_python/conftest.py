@@ -115,7 +115,6 @@ def add_basic_data_custom(custom_weight_client):
         'offer_escape_route_between_cycles': True,
         'cycle_length': 5,
         'maximum_cycles_per_user': 2,
-        'render_user_item_preference_page': False,
     }
     study_control = StudyControl(**study_control_data)
     db.session.add(study_control)
@@ -179,7 +178,6 @@ def add_basic_data_totals(custom_totals_client):
         'offer_escape_route_between_cycles': True,
         'cycle_length': 5,
         'maximum_cycles_per_user': 2,
-        'render_user_item_preference_page': False,
     }
     study_control = StudyControl(**study_control_data)
     db.session.add(study_control)
@@ -243,7 +241,6 @@ def add_basic_data_equal(equal_weight_client):
         'offer_escape_route_between_cycles': True,
         'cycle_length': 5,
         'maximum_cycles_per_user': 2,
-        'render_user_item_preference_page': False,
     }
     study_control = StudyControl(**study_control_data)
     db.session.add(study_control)
