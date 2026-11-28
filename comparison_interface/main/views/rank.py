@@ -41,7 +41,6 @@ class Rank(Request):
         """Request get handler."""
         if not self._valid_session():
             return self._redirect('.participant_registration')
-        print(self._session)
         allow_ties = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_TIES, self._study_id, self._app)
         allow_skip = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_SKIP, self._study_id, self._app)
         allow_back = WS.get_study_conf(WS.BEHAVIOUR_ALLOW_BACK, self._study_id, self._app)
@@ -61,13 +60,11 @@ class Rank(Request):
                 previous_id = previous_id[0]  # the pairs are all the same so just get the first one
         pair_id = None
         item_data = self._get_items_to_compare(previous_id)
-        print(item_data)
 
         if len(item_data) == 2:
             item_1, item_2 = item_data
         else:
             item_1, item_2, pair_id = item_data
-        print(f'items for display {item_1}, {item_2}')
         # Show a "no content error" in case of not enough selected known items.
         if item_1 is None or item_2 is None:
             return self._render_template(
