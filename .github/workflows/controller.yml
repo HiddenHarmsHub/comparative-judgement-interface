@@ -66,8 +66,8 @@ jobs:
       needs.changes.outputs.javascript_tests == 'true'
     uses: ./.github/workflows/javascript-ci.yml
     with:
-      run_ruff: ${{ needs.changes.outputs.eslint == 'true' }}
-      run_pytest: ${{ needs.changes.outputs.javascript_tests == 'true' }}
+      run_eslint: ${{ needs.changes.outputs.eslint == 'true' }}
+      run_javascript_tests: ${{ needs.changes.outputs.javascript_tests == 'true' }}
 
   html_lint:
     needs: changes
