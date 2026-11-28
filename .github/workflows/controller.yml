@@ -18,6 +18,8 @@ jobs:
       pytest: ${{ steps.filter.outputs.pytest }}
       javascript_tests: ${{ steps.filter.outputs.javascript_tests }}
       accessibility: ${{ steps.filter.outputs.accessibility }}
+      any_lint: ${{ steps.filter.outputs.ruff == 'true' || steps.filter.outputs.curlylint == 'true' || steps.filter.outputs.eslint == 'true' || steps.filter.outputs.stylelint == 'true' }}
+      any_test: ${{ steps.filter.outputs.pytest == 'true' || steps.filter.outputs.javascript_tests == 'true' }}
     steps:
       - name: Detect changed files
         uses: dorny/paths-filter@v3

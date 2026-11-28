@@ -1,9 +1,20 @@
 name: testing
 
-on: [pull_request]
+on:
+  workflow_call:
+    inputs:
+      run_pytest:
+        description: Run Python tests
+        required: true
+        type: boolean
+      run_javascript_tests:
+        description: Run JavaScript tests
+        required: true
+        type: boolean
 
 jobs:
     pytest:
+        if: ${{ inputs.run_pytest }}
         permissions:
             contents: read
         runs-on: ubuntu-latest
@@ -30,6 +41,7 @@ jobs:
             pytest -v tests/tests_admin
 
     javascript_tests:
+        if: ${{ inputs.run_javascript_tests }}
         permissions:
             contents: read
         runs-on: ubuntu-latest
