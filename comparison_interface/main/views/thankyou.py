@@ -10,7 +10,6 @@ class Thankyou(Request):
 
     def get(self, _):
         """Request get handler."""
-        print('test')
         data = {
             'thank_you_page_title': WS.get_text(WS.PAGE_TITLE_THANK_YOU, self._language, self._app),
             'title': WS.get_text(WS.THANK_YOU_TITLE, self._language, self._app),
