@@ -148,6 +148,12 @@ class Rank(Request):
                     WS.RANK_ITEM_COMPARISON_EXECUTED_LABEL, self._language, self._app
                 ),
                 'comparison_number': compared,
+                'incomplete_form_error_message': WS.get_text(
+                    WS.RANK_ITEM_INCOMPLETE_FORM_ERROR_MESSAGE, self._language, self._app
+                ),
+                'skip_selection_error_message': WS.get_text(
+                    WS.RANK_ITEM_SKIP_SELECTION_ERROR_MESSAGE, self._language, self._app
+                ),
             }
             data = shared_data | data
             return self._render_template('main/pages/multi_rank.html', data)
@@ -430,7 +436,7 @@ class Rank(Request):
         return current_study.completed_cycles
 
     def _increment_cycle_count(self):
-        """Increment the current participant's cycle count fot their current study."""
+        """Increment the current participant's cycle count for their current study."""
         query = db.select(ParticipantStudy).where(
             ParticipantStudy.participant_id == self._session['participant_id'],
             ParticipantStudy.study_id == self._session['study_id'],
