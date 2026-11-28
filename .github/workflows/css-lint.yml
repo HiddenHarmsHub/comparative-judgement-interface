@@ -3,8 +3,8 @@ name: css-lint
 on:
   workflow_call:
     inputs:
-      run_curlylint:
-        description: Run Curlylint checks
+      run_stylelint:
+        description: Run Stylelint checks
         required: false
         type: boolean
         default: false
